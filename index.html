@@ -176,6 +176,7 @@ button{cursor:pointer}
 .panel-grid.two{grid-template-columns:1.15fr .85fr}
 .panel-grid.equal{grid-template-columns:1fr 1fr}
 .players,.history,.insights,.teams-list{display:grid; gap:12px}
+.players.advanced-scroll{max-height:72vh; overflow:auto; padding-right:8px; align-content:start}
 .player-card{
   border:1px solid var(--line); border-radius:20px; padding:16px; background:rgba(255,255,255,.03);
 }
@@ -325,6 +326,7 @@ dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
   .sidebar{display:none}
   .shell{grid-template-rows:auto auto auto 1fr}
   .kpis,.quick-actions,.live-grid,.advanced-grid,.ss-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .players.advanced-scroll{max-height:none; overflow:visible; padding-right:0}
   .comp-grid,.add-grid{grid-template-columns:1fr}
   .footerbar{
     display:flex; position:sticky; bottom:0; gap:8px; padding:10px 12px env(safe-area-inset-bottom);
@@ -534,7 +536,7 @@ dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
 
           <section class="side-stack">
             <section class="card">
-              <div class="card-head"><div><h2>Shot Chart</h2><p id="shotSyncNote">Select a player. Court taps auto-update stats. Inside the 3-point line scores as 2.</p></div></div>
+              <div class="card-head"><div><h2>Shot Chart</h2><p id="shotSyncNote">Select a player. Made shots beyond the 3-point line count as 3. Made shots inside the line count as 2.</p></div></div>
               <div class="card-body">
                 <div class="shot-controls">
                   <select id="shotPlayer"></select>
@@ -564,8 +566,8 @@ dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
                     <circle cx="200" cy="360" r="44" fill="none" stroke="#8a6535" stroke-width="1.5" stroke-dasharray="4,4"/>
                     <text x="6" y="70" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
                     <text x="376" y="70" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
-                    <text x="60" y="155" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
-                    <text x="292" y="155" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
+                    <text x="60" y="155" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">2PT</text>
+                    <text x="292" y="155" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">2PT</text>
                     <text x="161" y="72" fill="rgba(139,101,53,0.92)" font-size="9" font-family="DM Mono,monospace" font-weight="700">2PT</text>
                     <g id="shotLayer"></g>
                   </svg>
@@ -815,9 +817,18 @@ dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
   function activeQuarter(){ return state.quarter; }
 
   function is3pt(x,y){
-    if(y > 140) return false;
-    if(x <= 28 || x >= 372) return true;
-    return Math.sqrt((x-200)**2 + (y-17)**2) >= 174;
+    const CORNER_X_LEFT = 28;
+    const CORNER_X_RIGHT = 372;
+    const BREAK_Y = 140;
+    const ARC_CENTER_X = 200;
+    const ARC_CENTER_Y = 17;
+    const ARC_RADIUS = 174;
+
+    if(y > BREAK_Y) return false;
+    if(x <= CORNER_X_LEFT || x >= CORNER_X_RIGHT) return true;
+
+    const distanceFromHoop = Math.sqrt((x-ARC_CENTER_X)**2 + (y-ARC_CENTER_Y)**2);
+    return distanceFromHoop > ARC_RADIUS;
   }
 
   function currentLeader(){
@@ -945,6 +956,7 @@ dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
     }
     const adv = state.mode === "advanced" && !state.quickMode;
     const rec = state.recMode || state.quickMode;
+    wrap.classList.toggle("advanced-scroll", adv);
 
     wrap.innerHTML = players.map(p=>{
       const q = p.q[activeQuarter()] || eq();
@@ -1051,7 +1063,7 @@ dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
     sel.innerHTML = `<option value="">— Pick player —</option>` + getActiveTeam().players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
     if(getActiveTeam().players.some(p=>String(p.id) === cur)) sel.value = cur;
     const p = getActiveTeam().players.find(x=>String(x.id) === sel.value);
-    byId("shotSyncNote").textContent = p ? `Court taps update ${p.name} automatically.` : "Select a player. Court taps auto-update stats.";
+    byId("shotSyncNote").textContent = p ? `Court taps update ${p.name} automatically. Made shots beyond the 3-point line count as 3; made shots inside the line count as 2.` : "Select a player. Made shots beyond the 3-point line count as 3. Made shots inside the line count as 2.";
   }
 
   function renderShots(){
