@@ -1,0 +1,1534 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+<meta name="theme-color" content="#0a1323" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>GameIQ Elite — Basketball Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#08111f; --bg2:#0b1629; --panel:#0f1c31; --panel2:#13233d; --panel3:#182a48;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --text:#f3f7ff; --muted:#90a5c9; --dim:#62779b;
+  --accent:#57a8ff; --accent2:#7bc1ff; --accent3:#1dd3b0;
+  --gold:#f5c451; --green:#22c55e; --orange:#ff8c3a; --red:#ef4444; --purple:#a78bfa; --cyan:#22d3ee;
+  --r:22px; --r2:16px; --shadow:0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  font-family:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1100px 700px at -10% -10%, rgba(87,168,255,.10), transparent 55%),
+    radial-gradient(900px 600px at 110% 0%, rgba(29,211,176,.08), transparent 40%),
+    linear-gradient(180deg,#08111f,#0b1526 32%,#08111f 100%);
+  overflow:auto;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none !important}
+.app{
+  min-height:100vh;
+  height:auto;
+  display:grid;
+  grid-template-columns:84px minmax(0,1fr);
+}
+.sidebar{
+  border-right:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(9,16,31,.92),rgba(9,16,31,.82));
+  backdrop-filter:blur(18px);
+  display:flex; flex-direction:column; align-items:center; gap:12px; padding:14px 10px;
+}
+.brand-badge{
+  width:58px; height:58px; border-radius:18px;
+  background:linear-gradient(135deg,#2c6ecb,#57a8ff,#1dd3b0);
+  display:grid; place-items:center; box-shadow:0 10px 24px rgba(87,168,255,.28); position:relative; overflow:hidden;
+}
+.brand-badge:before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.18), transparent 55%);
+}
+.brand-ball{width:34px;height:34px;position:relative;z-index:1}
+.nav-group{display:grid; gap:10px; width:100%}
+.nav-btn{
+  height:52px; border:none; border-radius:16px; background:rgba(255,255,255,.04); color:var(--muted);
+  display:grid; place-items:center; font-size:22px; border:1px solid transparent; transition:.16s ease;
+}
+.nav-btn.active,.nav-btn:hover{background:rgba(87,168,255,.12); color:var(--text); border-color:rgba(87,168,255,.24)}
+.shell{
+  min-width:0;
+  display:grid;
+  grid-template-rows:auto auto 1fr;
+  min-height:100vh;
+  height:auto;
+}
+.install-banner{
+  display:none; align-items:center; gap:12px; padding:10px 18px;
+  background:rgba(87,168,255,.10); border-bottom:1px solid rgba(87,168,255,.25);
+}
+.install-banner.show{display:flex}
+.install-banner strong{color:var(--accent2)}
+.topbar{
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(8,17,31,.96),rgba(8,17,31,.86));
+  backdrop-filter:blur(18px);
+}
+.topbar-inner{
+  display:flex; gap:16px; justify-content:space-between; align-items:center; flex-wrap:wrap;
+  padding:14px 20px;
+}
+.brand-row{display:flex; gap:14px; align-items:center; min-width:0}
+.brand-meta{display:flex; flex-direction:column; gap:3px}
+.brand-name{
+  font-family:"Barlow Condensed",sans-serif; font-size:34px; font-weight:900; letter-spacing:1.6px; line-height:1;
+}
+.brand-name em{color:var(--accent2); font-style:normal}
+.brand-sub{font-size:12px; color:var(--muted)}
+.hero-actions,.meta-row,.action-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.field{
+  display:flex; align-items:center; gap:8px; padding:10px 12px; min-height:42px;
+  background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:14px;
+}
+.field label{font-size:11px; color:var(--muted); white-space:nowrap}
+.field input,.field select{
+  background:transparent; color:var(--text); border:none; outline:none; min-width:0;
+}
+.btn{
+  border:none; min-height:42px; border-radius:14px; padding:10px 14px; font-weight:800; letter-spacing:.2px;
+  transition:transform .12s ease, opacity .15s ease, background .15s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3)); color:#06121f}
+.btn-secondary{background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--line)}
+.btn-ghost{background:transparent; color:var(--muted); border:1px solid var(--line)}
+.btn-danger{background:rgba(239,68,68,.12); color:#fecaca; border:1px solid rgba(239,68,68,.22)}
+.btn-good{background:rgba(34,197,94,.18); color:#c7f9d5; border:1px solid rgba(34,197,94,.24)}
+.tabbar{
+  display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  padding:0 20px 14px;
+}
+.segmented,.quarter-strip,.mini-pills{display:flex; gap:8px; flex-wrap:wrap}
+.seg,.qbtn,.pill{
+  border:none; min-height:38px; padding:8px 14px; border-radius:999px;
+  background:rgba(255,255,255,.05); color:var(--muted); font-weight:800;
+}
+.seg.active,.pill.active{background:white;color:#07111f}
+.qbtn.active{background:var(--accent); color:#06121f}
+.status-chip{
+  padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.05);
+  border:1px solid var(--line); color:var(--muted); font-size:11px;
+}
+.views{min-height:0; overflow:visible}
+.view{
+  min-height:0; height:auto; overflow:visible; padding:18px 20px 22px;
+  display:none;
+}
+.view.active{display:block}
+.grid{
+  display:grid; gap:16px;
+}
+.grid-hero{grid-template-columns:1.25fr .95fr}
+.grid-main{grid-template-columns:1.1fr .9fr}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.025));
+  border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.card-head{
+  display:flex; gap:10px; justify-content:space-between; align-items:flex-start; padding:16px 18px;
+  border-bottom:1px solid var(--line);
+}
+.card-head h2,.card-head h3{margin:0; font-family:"Barlow Condensed",sans-serif; letter-spacing:1px}
+.card-head p{margin:4px 0 0; font-size:12px; color:var(--muted)}
+.card-body{padding:18px}
+.hero-card{
+  padding:18px;
+  background:
+    radial-gradient(800px 260px at 0% 0%, rgba(87,168,255,.14), transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+}
+.kpis{
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px;
+}
+.kpi{
+  border:1px solid var(--line); background:rgba(255,255,255,.035); border-radius:18px; padding:12px 14px;
+}
+.kpi .lbl{font-size:10px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted)}
+.kpi .val{margin-top:6px; font-family:"Barlow Condensed",sans-serif; font-size:30px; line-height:1}
+.kpi .sub{font-size:11px; color:var(--muted); margin-top:4px}
+.hero-row{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start}
+.eyebrow{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--accent2); font-size:11px; font-weight:800; letter-spacing:.6px}
+.hero-title{margin:10px 0 0; font-size:42px; font-family:"Barlow Condensed",sans-serif; line-height:.95}
+.hero-copy{max-width:740px; color:var(--muted); font-size:14px; line-height:1.6; margin-top:8px}
+.quick-actions{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px}
+.quick-card{
+  border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,.035); padding:16px;
+  display:grid; gap:6px; cursor:pointer; transition:.16s ease;
+}
+.quick-card:hover{border-color:rgba(87,168,255,.22); background:rgba(87,168,255,.08)}
+.quick-card b{font-size:15px}
+.quick-card span{color:var(--muted); font-size:12px; line-height:1.5}
+.panel-grid{display:grid; gap:16px}
+.panel-grid.two{grid-template-columns:1.15fr .85fr}
+.panel-grid.equal{grid-template-columns:1fr 1fr}
+.players,.history,.insights,.teams-list{display:grid; gap:12px}
+.player-card{
+  border:1px solid var(--line); border-radius:20px; padding:16px; background:rgba(255,255,255,.03);
+}
+.player-card.warn{border-color:rgba(245,196,81,.36)}
+.player-card.danger{border-color:rgba(239,68,68,.34); background:rgba(239,68,68,.05)}
+.player-top{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap}
+.player-ident{display:flex; gap:12px; align-items:center}
+.badge{
+  min-width:44px; height:44px; padding:0 10px; border-radius:14px; display:grid; place-items:center;
+  background:rgba(87,168,255,.14); color:var(--accent2); border:1px solid rgba(87,168,255,.22);
+  font-family:"Barlow Condensed",sans-serif; font-size:24px; font-weight:900;
+}
+.player-name{font-size:18px; font-weight:800}
+.player-sub{font-size:11px; color:var(--muted); margin-top:2px}
+.foul-badge{
+  margin-top:8px; display:inline-flex; gap:6px; align-items:center; padding:5px 9px; border-radius:999px;
+  font-size:11px; font-weight:800;
+}
+.foul-badge.warn{background:rgba(245,196,81,.12); color:var(--gold); border:1px solid rgba(245,196,81,.24)}
+.foul-badge.danger{background:rgba(239,68,68,.12); color:#fecaca; border:1px solid rgba(239,68,68,.24)}
+.stat-ribbon{
+  margin-top:12px; display:flex; gap:0; overflow:auto; border:1px solid rgba(87,168,255,.18); border-radius:14px; background:rgba(87,168,255,.05)
+}
+.stat-cell{min-width:74px; padding:8px 9px; text-align:center; border-right:1px solid var(--line)}
+.stat-cell:last-child{border-right:none}
+.stat-cell .v{font-family:"Barlow Condensed",sans-serif; font-size:18px; font-weight:900}
+.stat-cell .l{font-family:"DM Mono",monospace; font-size:9px; color:var(--muted)}
+.live-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px}
+.stat-tile{
+  border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:10px;
+}
+.stat-tile .hd{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
+.stat-tile .hd .n{font-size:11px; color:var(--muted); font-weight:800; text-transform:uppercase}
+.stat-tile .hd .v{font-family:"Barlow Condensed",sans-serif; font-size:22px}
+.stepper{display:grid; grid-template-columns:46px 1fr 46px; gap:6px; align-items:center}
+.stepper button{
+  height:46px; border:none; border-radius:12px; font-size:22px; font-weight:900;
+}
+.stepper .minus{background:rgba(239,68,68,.16); color:#fecaca}
+.stepper .plus{background:rgba(34,197,94,.16); color:#bbf7d0}
+.stepper .display{
+  text-align:center; background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:12px;
+  padding:10px 0; font-family:"Barlow Condensed",sans-serif; font-size:22px; font-weight:900;
+}
+.advanced-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px}
+.mini{
+  border-radius:14px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:10px;
+}
+.mini h4{margin:0 0 8px; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted)}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.rec-bar,.mode-bar,.coach-summary{
+  border-radius:18px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:14px 16px;
+}
+.coach-summary strong{font-size:15px}
+.coach-summary p{margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.5}
+.toggle{display:inline-flex; align-items:center; gap:8px}
+.switch{position:relative; width:48px; height:28px}
+.switch input{opacity:0; width:0; height:0}
+.switch-track{
+  position:absolute; inset:0; border-radius:999px; background:rgba(255,255,255,.12); transition:.2s ease;
+}
+.switch-thumb{
+  position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:white; transition:.2s ease;
+}
+.switch input:checked + .switch-track{background:var(--green)}
+.switch input:checked ~ .switch-thumb{transform:translateX(20px)}
+.add-grid{display:grid; grid-template-columns:90px 1.2fr 1fr auto; gap:10px; margin-top:12px}
+input,select,textarea{
+  min-height:44px; background:rgba(255,255,255,.04); color:var(--text);
+  border:1px solid var(--line); border-radius:14px; padding:10px 12px; outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:rgba(87,168,255,.34)}
+.side-stack{display:grid; gap:16px}
+.insight{border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.03); padding:12px 13px}
+.insight strong{display:block; font-size:14px}
+.insight span{display:block; color:var(--muted); margin-top:4px; font-size:12px; line-height:1.5}
+.court-wrap{border-radius:18px; overflow:hidden; border:2px solid rgba(255,255,255,.12); background:#c69966}
+#court{display:block; width:100%; height:auto; touch-action:none; cursor:crosshair}
+.shot-zone-legend{display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:10px; margin:8px 0}
+.zone-dot{width:9px;height:9px;border-radius:50%;display:inline-block;border:2px solid}
+.zone-dot.two{background:rgba(34,197,94,.25);border-color:#22c55e}
+.zone-dot.three{background:rgba(255,140,58,.24);border-color:#ff8c3a}
+.zone-dot.ft{background:rgba(245,196,81,.24);border-color:#f5c451}
+.zone-dot.miss{background:rgba(239,68,68,.24);border-color:#ef4444}
+.shot-controls{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px}
+.ss-row{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:10px}
+.ss-cell{
+  border-radius:13px; border:1px solid var(--line); background:rgba(255,255,255,.03);
+  text-align:center; padding:8px 6px
+}
+.ss-cell .v{font-family:"Barlow Condensed",sans-serif; font-size:18px; font-weight:900}
+.ss-cell .l{font-family:"DM Mono",monospace; font-size:9px; color:var(--muted)}
+.comp-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.comp-result{
+  margin-top:12px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.03); padding:14px;
+}
+.comp-table{width:100%; border-collapse:collapse; font-size:13px}
+.comp-table th,.comp-table td{padding:8px 6px; border-bottom:1px solid var(--line)}
+.comp-table th{text-align:left; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px}
+.canvas-wrap{
+  border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:12px; min-height:280px;
+}
+canvas{width:100%; height:260px; display:block}
+.history-card,.team-card{
+  border-radius:18px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:14px;
+}
+.history-top,.team-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+.history-meta,.team-meta{font-size:11px; color:var(--muted); margin-top:4px}
+.team-roster{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap}
+.chip{display:inline-flex; gap:6px; align-items:center; padding:5px 9px; border-radius:999px; background:rgba(255,255,255,.05); color:var(--muted); font-size:11px; border:1px solid var(--line)}
+.empty{
+  padding:18px; text-align:center; color:var(--muted); border:1px dashed rgba(255,255,255,.14); border-radius:18px
+}
+.coach-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
+.metric-box{
+  border-radius:18px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:14px;
+}
+.metric-box .m{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.1px}
+.metric-box .v{font-family:"Barlow Condensed",sans-serif; font-size:32px; margin-top:6px}
+.metric-box .s{font-size:12px; color:var(--muted); margin-top:4px}
+dialog{
+  border:none; border-radius:24px; max-width:720px; width:min(720px, calc(100vw - 24px));
+  background:#0c172b; color:var(--text); padding:0; box-shadow:var(--shadow); max-height:88vh; overflow:auto;
+}
+dialog::backdrop{background:rgba(0,0,0,.72); backdrop-filter:blur(5px)}
+.modal{padding:22px}
+.modal h3{margin:0 0 8px; font-family:"Barlow Condensed",sans-serif; font-size:28px; letter-spacing:1px}
+.modal p{margin:0 0 12px; color:var(--muted); line-height:1.6}
+.modal-actions{display:flex; gap:8px; flex-wrap:wrap}
+.tour-list{display:grid; gap:10px; margin:14px 0}
+.tour-step{
+  border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.03); padding:14px;
+}
+.footerbar{display:none}
+.toast{
+  position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(12px);
+  padding:12px 16px; border-radius:14px; background:rgba(10,16,28,.96); color:var(--text); border:1px solid var(--line);
+  box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.2s ease; z-index:9999; font-size:13px;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+@media(max-width:1320px){
+  .grid-hero,.grid-main,.panel-grid.two,.panel-grid.equal,.coach-grid{grid-template-columns:1fr}
+}
+@media(max-width:860px){
+  body{overflow:auto}
+  .app{grid-template-columns:1fr; height:auto; min-height:100%}
+  .sidebar{display:none}
+  .shell{grid-template-rows:auto auto auto 1fr}
+  .kpis,.quick-actions,.live-grid,.advanced-grid,.ss-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .comp-grid,.add-grid{grid-template-columns:1fr}
+  .footerbar{
+    display:flex; position:sticky; bottom:0; gap:8px; padding:10px 12px env(safe-area-inset-bottom);
+    background:rgba(8,17,31,.95); border-top:1px solid var(--line); backdrop-filter:blur(18px); z-index:25;
+  }
+  .footerbar .btn{flex:1; min-height:44px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand-badge" title="GameIQ Elite">
+      <svg class="brand-ball" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="15" cy="15" r="13" fill="#0b1c32" stroke="#dff4ff" stroke-opacity=".85" stroke-width="1.3"/>
+        <path d="M 15 2 Q 20 8 20 15 Q 20 22 15 28" stroke="#7bc1ff" stroke-width="1.8" fill="none"/>
+        <path d="M 15 2 Q 10 8 10 15 Q 10 22 15 28" stroke="#7bc1ff" stroke-width="1.8" fill="none"/>
+        <path d="M 2 15 Q 8 10 15 10 Q 22 10 28 15" stroke="#1dd3b0" stroke-width="1.8" fill="none"/>
+        <path d="M 2 15 Q 8 20 15 20 Q 22 20 28 15" stroke="#1dd3b0" stroke-width="1.8" fill="none"/>
+      </svg>
+    </div>
+    <div class="nav-group">
+      <button class="nav-btn active" data-view="dashboard" title="Dashboard">🏠</button>
+      <button class="nav-btn" data-view="live" title="Live Game">🏀</button>
+      <button class="nav-btn" data-view="compare" title="Compare">⚖️</button>
+      <button class="nav-btn" data-view="teams" title="Teams">👥</button>
+      <button class="nav-btn" data-view="season" title="Season">📈</button>
+    </div>
+  </aside>
+
+  <section class="shell">
+    <div class="install-banner" id="installBanner">
+      <div style="flex:1"><strong>Add GameIQ Elite to your home screen</strong> — one tap, offline sideline access.</div>
+      <button class="btn btn-primary" id="installBtn">Install</button>
+      <button class="btn btn-ghost" id="installDismiss">Dismiss</button>
+    </div>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-row">
+          <div class="brand-badge" style="width:54px;height:54px;border-radius:16px">
+            <svg class="brand-ball" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="15" cy="15" r="13" fill="#0b1c32" stroke="#dff4ff" stroke-opacity=".85" stroke-width="1.3"/>
+              <path d="M 15 2 Q 20 8 20 15 Q 20 22 15 28" stroke="#7bc1ff" stroke-width="1.8" fill="none"/>
+              <path d="M 15 2 Q 10 8 10 15 Q 10 22 15 28" stroke="#7bc1ff" stroke-width="1.8" fill="none"/>
+              <path d="M 2 15 Q 8 10 15 10 Q 22 10 28 15" stroke="#1dd3b0" stroke-width="1.8" fill="none"/>
+              <path d="M 2 15 Q 8 20 15 20 Q 22 20 28 15" stroke="#1dd3b0" stroke-width="1.8" fill="none"/>
+            </svg>
+          </div>
+          <div class="brand-meta">
+            <div class="brand-name">Game<em>IQ</em> Elite</div>
+            <div class="brand-sub">AI-assisted basketball command center · offline-first single-file build</div>
+          </div>
+        </div>
+
+        <div class="meta-row">
+          <div class="field"><label>Team</label><select id="teamSelect"></select></div>
+          <div class="field"><label>Home</label><input id="homeTeam" maxlength="18" value="HOME" style="width:86px"></div>
+          <div class="field"><label>Away</label><input id="awayTeam" maxlength="18" value="AWAY" style="width:86px"></div>
+          <div class="field"><label>Date</label><input id="gameDate" type="date" style="width:138px"></div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-good" id="saveBtn">💾 Save Game</button>
+          <button class="btn btn-secondary" id="newBtn">New Game</button>
+          <button class="btn btn-secondary" id="undoBtn">↩ Undo</button>
+          <button class="btn btn-secondary" id="tutorialBtn">Tutorial</button>
+          <button class="btn btn-primary" id="quickModeBtn">Quick Game: Off</button>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="segmented" id="modeTabs">
+          <button class="seg active" data-mode="live">Live Mode</button>
+          <button class="seg" data-mode="advanced">Advanced</button>
+        </div>
+        <div class="quarter-strip" id="quarterTabs">
+          <button class="qbtn active" data-q="1">Q1</button>
+          <button class="qbtn" data-q="2">Q2</button>
+          <button class="qbtn" data-q="3">Q3</button>
+          <button class="qbtn" data-q="4">Q4</button>
+          <button class="qbtn" data-q="OT">OT</button>
+        </div>
+        <div class="status-chip" id="autosaveStatus">Autosave ready</div>
+      </div>
+    </header>
+
+    <section class="views">
+      <div class="view active" id="view-dashboard">
+        <div class="grid grid-hero">
+          <div class="card hero-card">
+            <div class="hero-row">
+              <div>
+                <div class="eyebrow">🏀 Coach-first command center</div>
+                <div class="hero-title">Run your game. See the edge.</div>
+                <div class="hero-copy">
+                  GameIQ Elite keeps the fast tracking flow from your current app, but reorganizes it into a cleaner first screen with AI insights, coach summary, team management, player comparison, season trends, and a quick game mode for sideline speed.
+                </div>
+              </div>
+              <div class="toolbar">
+                <button class="btn btn-primary" data-nav="live">Start Live Game</button>
+                <button class="btn btn-secondary" data-nav="season">Open Season Trends</button>
+                <button class="btn btn-secondary" data-nav="teams">Manage Teams</button>
+              </div>
+            </div>
+
+            <div class="kpis">
+              <div class="kpi"><div class="lbl">Points</div><div class="val" id="dashPts">0</div><div class="sub" id="dashPtsSub">Current game total</div></div>
+              <div class="kpi"><div class="lbl">FG%</div><div class="val" id="dashFg">0%</div><div class="sub">Shot efficiency</div></div>
+              <div class="kpi"><div class="lbl">Top Scorer</div><div class="val" id="dashLeader">—</div><div class="sub">Live leader</div></div>
+              <div class="kpi"><div class="lbl">Saved Games</div><div class="val" id="dashGames">0</div><div class="sub">Season history</div></div>
+            </div>
+
+            <div class="quick-actions">
+              <div class="quick-card" data-nav="live"><b>Quick Game Mode</b><span>Minimal interface: score, shots, fouls, rebounds, assists, turnovers.</span></div>
+              <div class="quick-card" data-nav="compare"><b>Compare Players</b><span>Side-by-side efficiency, scoring, and turnover profile.</span></div>
+              <div class="quick-card" data-nav="season"><b>Season Trends</b><span>Track points and FG% across saved games with built-in charts.</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h2>Coach Dashboard Summary</h2><p>Fast reads for substitutions, efficiency, and game control.</p></div>
+            </div>
+            <div class="card-body">
+              <div class="coach-grid">
+                <div class="metric-box"><div class="m">Top scorer</div><div class="v" id="coachTopScorer">—</div><div class="s" id="coachTopScorerSub">No live scoring yet</div></div>
+                <div class="metric-box"><div class="m">Most efficient</div><div class="v" id="coachEfficient">—</div><div class="s" id="coachEfficientSub">FG% leader</div></div>
+                <div class="metric-box"><div class="m">Ball security</div><div class="v" id="coachBall">—</div><div class="s" id="coachBallSub">Turnover watch</div></div>
+              </div>
+              <div class="coach-summary" style="margin-top:12px">
+                <strong id="coachSummaryTitle">Ready to coach</strong>
+                <p id="coachSummaryBody">Add players or start logging the game. The summary will update as live data comes in.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid two" style="margin-top:16px">
+          <section class="card">
+            <div class="card-head"><div><h2>AI Bench Insights</h2><p>Explainable suggestions generated from your tracked stats.</p></div></div>
+            <div class="card-body"><div class="insights" id="aiInsights"></div></div>
+          </section>
+          <section class="card">
+            <div class="card-head"><div><h2>Recent Games</h2><p>Quick access to your saved season history.</p></div></div>
+            <div class="card-body"><div class="history" id="recentHistory"></div></div>
+          </section>
+        </div>
+      </div>
+
+      <div class="view" id="view-live">
+        <div class="grid grid-main">
+          <section class="card">
+            <div class="card-head">
+              <div><h2>Roster & Live Stats</h2><p>Cleaner first screen, faster stat logging, and quick mode when you need less clutter.</p></div>
+              <div class="toolbar">
+                <button class="btn btn-secondary" id="toggleDetailBtn">Detail</button>
+                <button class="btn btn-secondary" id="reportBtn">📊 Report</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="mode-bar">
+                <div class="toolbar" style="justify-content:space-between">
+                  <div><strong>Quick Game Mode</strong><div style="color:var(--muted);font-size:12px;margin-top:3px">Hides advanced controls and keeps the first screen focused.</div></div>
+                  <div class="toggle">
+                    <span id="quickModeLabel" style="font-size:12px;color:var(--muted)">Off</span>
+                    <label class="switch">
+                      <input type="checkbox" id="quickModeToggle">
+                      <div class="switch-track"></div>
+                      <div class="switch-thumb"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rec-bar" style="margin-top:12px">
+                <div class="toolbar" style="justify-content:space-between">
+                  <div><strong>Rec / Youth Mode</strong><div style="color:var(--muted);font-size:12px;margin-top:3px">Reduces complexity for simple box-score tracking.</div></div>
+                  <div class="toggle">
+                    <span id="recModeLabel" style="font-size:12px;color:var(--muted)">Off</span>
+                    <label class="switch">
+                      <input type="checkbox" id="recModeToggle">
+                      <div class="switch-track"></div>
+                      <div class="switch-thumb"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kpis" style="margin-top:12px">
+                <div class="kpi"><div class="lbl">Points</div><div class="val" id="teamPts">0</div><div class="sub">Team total</div></div>
+                <div class="kpi"><div class="lbl">Rebounds</div><div class="val" id="teamReb">0</div><div class="sub">Live game</div></div>
+                <div class="kpi"><div class="lbl">Assists</div><div class="val" id="teamAst">0</div><div class="sub">Playmaking</div></div>
+                <div class="kpi"><div class="lbl">Turnovers</div><div class="val" id="teamTov">0</div><div class="sub">Ball security</div></div>
+              </div>
+
+              <div class="players" id="players" style="margin-top:14px;padding-right:4px"></div>
+
+              <div class="add-grid">
+                <input id="addNum" placeholder="#" style="text-align:center">
+                <input id="addName" placeholder="Player name">
+                <input id="addPhone" placeholder="Phone or note">
+                <button class="btn btn-primary" id="addBtn">+ Add Player</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="side-stack">
+            <section class="card">
+              <div class="card-head"><div><h2>Shot Chart</h2><p id="shotSyncNote">Select a player. Court taps auto-update stats. Inside the 3-point line scores as 2.</p></div></div>
+              <div class="card-body">
+                <div class="shot-controls">
+                  <select id="shotPlayer"></select>
+                  <button class="pill active made" data-shot="made">✓ Made</button>
+                  <button class="pill miss" data-shot="miss">✗ Miss</button>
+                  <button class="pill ft" data-shot="ft">FT</button>
+                </div>
+                <div class="shot-zone-legend">
+                  <span><span class="zone-dot two"></span> 2PT</span>
+                  <span><span class="zone-dot three"></span> 3PT</span>
+                  <span><span class="zone-dot ft"></span> FT</span>
+                  <span><span class="zone-dot miss"></span> Miss</span>
+                </div>
+                <div class="court-wrap">
+                  <svg id="court" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="400" height="360" fill="#c69966"/>
+                    <rect x="140" y="0" width="120" height="140" fill="#b18354" stroke="#8a6535" stroke-width="2"/>
+                    <rect x="150" y="0" width="100" height="110" fill="none" stroke="#8a6535" stroke-width="2"/>
+                    <circle cx="200" cy="110" r="55" fill="none" stroke="#8a6535" stroke-width="2"/>
+                    <rect x="185" y="5" width="30" height="4" fill="#8a6535"/>
+                    <circle cx="200" cy="17" r="7" fill="none" stroke="#7a5530" stroke-width="2.5"/>
+                    <path d="M 178 17 A 22 22 0 0 1 222 17" fill="none" stroke="#8a6535" stroke-width="1.5"/>
+                    <path d="M 28 0 L 28 140 A 174 174 0 0 0 372 140 L 372 0" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="6,4"/>
+                    <line x1="28" y1="0" x2="28" y2="140" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+                    <line x1="372" y1="0" x2="372" y2="140" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+                    <line x1="0" y1="360" x2="400" y2="360" stroke="#8a6535" stroke-width="1" stroke-dasharray="4,4"/>
+                    <circle cx="200" cy="360" r="44" fill="none" stroke="#8a6535" stroke-width="1.5" stroke-dasharray="4,4"/>
+                    <text x="6" y="70" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
+                    <text x="376" y="70" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
+                    <text x="60" y="155" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
+                    <text x="292" y="155" fill="rgba(255,255,255,0.55)" font-size="9" font-family="DM Mono,monospace" font-weight="700">3PT</text>
+                    <text x="161" y="72" fill="rgba(139,101,53,0.92)" font-size="9" font-family="DM Mono,monospace" font-weight="700">2PT</text>
+                    <g id="shotLayer"></g>
+                  </svg>
+                </div>
+                <div class="ss-row">
+                  <div class="ss-cell"><div class="v" id="ss-fg">0%</div><div class="l">FG%</div></div>
+                  <div class="ss-cell"><div class="v" id="ss-2pt" style="color:#22c55e">0/0</div><div class="l">2PT</div></div>
+                  <div class="ss-cell"><div class="v" id="ss-3pt" style="color:#ff8c3a">0/0</div><div class="l">3PT</div></div>
+                  <div class="ss-cell"><div class="v" id="ss-ft" style="color:#f5c451">0/0</div><div class="l">FT</div></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-head"><div><h2>AI Insights</h2><p>Live coaching suggestions from current game data.</p></div></div>
+              <div class="card-body"><div class="insights" id="liveInsights"></div></div>
+            </section>
+          </section>
+        </div>
+      </div>
+
+      <div class="view" id="view-compare">
+        <section class="card">
+          <div class="card-head"><div><h2>Player Comparison</h2><p>Compare two players across scoring, efficiency, and ball security.</p></div></div>
+          <div class="card-body">
+            <div class="comp-grid">
+              <select id="compareA"></select>
+              <select id="compareB"></select>
+            </div>
+            <div class="comp-result" id="compareResult"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="view" id="view-teams">
+        <div class="panel-grid equal">
+          <section class="card">
+            <div class="card-head"><div><h2>Team Management</h2><p>Create teams and switch between rosters without leaving the page.</p></div></div>
+            <div class="card-body">
+              <div class="add-grid" style="grid-template-columns:1fr auto; margin-top:0">
+                <input id="newTeamName" placeholder="New team name">
+                <button class="btn btn-primary" id="createTeamBtn">Create Team</button>
+              </div>
+              <div class="teams-list" id="teamsList" style="margin-top:14px"></div>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-head"><div><h2>Roster Summary</h2><p>Current active team roster and season totals.</p></div></div>
+            <div class="card-body" id="teamSummaryBody"></div>
+          </section>
+        </div>
+      </div>
+
+      <div class="view" id="view-season">
+        <div class="panel-grid equal">
+          <section class="card">
+            <div class="card-head"><div><h2>Season Trends</h2><p>Saved game history transformed into season-level visuals.</p></div></div>
+            <div class="card-body">
+              <div class="canvas-wrap">
+                <canvas id="pointsChart" width="760" height="260"></canvas>
+              </div>
+              <div style="height:12px"></div>
+              <div class="canvas-wrap">
+                <canvas id="fgChart" width="760" height="260"></canvas>
+              </div>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-head"><div><h2>Saved Games</h2><p>Load, review, or delete season data.</p></div></div>
+            <div class="card-body"><div class="history" id="history"></div></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <div class="footerbar">
+      <button class="btn btn-primary" data-nav="live">Live</button>
+      <button class="btn btn-secondary" data-nav="dashboard">Dash</button>
+      <button class="btn btn-secondary" data-nav="compare">Compare</button>
+      <button class="btn btn-secondary" data-nav="season">Season</button>
+    </div>
+  </section>
+</div>
+
+<dialog id="dlgTutorial">
+  <div class="modal">
+    <h3>Elite Onboarding Tutorial</h3>
+    <p>This replaces the basic welcome dialog with a focused walkthrough for first-time coaches.</p>
+    <div class="tour-list">
+      <div class="tour-step"><strong>1. Dashboard first</strong><div style="color:var(--muted);margin-top:4px">Start on the coach dashboard for game context and AI reads before jumping into tracking.</div></div>
+      <div class="tour-step"><strong>2. Quick Game Mode</strong><div style="color:var(--muted);margin-top:4px">Toggle Quick Game Mode when you need less clutter and faster logging on the sideline.</div></div>
+      <div class="tour-step"><strong>3. Tap the court</strong><div style="color:var(--muted);margin-top:4px">Shot chart taps auto-detect 2PT vs 3PT and update player shooting instantly.</div></div>
+      <div class="tour-step"><strong>4. AI insights</strong><div style="color:var(--muted);margin-top:4px">Insights are explainable. They react to FG%, turnovers, scoring load, and foul pressure.</div></div>
+      <div class="tour-step"><strong>5. Save every game</strong><div style="color:var(--muted);margin-top:4px">Saved games feed season charts, player comparison, and roster-level reporting.</div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="startTutorialBtn">Got it</button>
+      <button class="btn btn-secondary" id="skipTutorialBtn">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlgReport">
+  <div class="modal">
+    <h3>Season Report</h3>
+    <p id="reportSummary">No data yet.</p>
+    <div id="reportTable"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="printReportBtn">Print / PDF</button>
+      <button class="btn btn-secondary" id="closeReportBtn">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORAGE_KEY = "gameiq_elite_v1";
+  const WELCOME_KEY = "gameiq_elite_tutorial_seen";
+
+  const state = {
+    view:"dashboard",
+    mode:"live",
+    quarter:1,
+    shotMode:"made",
+    quickMode:false,
+    recMode:false,
+    nextPlayerId:1,
+    teams:[
+      { id:"team-default", name:"GameIQ Demo Team", players:[] }
+    ],
+    activeTeamId:"team-default",
+    shots:[],
+    games:[],
+    historyStack:[]
+  };
+
+  const byId = id => document.getElementById(id);
+  const qsa = s => Array.from(document.querySelectorAll(s));
+  const today = () => new Date().toISOString().slice(0,10);
+
+  function esc(s){
+    return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+  }
+
+  function showToast(msg){
+    const el = byId("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.classList.remove("show"), 1800);
+  }
+
+  function setStatus(msg){
+    const el = byId("autosaveStatus");
+    if(el) el.textContent = msg;
+  }
+
+  function eq(){
+    return {p2m:0,p2a:0,p3m:0,p3a:0,ftm:0,fta:0,reb:0,ast:0,tov:0,stl:0,blk:0,fouls:0};
+  }
+
+  function mkPlayer(num, name, phone, id){
+    return { id: id ?? state.nextPlayerId++, num, name, phone: phone || "", q:{1:eq(),2:eq(),3:eq(),4:eq(),OT:eq()} };
+  }
+
+  function getActiveTeam(){
+    return state.teams.find(t => t.id === state.activeTeamId) || state.teams[0];
+  }
+
+  function snapshot(){
+    return JSON.parse(JSON.stringify(state));
+  }
+
+  function pushHistory(){
+    state.historyStack.push(snapshot());
+    if(state.historyStack.length > 40) state.historyStack.shift();
+  }
+
+  function undoLast(){
+    const prev = state.historyStack.pop();
+    if(!prev) return false;
+    Object.keys(state).forEach(k => delete state[k]);
+    Object.assign(state, prev);
+    return true;
+  }
+
+  function persist(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...state,
+      meta:{
+        home:byId("homeTeam").value.trim() || "HOME",
+        away:byId("awayTeam").value.trim() || "AWAY",
+        date:byId("gameDate").value || today()
+      }
+    }));
+    setStatus("Autosaved");
+    clearTimeout(persist._t);
+    persist._t = setTimeout(() => setStatus("Autosave ready"), 900);
+  }
+
+  function hydrate(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if(!raw) return;
+      Object.keys(state).forEach(k => delete state[k]);
+      Object.assign(state, raw);
+      byId("homeTeam").value = raw.meta?.home || "HOME";
+      byId("awayTeam").value = raw.meta?.away || "AWAY";
+      byId("gameDate").value = raw.meta?.date || today();
+      if(!Array.isArray(state.teams) || !state.teams.length){
+        state.teams = [{id:"team-default", name:"GameIQ Demo Team", players:[]}];
+        state.activeTeamId = "team-default";
+      }
+      if(!Array.isArray(state.historyStack)) state.historyStack = [];
+      state.nextPlayerId = Number(state.nextPlayerId || 1);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  function totalPlayer(p){
+    const t = eq();
+    [1,2,3,4,"OT"].forEach(k=>{
+      const s = p.q[k] || eq();
+      Object.keys(t).forEach(key => t[key] += s[key]);
+    });
+    return t;
+  }
+
+  function totalTeam(){
+    const t = eq();
+    getActiveTeam().players.forEach(p=>{
+      const tp = totalPlayer(p);
+      Object.keys(t).forEach(k => t[k] += tp[k]);
+    });
+    return t;
+  }
+
+  function ptsOf(t){ return t.p2m*2 + t.p3m*3 + t.ftm; }
+  function fgm(t){ return t.p2m + t.p3m; }
+  function fga(t){ return t.p2a + t.p3a; }
+  function pct(m,a){ return a ? Math.round((m/a)*100) : 0; }
+  function activeQuarter(){ return state.quarter; }
+
+  function is3pt(x,y){
+    if(y > 140) return false;
+    if(x <= 28 || x >= 372) return true;
+    return Math.sqrt((x-200)**2 + (y-17)**2) >= 174;
+  }
+
+  function currentLeader(){
+    const players = getActiveTeam().players.map(p=>({p,t:totalPlayer(p)})).sort((a,b)=>ptsOf(b.t)-ptsOf(a.t));
+    return players[0] || null;
+  }
+
+  function mostEfficient(){
+    const rows = getActiveTeam().players.map(p=>({p,t:totalPlayer(p), fg:pct(fgm(totalPlayer(p)), fga(totalPlayer(p)))}))
+      .filter(r => fga(r.t) >= 3)
+      .sort((a,b)=>b.fg-a.fg || ptsOf(b.t)-ptsOf(a.t));
+    return rows[0] || null;
+  }
+
+  function lowestTov(){
+    const rows = getActiveTeam().players.map(p=>({p,t:totalPlayer(p)}))
+      .filter(r => ptsOf(r.t) > 0 || r.t.ast > 0 || r.t.reb > 0)
+      .sort((a,b)=>a.t.tov-b.t.tov || ptsOf(b.t)-ptsOf(a.t));
+    return rows[0] || null;
+  }
+
+  function generateAIInsights(){
+    const team = getActiveTeam();
+    const t = totalTeam();
+    const insights = [];
+
+    if(!team.players.length){
+      return [{title:"No roster yet", body:"Add players to unlock live coaching suggestions, player comparison, and season reporting."}];
+    }
+
+    const leader = currentLeader();
+    const efficient = mostEfficient();
+    const lowTurn = lowestTov();
+
+    if(leader && ptsOf(leader.t) >= 10){
+      insights.push({title:"Ride the hot hand", body:`${leader.p.name} leads with ${ptsOf(leader.t)} points. Consider keeping actions flowing through that side.`});
+    }
+
+    const turnoverWatch = team.players.map(p=>({p,t:totalPlayer(p)})).sort((a,b)=>b.t.tov-a.t.tov)[0];
+    if(turnoverWatch && turnoverWatch.t.tov >= 3){
+      insights.push({title:"Ball security alert", body:`${turnoverWatch.p.name} has ${turnoverWatch.t.tov} turnovers. A safer inbound or shorter read may help.`});
+    }
+
+    if(efficient){
+      insights.push({title:"Efficiency edge", body:`${efficient.p.name} is at ${efficient.fg}% FG on ${fga(efficient.t)} attempts. That is your most efficient current volume scorer.`});
+    }
+
+    const foulRisk = team.players.map(p=>({p,t:totalPlayer(p)})).find(r => r.t.fouls >= 4);
+    if(foulRisk){
+      insights.push({title:"Foul pressure", body:`${foulRisk.p.name} is at ${foulRisk.t.fouls} fouls. Manage minutes or defensive assignment.`});
+    }
+
+    if(pct(fgm(t), fga(t)) < 35 && fga(t) >= 8){
+      insights.push({title:"Shot profile issue", body:`Team FG is ${pct(fgm(t),fga(t))}%. Shift toward paint touches, free throws, or your highest-efficiency player.`});
+    }
+
+    if(t.ast <= Math.max(1, Math.floor((ptsOf(t)/10))) && ptsOf(t) >= 12){
+      insights.push({title:"Stalled ball movement", body:`Assists are low relative to scoring output. A quick reversal or extra pass may improve shot quality.`});
+    }
+
+    if(!insights.length){
+      insights.push({title:"Game is in control", body:"No major risk flags yet. Keep logging possessions to feed stronger reads."});
+    }
+
+    return insights.slice(0,5);
+  }
+
+  function renderNav(){
+    qsa(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.view === state.view));
+    qsa(".view").forEach(v => v.classList.toggle("active", v.id === `view-${state.view}`));
+  }
+
+  function renderTeamSelect(){
+    const sel = byId("teamSelect");
+    const current = state.activeTeamId;
+    sel.innerHTML = state.teams.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("");
+    sel.value = current;
+  }
+
+  function renderModeTabs(){
+    qsa("#modeTabs .seg").forEach(b => b.classList.toggle("active", b.dataset.mode === state.mode));
+    qsa("#quarterTabs .qbtn").forEach(b => b.classList.toggle("active", String(b.dataset.q) === String(state.quarter)));
+    byId("quickModeToggle").checked = !!state.quickMode;
+    byId("quickModeLabel").textContent = state.quickMode ? "On" : "Off";
+    byId("quickModeBtn").textContent = `Quick Game: ${state.quickMode ? "On" : "Off"}`;
+    byId("recModeToggle").checked = !!state.recMode;
+    byId("recModeLabel").textContent = state.recMode ? "On" : "Off";
+  }
+
+  function renderSummary(){
+    const t = totalTeam();
+    byId("teamPts").textContent = ptsOf(t);
+    byId("teamReb").textContent = t.reb;
+    byId("teamAst").textContent = t.ast;
+    byId("teamTov").textContent = t.tov;
+    byId("dashPts").textContent = ptsOf(t);
+    byId("dashFg").textContent = pct(fgm(t),fga(t)) + "%";
+    const leader = currentLeader();
+    byId("dashLeader").textContent = leader ? leader.p.name.split(" ")[0] : "—";
+    byId("dashGames").textContent = state.games.length;
+  }
+
+  function renderCoachSummary(){
+    const leader = currentLeader();
+    const efficient = mostEfficient();
+    const safe = lowestTov();
+    byId("coachTopScorer").textContent = leader ? `${ptsOf(leader.t)}` : "—";
+    byId("coachTopScorerSub").textContent = leader ? `${leader.p.name} is leading` : "No live scoring yet";
+    byId("coachEfficient").textContent = efficient ? `${efficient.fg}%` : "—";
+    byId("coachEfficientSub").textContent = efficient ? `${efficient.p.name} leads efficiency` : "Need more shot volume";
+    byId("coachBall").textContent = safe ? `${safe.t.tov}` : "—";
+    byId("coachBallSub").textContent = safe ? `${safe.p.name} is protecting the ball best` : "Need live play data";
+
+    const insights = generateAIInsights();
+    byId("coachSummaryTitle").textContent = insights[0]?.title || "Ready to coach";
+    byId("coachSummaryBody").textContent = insights[0]?.body || "Start logging the game.";
+  }
+
+  function renderPlayers(){
+    const wrap = byId("players");
+    const players = getActiveTeam().players;
+    if(!players.length){
+      wrap.innerHTML = `<div class="empty">No players yet. Add a roster below to start the live game.</div>`;
+      return;
+    }
+    const adv = state.mode === "advanced" && !state.quickMode;
+    const rec = state.recMode || state.quickMode;
+
+    wrap.innerHTML = players.map(p=>{
+      const q = p.q[activeQuarter()] || eq();
+      const t = totalPlayer(p);
+      const p2p = pct(t.p2m,t.p2a), p3p = pct(t.p3m,t.p3a), ftp = pct(t.ftm,t.fta);
+      const cls = t.fouls >= 5 ? "danger" : t.fouls >= 3 ? "warn" : "";
+      return `
+        <div class="player-card ${cls}">
+          <div class="player-top">
+            <div class="player-ident">
+              <div class="badge">#${esc(p.num)}</div>
+              <div>
+                <div class="player-name">${esc(p.name)}</div>
+                <div class="player-sub">${p.phone ? esc(p.phone) : "No note"} · Q${esc(activeQuarter())}</div>
+                ${t.fouls >= 5 ? '<div class="foul-badge danger">🚨 5 fouls — foul out risk</div>' : t.fouls >= 3 ? `<div class="foul-badge warn">⚠️ ${t.fouls} fouls — manage minutes</div>` : ""}
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="player-sub">Points</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:42px;line-height:.9;color:var(--accent2)">${ptsOf(t)}</div>
+            </div>
+          </div>
+
+          <div class="stat-ribbon">
+            <div class="stat-cell"><div class="v" style="color:var(--accent2)">${ptsOf(t)}</div><div class="l">PTS</div></div>
+            <div class="stat-cell"><div class="v" style="color:#7bc1ff">${t.p2m}/${t.p2a}</div><div class="l">2PT·${p2p}%</div></div>
+            <div class="stat-cell"><div class="v" style="color:#ff8c3a">${t.p3m}/${t.p3a}</div><div class="l">3PT·${p3p}%</div></div>
+            <div class="stat-cell"><div class="v" style="color:#f5c451">${t.ftm}/${t.fta}</div><div class="l">FT·${ftp}%</div></div>
+            <div class="stat-cell"><div class="v" style="color:#7bc1ff">${t.reb}</div><div class="l">REB</div></div>
+            <div class="stat-cell"><div class="v" style="color:#22c55e">${t.ast}</div><div class="l">AST</div></div>
+            <div class="stat-cell"><div class="v" style="color:#ef4444">${t.tov}</div><div class="l">TOV</div></div>
+            ${rec ? "" : `<div class="stat-cell"><div class="v" style="color:#22d3ee">${t.stl}</div><div class="l">STL</div></div>
+            <div class="stat-cell"><div class="v" style="color:#a78bfa">${t.blk}</div><div class="l">BLK</div></div>
+            <div class="stat-cell"><div class="v" style="color:${t.fouls>=4?'#f5c451':'var(--muted)'}">${t.fouls}</div><div class="l">FOULS</div></div>`}
+          </div>
+
+          <div class="live-grid">
+            ${tile(p.id,"reb","Reb",q.reb)}
+            ${tile(p.id,"ast","Ast",q.ast)}
+            ${tile(p.id,"tov","Tov",q.tov)}
+            ${tile(p.id,"fouls","Fouls",q.fouls)}
+          </div>
+
+          ${adv ? `
+            <div class="advanced-grid">
+              ${mini(p.id,"p2m","Made 2PT",q.p2m)}
+              ${mini(p.id,"p2a","2PT Att",q.p2a)}
+              ${mini(p.id,"p3m","Made 3PT",q.p3m)}
+              ${mini(p.id,"p3a","3PT Att",q.p3a)}
+              ${mini(p.id,"ftm","Made FT",q.ftm)}
+              ${mini(p.id,"fta","FT Att",q.fta)}
+              ${mini(p.id,"stl","Steals",q.stl)}
+              ${mini(p.id,"blk","Blocks",q.blk)}
+              <div class="mini"><h4>Quarter snapshot</h4><div>FG: <b>${fgm(q)}/${fga(q)}</b></div><div>FG%: <b>${pct(fgm(q),fga(q))}%</b></div><div>3PT: <b>${q.p3m}/${q.p3a}</b></div><div>FT: <b>${q.ftm}/${q.fta}</b></div></div>
+            </div>` : ""}
+
+          <div class="toolbar" style="margin-top:12px">
+            <button class="btn btn-secondary copy-btn" data-pid="${p.id}">Copy line</button>
+            <button class="btn btn-danger del-btn" data-pid="${p.id}">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    qsa(".stepper button").forEach(btn=>btn.addEventListener("click",()=>{
+      adjustStat(Number(btn.dataset.pid), btn.dataset.stat, Number(btn.dataset.delta));
+    }));
+    qsa(".copy-btn").forEach(btn=>btn.addEventListener("click",()=>copyPlayer(Number(btn.dataset.pid))));
+    qsa(".del-btn").forEach(btn=>btn.addEventListener("click",()=>removePlayer(Number(btn.dataset.pid))));
+  }
+
+  function tile(id, stat, label, val){
+    return `<div class="stat-tile">
+      <div class="hd"><div class="n">${label}</div><div class="v">${val}</div></div>
+      <div class="stepper">
+        <button class="minus" data-pid="${id}" data-stat="${stat}" data-delta="-1">−</button>
+        <div class="display">${val}</div>
+        <button class="plus" data-pid="${id}" data-stat="${stat}" data-delta="1">+</button>
+      </div>
+    </div>`;
+  }
+
+  function mini(id, stat, label, val){
+    return `<div class="mini">
+      <h4>${label}</h4>
+      <div class="stepper">
+        <button class="minus" data-pid="${id}" data-stat="${stat}" data-delta="-1">−</button>
+        <div class="display">${val}</div>
+        <button class="plus" data-pid="${id}" data-stat="${stat}" data-delta="1">+</button>
+      </div>
+    </div>`;
+  }
+
+  function renderInsights(){
+    const items = generateAIInsights();
+    const html = items.map(i=>`<div class="insight"><strong>${esc(i.title)}</strong><span>${esc(i.body)}</span></div>`).join("");
+    byId("aiInsights").innerHTML = html;
+    byId("liveInsights").innerHTML = html;
+  }
+
+  function renderShotSelector(){
+    const sel = byId("shotPlayer");
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">— Pick player —</option>` + getActiveTeam().players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
+    if(getActiveTeam().players.some(p=>String(p.id) === cur)) sel.value = cur;
+    const p = getActiveTeam().players.find(x=>String(x.id) === sel.value);
+    byId("shotSyncNote").textContent = p ? `Court taps update ${p.name} automatically.` : "Select a player. Court taps auto-update stats.";
+  }
+
+  function renderShots(){
+    byId("shotLayer").innerHTML = state.shots.map(s=>{
+      const color = s.type === "miss" ? "#ef4444" : s.type === "ft" ? "#f5c451" : s.detectedAs === "3pt" ? "#ff8c3a" : "#22c55e";
+      const sym = s.type === "miss" ? "✕" : s.type === "ft" ? "F" : s.detectedAs === "3pt" ? "3" : "2";
+      return `<g><circle cx="${s.x}" cy="${s.y}" r="8" fill="${color}40" stroke="${color}" stroke-width="1.8"/><text x="${s.x}" y="${s.y+3.2}" text-anchor="middle" font-size="7.5" fill="${color}" font-family="DM Mono,monospace" font-weight="700">${sym}</text></g>`;
+    }).join("");
+    qsa(".pill[data-shot]").forEach(btn => btn.classList.toggle("active", btn.dataset.shot === state.shotMode));
+  }
+
+  function renderShotStats(){
+    const pid = Number(byId("shotPlayer").value || 0);
+    const rows = pid ? state.shots.filter(s=>s.playerId === pid) : state.shots;
+    const m2 = rows.filter(s=>s.type === "made" && s.detectedAs === "2pt").length;
+    const a2 = rows.filter(s=>s.type !== "ft" && s.detectedAs === "2pt").length;
+    const m3 = rows.filter(s=>s.type === "made" && s.detectedAs === "3pt").length;
+    const a3 = rows.filter(s=>s.type !== "ft" && s.detectedAs === "3pt").length;
+    const mft = rows.filter(s=>s.type === "ft").length;
+    const totalMade = m2+m3+mft, totalAtt = a2+a3+mft;
+    byId("ss-fg").textContent = pct(totalMade,totalAtt) + "%";
+    byId("ss-2pt").textContent = `${m2}/${a2}`;
+    byId("ss-3pt").textContent = `${m3}/${a3}`;
+    byId("ss-ft").textContent = `${mft}/${mft}`;
+  }
+
+  function renderCompare(){
+    const players = getActiveTeam().players;
+    const aSel = byId("compareA"), bSel = byId("compareB");
+    const options = `<option value="">— Select player —</option>` + players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
+    const aVal = aSel.value, bVal = bSel.value;
+    aSel.innerHTML = options; bSel.innerHTML = options;
+    if(players.some(p=>String(p.id)===aVal)) aSel.value = aVal;
+    if(players.some(p=>String(p.id)===bVal)) bSel.value = bVal;
+
+    const pa = players.find(p=>String(p.id)===aSel.value);
+    const pb = players.find(p=>String(p.id)===bSel.value);
+    const box = byId("compareResult");
+    if(!pa || !pb){
+      box.innerHTML = `<div class="empty">Select two players to compare their game totals and efficiency.</div>`;
+      return;
+    }
+    const ta = totalPlayer(pa), tb = totalPlayer(pb);
+    const aFg = pct(fgm(ta), fga(ta)), bFg = pct(fgm(tb), fga(tb));
+    const rows = [
+      ["Points", ptsOf(ta), ptsOf(tb)],
+      ["FG%", aFg + "%", bFg + "%"],
+      ["Rebounds", ta.reb, tb.reb],
+      ["Assists", ta.ast, tb.ast],
+      ["Turnovers", ta.tov, tb.tov],
+      ["Fouls", ta.fouls, tb.fouls]
+    ];
+    let verdict = "";
+    if(ptsOf(ta) > ptsOf(tb) && aFg >= bFg) verdict = `${pa.name} has the stronger scoring profile right now.`;
+    else if(ptsOf(tb) > ptsOf(ta) && bFg >= aFg) verdict = `${pb.name} has the stronger scoring profile right now.`;
+    else if(aFg > bFg) verdict = `${pa.name} is more efficient, while ${pb.name} may still be carrying volume.`;
+    else if(bFg > aFg) verdict = `${pb.name} is more efficient, while ${pa.name} may still be carrying volume.`;
+    else verdict = `The two players are currently balanced across the tracked metrics.`;
+
+    box.innerHTML = `
+      <table class="comp-table">
+        <thead><tr><th>Metric</th><th>${esc(pa.name)}</th><th>${esc(pb.name)}</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody>
+      </table>
+      <div style="margin-top:12px;color:var(--muted);line-height:1.6">${esc(verdict)}</div>
+    `;
+  }
+
+  function renderHistory(){
+    const wrap = byId("history");
+    const recent = byId("recentHistory");
+    if(!state.games.length){
+      wrap.innerHTML = `<div class="empty">No saved games yet.</div>`;
+      recent.innerHTML = `<div class="empty">Save your first game to populate season history.</div>`;
+      return;
+    }
+    const html = state.games.slice().reverse().map((g,i)=>`
+      <div class="history-card">
+        <div class="history-top">
+          <div><strong>${esc(g.home)} vs ${esc(g.away)}</strong><div class="history-meta">${esc(g.date)} · ${g.teamName || "Unknown team"} · ${g.players.length} players</div></div>
+          <div style="text-align:right"><strong>${g.summary.points} pts</strong><div class="history-meta">FG ${g.summary.fgPct}%</div></div>
+        </div>
+        <div class="history-meta" style="margin-top:8px">REB ${g.summary.rebounds} · AST ${g.summary.assists} · TOV ${g.summary.turnovers}</div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn btn-secondary load-game" data-idx="${i}">Load</button>
+          <button class="btn btn-danger del-game" data-idx="${i}">Delete</button>
+        </div>
+      </div>`).join("");
+    wrap.innerHTML = html;
+    recent.innerHTML = state.games.slice(-3).reverse().map(g=>`
+      <div class="history-card">
+        <div class="history-top"><div><strong>${esc(g.home)} vs ${esc(g.away)}</strong><div class="history-meta">${esc(g.date)}</div></div><div><strong>${g.summary.points} pts</strong></div></div>
+      </div>`).join("");
+
+    qsa(".load-game").forEach(btn=>btn.addEventListener("click",()=>loadGame(Number(btn.dataset.idx))));
+    qsa(".del-game").forEach(btn=>btn.addEventListener("click",()=>deleteGame(Number(btn.dataset.idx))));
+  }
+
+  function renderTeams(){
+    const wrap = byId("teamsList");
+    wrap.innerHTML = state.teams.map(team=>`
+      <div class="team-card">
+        <div class="team-top">
+          <div><strong>${esc(team.name)}</strong><div class="team-meta">${team.players.length} players</div></div>
+          <div class="toolbar">
+            <button class="btn btn-secondary select-team" data-team="${team.id}">${team.id === state.activeTeamId ? "Active" : "Use team"}</button>
+            ${team.id === "team-default" ? "" : `<button class="btn btn-danger del-team" data-team="${team.id}">Delete</button>`}
+          </div>
+        </div>
+        <div class="team-roster">${team.players.length ? team.players.map(p=>`<span class="chip">#${esc(p.num)} ${esc(p.name)}</span>`).join("") : '<span class="chip">No players yet</span>'}</div>
+      </div>
+    `).join("");
+
+    qsa(".select-team").forEach(btn=>btn.addEventListener("click",()=>{
+      state.activeTeamId = btn.dataset.team;
+      rerender();
+    }));
+    qsa(".del-team").forEach(btn=>btn.addEventListener("click",()=>deleteTeam(btn.dataset.team)));
+
+    const active = getActiveTeam();
+    const totals = totalTeam();
+    byId("teamSummaryBody").innerHTML = active.players.length ? `
+      <div class="team-card">
+        <div class="team-top"><div><strong>${esc(active.name)}</strong><div class="team-meta">Active roster snapshot</div></div></div>
+        <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px">
+          <div class="kpi"><div class="lbl">Players</div><div class="val">${active.players.length}</div><div class="sub">Roster size</div></div>
+          <div class="kpi"><div class="lbl">Points</div><div class="val">${ptsOf(totals)}</div><div class="sub">Current game</div></div>
+          <div class="kpi"><div class="lbl">FG%</div><div class="val">${pct(fgm(totals),fga(totals))}%</div><div class="sub">Team efficiency</div></div>
+        </div>
+        <div class="team-roster">${active.players.map(p=>`<span class="chip">#${esc(p.num)} ${esc(p.name)}</span>`).join("")}</div>
+      </div>
+    ` : `<div class="empty">The active team has no roster yet. Add players from the live screen.</div>`;
+  }
+
+  function drawLineChart(canvasId, values, labels, color, title){
+    const c = byId(canvasId);
+    if(!c) return;
+    const ctx = c.getContext("2d");
+    const W = c.width, H = c.height;
+    ctx.clearRect(0,0,W,H);
+
+    ctx.fillStyle = "rgba(255,255,255,.02)";
+    ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle = "#f3f7ff";
+    ctx.font = "700 14px 'DM Sans'";
+    ctx.fillText(title, 18, 22);
+
+    const left=46, right=W-18, top=42, bottom=H-34;
+    ctx.strokeStyle = "rgba(255,255,255,.12)";
+    ctx.lineWidth = 1;
+    for(let i=0;i<4;i++){
+      const y = top + (bottom-top)*(i/3);
+      ctx.beginPath(); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(left, top); ctx.lineTo(left, bottom); ctx.lineTo(right, bottom); ctx.stroke();
+
+    if(!values.length){
+      ctx.fillStyle = "#90a5c9";
+      ctx.font = "12px 'DM Sans'";
+      ctx.fillText("Save games to populate this chart.", 18, 54);
+      return;
+    }
+
+    const max = Math.max(...values, 1);
+    const min = Math.min(...values, 0);
+    const range = Math.max(1, max - min);
+    const stepX = values.length > 1 ? (right-left)/(values.length-1) : 0;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    values.forEach((v,i)=>{
+      const x = left + stepX*i;
+      const y = bottom - ((v-min)/range)*(bottom-top);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    values.forEach((v,i)=>{
+      const x = left + stepX*i;
+      const y = bottom - ((v-min)/range)*(bottom-top);
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#90a5c9";
+      ctx.font = "10px 'DM Mono'";
+      const lbl = labels[i] || "";
+      ctx.fillText(lbl, Math.max(10, x-10), bottom+16);
+    });
+  }
+
+  function renderCharts(){
+    const activeName = getActiveTeam().name;
+    const games = state.games.filter(g=>g.teamName === activeName);
+    const labels = games.map((g,i)=>`G${i+1}`);
+    drawLineChart("pointsChart", games.map(g=>g.summary.points), labels, "#57a8ff", `${activeName} points by saved game`);
+    drawLineChart("fgChart", games.map(g=>g.summary.fgPct), labels, "#1dd3b0", `${activeName} FG% by saved game`);
+  }
+
+  function renderReport(){
+    const games = state.games.length ? state.games : [{
+      players:getActiveTeam().players,
+      summary:{ points:ptsOf(totalTeam()), rebounds:totalTeam().reb, assists:totalTeam().ast, turnovers:totalTeam().tov, fgPct:pct(fgm(totalTeam()), fga(totalTeam())) }
+    }];
+    const map = new Map();
+    games.forEach(g => g.players.forEach(p=>{
+      const t = totalPlayer(p), key = `${p.num}-${p.name}`;
+      if(!map.has(key)) map.set(key, {num:p.num,name:p.name,games:0,pts:0,reb:0,ast:0,tov:0});
+      const row = map.get(key);
+      row.games += 1; row.pts += ptsOf(t); row.reb += t.reb; row.ast += t.ast; row.tov += t.tov;
+    }));
+    const rows = [...map.values()].sort((a,b)=>b.pts-a.pts);
+    byId("reportSummary").textContent = `${games.length} game(s) · ${rows.length} tracked players`;
+    byId("reportTable").innerHTML = rows.length ? `
+      <table class="comp-table">
+        <thead><tr><th>Player</th><th>G</th><th>PTS</th><th>REB</th><th>AST</th><th>TOV</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr><td>#${esc(r.num)} ${esc(r.name)}</td><td>${r.games}</td><td>${r.pts}</td><td>${r.reb}</td><td>${r.ast}</td><td>${r.tov}</td></tr>`).join("")}</tbody>
+      </table>` : `<div class="empty">No data yet.</div>`;
+  }
+
+  function rerender(){
+    renderNav();
+    renderTeamSelect();
+    renderModeTabs();
+    renderSummary();
+    renderCoachSummary();
+    renderPlayers();
+    renderInsights();
+    renderShotSelector();
+    renderShots();
+    renderShotStats();
+    renderCompare();
+    renderHistory();
+    renderTeams();
+    renderCharts();
+    persist();
+  }
+
+  function adjustStat(id, stat, delta){
+    const player = getActiveTeam().players.find(p=>p.id===id);
+    if(!player) return;
+    pushHistory();
+    const q = player.q[activeQuarter()];
+    if(["p2m","p3m","ftm","reb","ast","tov","stl","blk","fouls"].includes(stat)){
+      q[stat] = Math.max(0, q[stat] + delta);
+      if(stat === "p2m" && delta > 0) q.p2a++;
+      if(stat === "p3m" && delta > 0) q.p3a++;
+      if(stat === "ftm" && delta > 0) q.fta++;
+      if(stat === "p2m" && delta < 0) q.p2a = Math.max(q.p2m, q.p2a - 1);
+      if(stat === "p3m" && delta < 0) q.p3a = Math.max(q.p3m, q.p3a - 1);
+      if(stat === "ftm" && delta < 0) q.fta = Math.max(q.ftm, q.fta - 1);
+    } else {
+      q[stat] = Math.max(0, q[stat] + delta);
+      if(stat === "p2a") q.p2m = Math.min(q.p2m, q.p2a);
+      if(stat === "p3a") q.p3m = Math.min(q.p3m, q.p3a);
+      if(stat === "fta") q.ftm = Math.min(q.ftm, q.fta);
+    }
+    rerender();
+  }
+
+  function addPlayer(){
+    const num = byId("addNum").value.trim();
+    const name = byId("addName").value.trim();
+    const phone = byId("addPhone").value.trim();
+    if(!name || name.length < 2){ showToast("Enter a player name."); return; }
+    if(!num || !/^\d{1,3}$/.test(num)){ showToast("Use a jersey number."); return; }
+    pushHistory();
+    getActiveTeam().players.push(mkPlayer(num,name,phone));
+    byId("addNum").value = ""; byId("addName").value = ""; byId("addPhone").value = "";
+    rerender();
+    showToast(`${name} added.`);
+  }
+
+  function removePlayer(id){
+    pushHistory();
+    const team = getActiveTeam();
+    const player = team.players.find(p=>p.id===id);
+    team.players = team.players.filter(p=>p.id!==id);
+    state.shots = state.shots.filter(s=>s.playerId!==id);
+    rerender();
+    showToast(player ? `${player.name} removed.` : "Player removed.");
+  }
+
+  function copyPlayer(id){
+    const p = getActiveTeam().players.find(x=>x.id===id);
+    if(!p) return;
+    const t = totalPlayer(p);
+    const txt = `${p.name} (#${p.num}) — ${ptsOf(t)} PTS, ${t.reb} REB, ${t.ast} AST, ${t.tov} TOV. FG ${fgm(t)}/${fga(t)}.`;
+    navigator.clipboard?.writeText(txt);
+    showToast("Player line copied.");
+  }
+
+  function newGame(){
+    pushHistory();
+    const team = getActiveTeam();
+    team.players = [];
+    state.shots = [];
+    state.mode = "live";
+    state.quickMode = false;
+    state.recMode = false;
+    state.quarter = 1;
+    byId("homeTeam").value = "HOME";
+    byId("awayTeam").value = "AWAY";
+    byId("gameDate").value = today();
+    rerender();
+    showToast("New game ready.");
+  }
+
+  function saveGame(){
+    pushHistory();
+    const t = totalTeam();
+    const team = getActiveTeam();
+    state.games.push({
+      home: byId("homeTeam").value.trim() || "HOME",
+      away: byId("awayTeam").value.trim() || "AWAY",
+      date: byId("gameDate").value || today(),
+      teamName: team.name,
+      savedAt: new Date().toISOString(),
+      summary:{
+        points:ptsOf(t), rebounds:t.reb, assists:t.ast, turnovers:t.tov, fgPct:pct(fgm(t),fga(t))
+      },
+      players: JSON.parse(JSON.stringify(team.players)),
+      shots: JSON.parse(JSON.stringify(state.shots))
+    });
+    rerender();
+    showToast("Game saved.");
+  }
+
+  function loadGame(reverseIdx){
+    pushHistory();
+    const game = state.games[state.games.length - 1 - reverseIdx];
+    if(!game) return;
+    byId("homeTeam").value = game.home;
+    byId("awayTeam").value = game.away;
+    byId("gameDate").value = game.date;
+    const team = getActiveTeam();
+    team.players = JSON.parse(JSON.stringify(game.players));
+    state.shots = JSON.parse(JSON.stringify(game.shots || []));
+    state.nextPlayerId = Math.max(1, ...team.players.map(p=>p.id || 0)) + 1;
+    state.view = "live";
+    rerender();
+    showToast("Game loaded.");
+  }
+
+  function deleteGame(reverseIdx){
+    pushHistory();
+    state.games.splice(state.games.length - 1 - reverseIdx, 1);
+    rerender();
+    showToast("Saved game deleted.");
+  }
+
+  function createTeam(){
+    const name = byId("newTeamName").value.trim();
+    if(!name){ showToast("Enter a team name."); return; }
+    pushHistory();
+    const id = "team-" + Date.now().toString(36);
+    state.teams.push({id, name, players:[]});
+    state.activeTeamId = id;
+    byId("newTeamName").value = "";
+    rerender();
+    showToast("Team created.");
+  }
+
+  function deleteTeam(id){
+    if(state.teams.length <= 1){ showToast("Keep at least one team."); return; }
+    pushHistory();
+    state.teams = state.teams.filter(t=>t.id!==id);
+    if(state.activeTeamId === id) state.activeTeamId = state.teams[0].id;
+    rerender();
+    showToast("Team deleted.");
+  }
+
+  function openReport(){
+    renderReport();
+    byId("dlgReport").showModal();
+  }
+
+  function onCourtClick(evt){
+    const pid = Number(byId("shotPlayer").value || 0);
+    if(!pid){ showToast("Pick a player first."); return; }
+    const svg = byId("court");
+    const pt = svg.createSVGPoint();
+    const src = evt.touches ? evt.touches[0] : evt;
+    pt.x = src.clientX; pt.y = src.clientY;
+    const cur = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const x = Math.max(4, Math.min(396, cur.x));
+    const y = Math.max(4, Math.min(356, cur.y));
+
+    const player = getActiveTeam().players.find(p=>p.id===pid);
+    if(!player) return;
+    pushHistory();
+    const q = player.q[activeQuarter()];
+    let detectedAs = "2pt";
+    if(state.shotMode === "ft"){
+      q.ftm++; q.fta++; detectedAs = "ft";
+    }else if(state.shotMode === "made"){
+      if(is3pt(x,y)){ q.p3m++; q.p3a++; detectedAs = "3pt"; }
+      else{ q.p2m++; q.p2a++; detectedAs = "2pt"; }
+    }else{
+      if(is3pt(x,y)){ q.p3a++; detectedAs = "3pt"; }
+      else{ q.p2a++; detectedAs = "2pt"; }
+    }
+    state.shots.push({playerId:pid, x, y, type:state.shotMode, detectedAs, q:activeQuarter(), createdAt:new Date().toISOString()});
+    rerender();
+  }
+
+  function bind(){
+    qsa(".nav-btn").forEach(btn => btn.addEventListener("click", ()=>{ state.view = btn.dataset.view; rerender(); }));
+    qsa("[data-nav]").forEach(btn => btn.addEventListener("click", ()=>{ state.view = btn.dataset.nav; rerender(); }));
+
+    byId("teamSelect").addEventListener("change", e=>{ state.activeTeamId = e.target.value; rerender(); });
+
+    qsa("#modeTabs .seg").forEach(btn => btn.addEventListener("click", ()=>{ state.mode = btn.dataset.mode; rerender(); }));
+    qsa("#quarterTabs .qbtn").forEach(btn => btn.addEventListener("click", ()=>{ state.quarter = btn.dataset.q === "OT" ? "OT" : Number(btn.dataset.q); rerender(); }));
+
+    byId("addBtn").addEventListener("click", addPlayer);
+    byId("addName").addEventListener("keydown", e=>{ if(e.key === "Enter") addPlayer(); });
+
+    byId("saveBtn").addEventListener("click", saveGame);
+    byId("newBtn").addEventListener("click", newGame);
+    byId("undoBtn").addEventListener("click", ()=>{ if(undoLast()){ rerender(); showToast("Undone."); } else showToast("Nothing to undo."); });
+    byId("tutorialBtn").addEventListener("click", ()=>byId("dlgTutorial").showModal());
+    byId("toggleDetailBtn").addEventListener("click", ()=>{ state.mode = state.mode === "live" ? "advanced" : "live"; rerender(); });
+    byId("reportBtn").addEventListener("click", openReport);
+
+    byId("quickModeToggle").addEventListener("change", e=>{ state.quickMode = !!e.target.checked; rerender(); });
+    byId("quickModeBtn").addEventListener("click", ()=>{ state.quickMode = !state.quickMode; rerender(); });
+    byId("recModeToggle").addEventListener("change", e=>{ state.recMode = !!e.target.checked; rerender(); });
+
+    qsa(".pill[data-shot]").forEach(btn => btn.addEventListener("click", ()=>{ state.shotMode = btn.dataset.shot; rerender(); }));
+    byId("shotPlayer").addEventListener("change", rerender);
+    byId("court").addEventListener("click", onCourtClick);
+    byId("court").addEventListener("touchend", e=>{ e.preventDefault(); onCourtClick(e); }, {passive:false});
+
+    byId("compareA").addEventListener("change", renderCompare);
+    byId("compareB").addEventListener("change", renderCompare);
+
+    byId("createTeamBtn").addEventListener("click", createTeam);
+    byId("newTeamName").addEventListener("keydown", e=>{ if(e.key==="Enter") createTeam(); });
+
+    ["homeTeam","awayTeam","gameDate"].forEach(id => byId(id).addEventListener("input", persist));
+
+    byId("startTutorialBtn").addEventListener("click", ()=>byId("dlgTutorial").close());
+    byId("skipTutorialBtn").addEventListener("click", ()=>byId("dlgTutorial").close());
+    byId("closeReportBtn").addEventListener("click", ()=>byId("dlgReport").close());
+    byId("printReportBtn").addEventListener("click", ()=>window.print());
+
+    ["dlgTutorial","dlgReport"].forEach(id=>{
+      byId(id).addEventListener("click", e=>{ if(e.target === byId(id)) byId(id).close(); });
+    });
+
+    let deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e)=>{
+      e.preventDefault();
+      deferredPrompt = e;
+      byId("installBanner").classList.add("show");
+    });
+    byId("installBtn").addEventListener("click", async ()=>{
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      byId("installBanner").classList.remove("show");
+    });
+    byId("installDismiss").addEventListener("click", ()=>byId("installBanner").classList.remove("show"));
+  }
+
+  hydrate();
+  byId("gameDate").value = byId("gameDate").value || today();
+  bind();
+  rerender();
+
+  if(localStorage.getItem(WELCOME_KEY) !== "1"){
+    byId("dlgTutorial").showModal();
+    localStorage.setItem(WELCOME_KEY, "1");
+  }
+})();
+</script>
+</body>
+</html>
