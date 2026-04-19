@@ -1,0 +1,42 @@
+{
+  "name": "GameIQ Elite",
+  "short_name": "GameIQ",
+  "description": "AI-assisted basketball command center for coaches. Live stat tracking, shot charts, team management, and season trends — offline-first.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08111f",
+  "theme_color": "#08111f",
+  "orientation": "any",
+  "categories": ["sports", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Live Game",
+      "short_name": "Live",
+      "description": "Jump straight into live game tracking",
+      "url": "/?view=live",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Season Stats",
+      "short_name": "Season",
+      "description": "View season trends and history",
+      "url": "/?view=season",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
