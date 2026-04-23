@@ -1,5 +1,5 @@
-const CACHE = "gameiq-elite-v2";
-const ASSETS = ["/", "/index.html", "/manifest.json"];
+const CACHE = "gameiq-elite-v3";
+const ASSETS = ["/GameIQ-Elite/", "/GameIQ-Elite/index.html", "/GameIQ-Elite/manifest.json"];
 
 self.addEventListener("install", e => {
   e.waitUntil(
