@@ -1762,6 +1762,11 @@ async function init(){
 }
 
 init();
+
+/* ── expose functions called via inline onclick attributes ── */
+window.openPricing=openPricing;
+window.openSettings=openSettings;
+window.setTier=setTier;
 })();
 </script>
 </body>
