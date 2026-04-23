@@ -25,81 +25,41 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{
-  font-family:"DM Sans",system-ui,sans-serif;color:var(--text);
-  background:var(--bg);overflow:hidden;
-}
+body{font-family:"DM Sans",system-ui,sans-serif;color:var(--text);background:var(--bg);overflow:hidden;}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 .hidden{display:none!important}
-
-/* ── SCROLLBARS ── */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
-
-/* ── APP SHELL ── */
 .app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:100vh;overflow:hidden}
-
-/* ── SIDEBAR ── */
-.sidebar{
-  background:rgba(7,12,22,.95);border-right:1px solid var(--line);
-  display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 8px;
-  position:relative;z-index:30;
-}
-.brand-mark{
-  width:52px;height:52px;border-radius:16px;flex-shrink:0;
-  background:linear-gradient(145deg,#1a4fa8,#4d9fff 50%,#1ecfb0);
-  display:grid;place-items:center;position:relative;overflow:hidden;
-  box-shadow:0 8px 20px rgba(77,159,255,.3);
-}
+.sidebar{background:rgba(7,12,22,.95);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 8px;position:relative;z-index:30;}
+.brand-mark{width:52px;height:52px;border-radius:16px;flex-shrink:0;background:linear-gradient(145deg,#1a4fa8,#4d9fff 50%,#1ecfb0);display:grid;place-items:center;position:relative;overflow:hidden;box-shadow:0 8px 20px rgba(77,159,255,.3);}
 .brand-mark::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.2),transparent 60%)}
 .brand-ball{width:30px;height:30px;position:relative;z-index:1}
 .nav-sep{width:40px;height:1px;background:var(--line);margin:4px 0}
-.nav-btn{
-  width:52px;height:52px;border-radius:14px;border:1px solid transparent;
-  background:rgba(255,255,255,.03);color:var(--muted);font-size:20px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  transition:all .14s ease;position:relative;
-}
+.nav-btn{width:52px;height:52px;border-radius:14px;border:1px solid transparent;background:rgba(255,255,255,.03);color:var(--muted);font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .14s ease;position:relative;}
 .nav-btn .nlbl{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
 .nav-btn.active,.nav-btn:hover{background:rgba(77,159,255,.14);border-color:rgba(77,159,255,.28);color:var(--text)}
 .nav-btn.active .nlbl,.nav-btn:hover .nlbl{color:var(--accent2)}
 .nav-btn .pro-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
-
-/* ── SHELL ── */
 .shell{display:grid;grid-template-rows:auto 1fr;min-height:0;overflow:hidden}
-
-/* ── TOPBAR ── */
-.topbar{
-  background:rgba(7,12,22,.96);border-bottom:1px solid var(--line);
-  backdrop-filter:blur(16px);z-index:20;flex-shrink:0;
-}
+.topbar{background:rgba(7,12,22,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);z-index:20;flex-shrink:0;}
 .topbar-row1{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 18px}
 .brand-text{font-family:"Barlow Condensed",sans-serif;font-size:30px;font-weight:900;letter-spacing:1.5px;line-height:1}
 .brand-text em{color:var(--accent2);font-style:normal}
 .brand-sub{font-size:11px;color:var(--dim);margin-top:2px}
-.tier-badge{
-  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
-  font-size:11px;font-weight:800;letter-spacing:.4px;margin-left:8px;cursor:pointer;
-  transition:.14s;
-}
+.tier-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.4px;margin-left:8px;cursor:pointer;transition:.14s;}
 .tier-free{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid var(--line2)}
 .tier-pro{background:rgba(240,190,62,.15);color:var(--gold);border:1px solid rgba(240,190,62,.3)}
 .tier-team{background:rgba(157,126,252,.15);color:var(--team);border:1px solid rgba(157,126,252,.3)}
 .meta-fields{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.field{
-  display:flex;align-items:center;gap:7px;padding:7px 11px;min-height:38px;
-  background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;
-}
+.field{display:flex;align-items:center;gap:7px;padding:7px 11px;min-height:38px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;}
 .field label{font-size:10px;color:var(--dim);white-space:nowrap;text-transform:uppercase;letter-spacing:.6px}
 .field input,.field select{background:transparent;border:none;outline:none;color:var(--text);min-width:0;font-size:13px}
 .topbar-row2{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:0 18px 10px}
-.btn{
-  border:none;min-height:38px;border-radius:11px;padding:8px 13px;font-weight:800;font-size:13px;
-  letter-spacing:.1px;transition:transform .1s,opacity .14s,background .14s;white-space:nowrap;
-}
+.btn{border:none;min-height:38px;border-radius:11px;padding:8px 13px;font-weight:800;font-size:13px;letter-spacing:.1px;transition:transform .1s,opacity .14s,background .14s;white-space:nowrap;}
 .btn:active{transform:scale(.96)}
 .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#061220}
 .btn-secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
@@ -114,19 +74,9 @@ button{cursor:pointer;border:none;background:none}
 .qbtn{border:none;min-height:34px;min-width:38px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.05);color:var(--muted);font-weight:800;font-size:12px;transition:.14s}
 .qbtn.active{background:var(--accent);color:#04101e}
 .chip{padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted);font-size:11px;white-space:nowrap}
-.chip.online{color:var(--green);border-color:rgba(33,197,93,.3)}
 .chip.saving{color:var(--accent2)}
-
-/* ── GAME CLOCK ── */
-.clock-strip{
-  display:flex;align-items:center;gap:14px;padding:0 18px 10px;flex-wrap:wrap;
-}
-.clock-display{
-  font-family:"Barlow Condensed",sans-serif;font-size:36px;font-weight:900;
-  color:var(--accent2);letter-spacing:2px;cursor:pointer;min-width:80px;text-align:center;
-  background:rgba(77,159,255,.08);border:1px solid rgba(77,159,255,.2);border-radius:12px;padding:4px 14px;
-  transition:.14s;
-}
+.clock-strip{display:flex;align-items:center;gap:14px;padding:0 18px 10px;flex-wrap:wrap;}
+.clock-display{font-family:"Barlow Condensed",sans-serif;font-size:36px;font-weight:900;color:var(--accent2);letter-spacing:2px;cursor:pointer;min-width:80px;text-align:center;background:rgba(77,159,255,.08);border:1px solid rgba(77,159,255,.2);border-radius:12px;padding:4px 14px;transition:.14s;}
 .clock-display:hover{background:rgba(77,159,255,.14)}
 .clock-display.running{color:var(--green);border-color:rgba(33,197,93,.3);background:rgba(33,197,93,.08)}
 .clock-display.danger{color:var(--red);border-color:rgba(239,64,64,.3);animation:pulse-clock 1s ease infinite}
@@ -135,44 +85,28 @@ button{cursor:pointer;border:none;background:none}
 .timeout-dots{display:flex;gap:4px}
 .to-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid var(--line2);transition:.2s;cursor:pointer}
 .to-dot.used{background:var(--red);border-color:var(--red)}
-.score-vs{
-  display:flex;align-items:center;gap:10px;margin-left:auto;
-  font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900;
-}
+.score-vs{display:flex;align-items:center;gap:10px;margin-left:auto;font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900;}
 .score-val{background:rgba(255,255,255,.05);border:1px solid var(--line2);border-radius:10px;padding:4px 14px;min-width:52px;text-align:center}
 .score-lbl{font-size:11px;color:var(--dim);display:block;font-family:"DM Sans",sans-serif;font-weight:400;margin-bottom:2px}
-
-/* ── VIEWS ── */
 .views{min-height:0;overflow-y:auto;overflow-x:hidden}
 .view{display:none;padding:16px 18px 80px;animation:fadeIn .18s ease}
 .view.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-/* ── GRID LAYOUTS ── */
 .g2{display:grid;gap:14px;grid-template-columns:1.2fr .8fr}
 .g2r{display:grid;gap:14px;grid-template-columns:.8fr 1.2fr}
 .g3{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
 .gstack{display:grid;gap:14px}
 .gcols{display:grid;gap:14px;grid-template-columns:1fr 1fr}
-
-/* ── CARDS ── */
-.card{
-  background:linear-gradient(170deg,rgba(255,255,255,.042),rgba(255,255,255,.018));
-  border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
-}
+.card{background:linear-gradient(170deg,rgba(255,255,255,.042),rgba(255,255,255,.018));border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
 .card-head{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
 .card-head h2{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:800;letter-spacing:.8px;line-height:1}
 .card-head p{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
 .card-body{padding:16px}
-
-/* ── KPI ROW ── */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .kpi{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:16px;padding:11px 13px}
 .kpi .lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted)}
 .kpi .val{font-family:"Barlow Condensed",sans-serif;font-size:28px;line-height:1;margin-top:5px}
 .kpi .sub{font-size:10px;color:var(--dim);margin-top:3px}
-
-/* ── PLAYER CARDS ── */
 .players-list{display:grid;gap:10px}
 .pcard{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.028);transition:border-color .14s}
 .pcard.warn{border-color:rgba(240,190,62,.35)}
@@ -180,11 +114,7 @@ button{cursor:pointer;border:none;background:none}
 .pcard.benched{opacity:.5;border-style:dashed}
 .pcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
 .pcard-id{display:flex;gap:11px;align-items:center}
-.num-badge{
-  min-width:42px;height:42px;padding:0 9px;border-radius:12px;
-  background:rgba(77,159,255,.13);color:var(--accent2);border:1px solid rgba(77,159,255,.22);
-  font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900;display:grid;place-items:center;
-}
+.num-badge{min-width:42px;height:42px;padding:0 9px;border-radius:12px;background:rgba(77,159,255,.13);color:var(--accent2);border:1px solid rgba(77,159,255,.22);font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900;display:grid;place-items:center;}
 .pname{font-size:17px;font-weight:800}
 .ppos{font-size:10px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center}
 .court-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:.4px}
@@ -195,16 +125,12 @@ button{cursor:pointer;border:none;background:none}
 .foul-flag{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:800;margin-top:6px}
 .foul-flag.warn{background:rgba(240,190,62,.12);color:var(--gold);border:1px solid rgba(240,190,62,.22)}
 .foul-flag.danger{background:rgba(239,64,64,.12);color:#fca5a5;border:1px solid rgba(239,64,64,.22)}
-
-/* ── STAT RIBBON ── */
 .stat-ribbon{display:flex;overflow-x:auto;border:1px solid rgba(77,159,255,.15);border-radius:12px;background:rgba(77,159,255,.04);margin-top:10px;scrollbar-width:none}
 .stat-ribbon::-webkit-scrollbar{display:none}
 .stat-cell{min-width:68px;padding:7px 8px;text-align:center;border-right:1px solid var(--line);flex-shrink:0}
 .stat-cell:last-child{border-right:none}
 .stat-cell .sv{font-family:"Barlow Condensed",sans-serif;font-size:17px;font-weight:900}
 .stat-cell .sl{font-family:"DM Mono",monospace;font-size:8px;color:var(--dim);margin-top:1px}
-
-/* ── LIVE GRID / STEPPERS ── */
 .live-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .stat-tile{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:9px}
 .stat-tile .th{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
@@ -216,19 +142,13 @@ button{cursor:pointer;border:none;background:none}
 .step-minus{background:rgba(239,64,64,.14);color:#fca5a5}
 .step-plus{background:rgba(33,197,93,.14);color:#86efac}
 .step-display{text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:9px 0;font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900}
-
-/* ── PLUS MINUS ── */
-.pm-badge{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;font-family:"Barlow Condensed",sans-serif;font-size:14px}
+.pm-badge{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:14px;font-weight:800;font-family:"Barlow Condensed",sans-serif;}
 .pm-pos{background:rgba(33,197,93,.12);color:#86efac;border:1px solid rgba(33,197,93,.22)}
 .pm-neg{background:rgba(239,64,64,.12);color:#fca5a5;border:1px solid rgba(239,64,64,.22)}
 .pm-zero{background:rgba(255,255,255,.05);color:var(--dim);border:1px solid var(--line)}
-
-/* ── ADVANCED GRID ── */
 .adv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .mini-card{border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:9px}
 .mini-card h4{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px}
-
-/* ── SHOT CHART ── */
 .court-wrap{border-radius:16px;overflow:hidden;border:2px solid rgba(255,255,255,.1);touch-action:none;cursor:crosshair}
 #court{display:block;width:100%;height:auto;touch-action:none}
 .shot-controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
@@ -238,8 +158,6 @@ button{cursor:pointer;border:none;background:none}
 .ss-cell{border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.025);text-align:center;padding:7px 5px}
 .ss-cell .ssv{font-family:"Barlow Condensed",sans-serif;font-size:17px;font-weight:900}
 .ss-cell .ssl{font-family:"DM Mono",monospace;font-size:8px;color:var(--dim);margin-top:1px}
-
-/* ── TOGGLE ── */
 .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
 .switch{position:relative;width:44px;height:26px;flex-shrink:0}
 .switch input{opacity:0;width:0;height:0}
@@ -247,16 +165,12 @@ button{cursor:pointer;border:none;background:none}
 .sw-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:.18s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .switch input:checked+.sw-track{background:var(--green)}
 .switch input:checked~.sw-thumb{transform:translateX(18px)}
-
-/* ── INSIGHTS ── */
 .insights-list{display:grid;gap:9px}
 .insight{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);padding:11px 13px}
 .insight strong{display:block;font-size:13px;margin-bottom:3px}
 .insight span{display:block;color:var(--muted);font-size:12px;line-height:1.55}
 .insight.locked{position:relative;overflow:hidden;pointer-events:none}
 .insight.locked::after{content:"🔒 PRO";position:absolute;inset:0;display:grid;place-items:center;background:rgba(7,12,22,.82);font-size:11px;font-weight:900;letter-spacing:1px;color:var(--gold);backdrop-filter:blur(3px)}
-
-/* ── COACH ANALYTICS ── */
 .analytics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
 .metric-card{border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:13px 15px}
 .metric-card .ml{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.1px}
@@ -264,18 +178,8 @@ button{cursor:pointer;border:none;background:none}
 .metric-card .ms{font-size:11px;color:var(--muted);margin-top:3px}
 .dev-arc{margin-top:6px;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
 .dev-fill{height:100%;border-radius:2px;transition:width .6s ease}
-
-/* ── GAME OVER SCREEN ── */
-.gameover-overlay{
-  position:fixed;inset:0;background:rgba(4,8,18,.95);z-index:200;
-  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);
-  animation:fadeIn .3s ease;
-}
-.gameover-card{
-  background:linear-gradient(170deg,#0d1d33,#0a1628);border:1px solid rgba(77,159,255,.3);
-  border-radius:28px;padding:32px;max-width:520px;width:90%;text-align:center;
-  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 80px rgba(77,159,255,.08);
-}
+.gameover-overlay{position:fixed;inset:0;background:rgba(4,8,18,.95);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:fadeIn .3s ease;}
+.gameover-card{background:linear-gradient(170deg,#0d1d33,#0a1628);border:1px solid rgba(77,159,255,.3);border-radius:28px;padding:32px;max-width:520px;width:90%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.6);}
 .gameover-title{font-family:"Barlow Condensed",sans-serif;font-size:52px;font-weight:900;color:var(--accent2);letter-spacing:2px;margin-bottom:4px}
 .gameover-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
 .gameover-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
@@ -289,19 +193,9 @@ button{cursor:pointer;border:none;background:none}
 .gameover-insight{background:rgba(77,159,255,.06);border:1px solid rgba(77,159,255,.18);border-radius:14px;padding:12px;margin-bottom:20px;text-align:left}
 .gi-label{font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:.8px;font-weight:800;margin-bottom:4px}
 .gi-text{font-size:13px;color:var(--muted);line-height:1.55}
-
-/* ── PAYWALL ── */
-.paywall-strip{
-  background:linear-gradient(135deg,rgba(240,190,62,.08),rgba(157,126,252,.08));
-  border:1px solid rgba(240,190,62,.22);border-radius:16px;padding:14px 16px;
-  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-  margin-bottom:14px;
-}
+.paywall-strip{background:linear-gradient(135deg,rgba(240,190,62,.08),rgba(157,126,252,.08));border:1px solid rgba(240,190,62,.22);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
 .paywall-strip strong{font-size:14px;display:block;color:var(--gold)}
 .paywall-strip span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
-
-/* ── AI COACH ── */
-.ai-coach-wrap{display:grid;gap:10px}
 .ai-chat{display:grid;gap:8px;max-height:320px;overflow-y:auto;padding-right:4px}
 .ai-msg{border-radius:14px;padding:11px 14px;font-size:13px;line-height:1.6;max-width:90%}
 .ai-msg.user{background:rgba(77,159,255,.13);border:1px solid rgba(77,159,255,.2);margin-left:auto;text-align:right}
@@ -313,8 +207,10 @@ button{cursor:pointer;border:none;background:none}
 .ai-suggestions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .ai-sug{padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:11px;color:var(--muted);cursor:pointer;transition:.12s}
 .ai-sug:hover{background:rgba(77,159,255,.1);color:var(--accent2);border-color:rgba(77,159,255,.25)}
-
-/* ── SEASON CHART ── */
+.ai-input-row input:disabled,.ai-input-row button:disabled{opacity:.5;pointer-events:none}
+.ai-api-notice{background:rgba(240,190,62,.1);border:1px solid rgba(240,190,62,.25);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--gold);line-height:1.6;margin-bottom:10px}
+.ai-api-notice strong{display:block;margin-bottom:3px;font-size:13px}
+.ai-api-notice button{background:rgba(240,190,62,.18);border:1px solid rgba(240,190,62,.35);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:800;color:var(--gold);cursor:pointer;margin-top:7px;transition:.14s}
 .chart-wrap{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.02);padding:10px;min-height:200px}
 canvas{width:100%;display:block}
 .dev-row{display:grid;gap:8px;margin-top:12px}
@@ -324,37 +220,24 @@ canvas{width:100%;display:block}
 .dev-trend{font-size:11px}
 .trend-up{color:var(--green)}
 .trend-dn{color:var(--red)}
-
-/* ── HISTORY CARDS ── */
 .history-list{display:grid;gap:10px}
 .hcard{border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:12px 14px}
 .hcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .hcard-meta{font-size:10px;color:var(--dim);margin-top:3px}
 .hcard-stats{font-size:11px;color:var(--muted);margin-top:6px}
-
-/* ── TEAMS ── */
 .team-card{border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:12px 14px;margin-bottom:10px}
 .team-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .player-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
 .pchip{padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.04);color:var(--muted);font-size:11px;border:1px solid var(--line)}
-
-/* ── INPUTS ── */
 input,select,textarea{background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:9px 12px;outline:none;min-height:42px;transition:.14s;font-size:13px}
 input:focus,select:focus,textarea:focus{border-color:rgba(77,159,255,.35)}
 .add-grid{display:grid;grid-template-columns:76px 1fr 1fr auto;gap:8px;margin-top:11px}
-
-/* ── DIALOGS ── */
-dialog{
-  border:none;border-radius:24px;max-width:680px;width:min(680px,calc(100vw - 20px));
-  background:#0c1a2e;color:var(--text);padding:0;box-shadow:var(--shadow);max-height:88vh;overflow-y:auto;
-}
+dialog{border:none;border-radius:24px;max-width:680px;width:min(680px,calc(100vw - 20px));background:#0c1a2e;color:var(--text);padding:0;box-shadow:var(--shadow);max-height:88vh;overflow-y:auto;}
 dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .modal{padding:24px}
 .modal h3{font-family:"Barlow Condensed",sans-serif;font-size:26px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
 .modal p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
 .modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-
-/* ── PRICING MODAL ── */
 .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
 .price-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:rgba(255,255,255,.025);position:relative}
 .price-card.featured{border:2px solid rgba(240,190,62,.4);background:rgba(240,190,62,.04)}
@@ -367,39 +250,23 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .price-features li::before{content:"✓";position:absolute;left:0;color:var(--green);font-size:11px}
 .price-features li.locked-feat{color:var(--dim)}
 .price-features li.locked-feat::before{content:"—";color:var(--dim)}
-
-/* ── TOAST ── */
-.toast{
-  position:fixed;left:50%;bottom:calc(20px + var(--safe-b));transform:translateX(-50%) translateY(14px);
-  padding:11px 16px;border-radius:13px;background:rgba(7,14,28,.97);color:var(--text);border:1px solid var(--line);
-  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s ease;z-index:9999;font-size:13px;white-space:nowrap;max-width:92vw;text-overflow:ellipsis;overflow:hidden;
-}
+.toast{position:fixed;left:50%;bottom:calc(20px + var(--safe-b));transform:translateX(-50%) translateY(14px);padding:11px 16px;border-radius:13px;background:rgba(7,14,28,.97);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s ease;z-index:9999;font-size:13px;white-space:nowrap;max-width:92vw;text-overflow:ellipsis;overflow:hidden;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:rgba(33,197,93,.3);color:#86efac}
 .toast.err{border-color:rgba(239,64,64,.3);color:#fca5a5}
-
-/* ── EMPTY STATE ── */
 .empty-state{padding:24px;text-align:center;border:1px dashed rgba(255,255,255,.1);border-radius:18px}
 .empty-state .ei{font-size:36px;margin-bottom:10px;display:block;opacity:.5}
 .empty-state strong{display:block;font-size:15px;margin-bottom:6px}
 .empty-state span{font-size:13px;color:var(--muted);line-height:1.5}
-
-/* ── FOOTER NAV ── */
 .footernav{display:none;position:sticky;bottom:0;gap:6px;padding:8px 12px var(--safe-b);background:rgba(7,12,22,.97);border-top:1px solid var(--line);backdrop-filter:blur(16px);z-index:25}
 .footernav .btn{flex:1;min-height:46px;font-size:12px}
 .footernav .btn.fav{background:rgba(77,159,255,.14);border:1px solid rgba(77,159,255,.24);color:var(--accent2)}
-
-/* ── SOCIAL PROOF ── */
 .social-proof{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(33,197,93,.07);border:1px solid rgba(33,197,93,.18);font-size:11px;color:var(--green)}
-
-/* ── ONBOARDING INLINE ── */
 .onboard-steps{display:grid;gap:9px;margin-bottom:14px}
 .ob-step{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
 .ob-num{width:28px;height:28px;border-radius:50%;background:rgba(77,159,255,.15);color:var(--accent2);font-size:12px;font-weight:900;display:grid;place-items:center;flex-shrink:0}
 .ob-body strong{display:block;font-size:13px;margin-bottom:3px}
 .ob-body span{font-size:12px;color:var(--muted);line-height:1.5}
-
-/* ── SETTINGS MODAL ── */
 .settings-section{margin-bottom:18px}
 .settings-section h4{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .api-key-wrap{display:flex;gap:8px}
@@ -411,22 +278,10 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .period-btn{padding:7px 14px;border-radius:9px;border:1px solid var(--line2);background:rgba(255,255,255,.04);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:.14s}
 .period-btn.active,.period-btn:hover{background:rgba(77,159,255,.14);border-color:rgba(77,159,255,.3);color:var(--text)}
 .danger-zone{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ── SCORE STEPPER ── */
 .score-entry{display:flex;flex-direction:column;align-items:center;gap:0}
 .score-btns{display:flex;align-items:center;gap:3px}
 .score-adj{width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--muted);font-size:15px;display:grid;place-items:center;cursor:pointer;transition:.12s;line-height:1;padding:0;min-height:unset}
 .score-adj:hover{background:rgba(77,159,255,.18);border-color:rgba(77,159,255,.35);color:var(--text)}
-
-/* ── AI LOADING STATE ── */
-.ai-input-row input:disabled,.ai-input-row button:disabled{opacity:.5;pointer-events:none}
-.ai-msg.thinking{opacity:.6;font-style:italic}
-.ai-api-notice{background:rgba(240,190,62,.1);border:1px solid rgba(240,190,62,.25);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--gold);line-height:1.6;margin-bottom:10px}
-.ai-api-notice strong{display:block;margin-bottom:3px;font-size:13px}
-.ai-api-notice button{background:rgba(240,190,62,.18);border:1px solid rgba(240,190,62,.35);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:800;color:var(--gold);cursor:pointer;margin-top:7px;transition:.14s}
-.ai-api-notice button:hover{background:rgba(240,190,62,.28)}
-
-/* ── RESPONSIVE ── */
 @media(max-width:1200px){.g2,.g2r,.gcols{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:860px){
   html,body{overflow:auto}
@@ -460,8 +315,6 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 </head>
 <body>
 <div class="app">
-
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar">
   <div class="brand-mark" title="GameIQ Elite">
     <svg class="brand-ball" viewBox="0 0 30 30" fill="none">
@@ -484,11 +337,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     <button class="nav-btn" data-view="aicoach" id="aiNavBtn"><span style="font-size:16px">🤖</span><span class="nlbl">AI</span><span class="pro-dot"></span></button>
   </nav>
 </aside>
-
-<!-- ═══════════════ SHELL ═══════════════ -->
 <section class="shell">
-
-  <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-row1">
       <div>
@@ -530,20 +379,13 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <button class="btn btn-secondary" id="gameOverBtn" style="font-size:12px;min-height:34px">🏆 Game Over</button>
       </div>
     </div>
-    <!-- CLOCK STRIP -->
     <div class="clock-strip">
       <div id="clockDisplay" class="clock-display" title="Click to start/stop">10:00</div>
       <button class="btn btn-secondary" id="clockToggleBtn" style="min-height:36px;font-size:13px">▶ Start</button>
       <button class="btn btn-ghost" id="clockResetBtn" style="min-height:36px;font-size:12px">Reset</button>
       <div style="display:flex;gap:10px;align-items:center">
-        <div class="timeout-track">
-          <span style="font-size:10px;color:var(--dim);margin-right:4px">HOME TO</span>
-          <div class="timeout-dots" id="homeTimeouts"></div>
-        </div>
-        <div class="timeout-track">
-          <span style="font-size:10px;color:var(--dim);margin-right:4px">AWAY TO</span>
-          <div class="timeout-dots" id="awayTimeouts"></div>
-        </div>
+        <div class="timeout-track"><span style="font-size:10px;color:var(--dim);margin-right:4px">HOME TO</span><div class="timeout-dots" id="homeTimeouts"></div></div>
+        <div class="timeout-track"><span style="font-size:10px;color:var(--dim);margin-right:4px">AWAY TO</span><div class="timeout-dots" id="awayTimeouts"></div></div>
       </div>
       <div class="score-vs">
         <div class="score-entry"><span class="score-lbl" id="scoreHomeLabel">HOME</span><div class="score-val" id="scoreHome">0</div></div>
@@ -551,43 +393,26 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <div class="score-entry">
           <span class="score-lbl" id="scoreAwayLabel">AWAY</span>
           <div class="score-btns">
-            <button class="score-adj" id="awayScoreMinus" title="Decrease away score">−</button>
+            <button class="score-adj" id="awayScoreMinus">−</button>
             <div class="score-val" id="scoreAway">0</div>
-            <button class="score-adj" id="awayScorePlus" title="Increase away score">+</button>
+            <button class="score-adj" id="awayScorePlus">+</button>
           </div>
         </div>
       </div>
-      <div style="margin-left:auto">
-        <span class="social-proof" id="socialProof">🏀 <span id="gamesTrackedCount">0</span> games saved</span>
-      </div>
+      <div style="margin-left:auto"><span class="social-proof" id="socialProof">🏀 <span id="gamesTrackedCount">0</span> games saved</span></div>
     </div>
   </header>
 
-  <!-- VIEWS CONTAINER -->
   <div class="views" id="viewsRoot">
-
-    <!-- ══════════ DASHBOARD ══════════ -->
+    <!-- DASHBOARD -->
     <div class="view active" id="view-dashboard">
       <div id="onboardGuide" class="onboard-steps">
-        <div class="ob-step">
-          <div class="ob-num">1</div>
-          <div class="ob-body"><strong>Add your roster</strong><span>Go to Live Game → type jersey # + name → hit Add. Your roster auto-saves between sessions.</span></div>
-        </div>
-        <div class="ob-step">
-          <div class="ob-num">2</div>
-          <div class="ob-body"><strong>Start the clock, track stats</strong><span>Hit ▶ Start to run the game clock. Tap +/− on each player to log rebounds, assists, turnovers, and fouls in real time.</span></div>
-        </div>
-        <div class="ob-step">
-          <div class="ob-num">3</div>
-          <div class="ob-body"><strong>Tap the shot chart</strong><span>Select a player, pick Made / Miss / FT, then tap the court. 2PT vs 3PT is detected automatically by court position.</span></div>
-        </div>
-        <div class="ob-step">
-          <div class="ob-num">4</div>
-          <div class="ob-body"><strong>Save every game for season trends</strong><span>Hit Save Game after each game. Saved games feed season charts, player arcs, and your coaching report.</span></div>
-        </div>
+        <div class="ob-step"><div class="ob-num">1</div><div class="ob-body"><strong>Add your roster</strong><span>Go to Live Game → type jersey # + name → hit Add. Your roster auto-saves between sessions.</span></div></div>
+        <div class="ob-step"><div class="ob-num">2</div><div class="ob-body"><strong>Start the clock, track stats</strong><span>Hit ▶ Start to run the game clock. Tap +/− on each player to log stats in real time.</span></div></div>
+        <div class="ob-step"><div class="ob-num">3</div><div class="ob-body"><strong>Tap the shot chart</strong><span>Select a player, pick Made / Miss / FT, then tap the court. 2PT vs 3PT is auto-detected.</span></div></div>
+        <div class="ob-step"><div class="ob-num">4</div><div class="ob-body"><strong>Save every game for season trends</strong><span>Hit Save Game after each game. Saved games feed season charts, player arcs, and your coaching report.</span></div></div>
         <button class="btn btn-secondary" id="dismissOnboard" style="justify-self:start;font-size:12px;min-height:32px">Got it — don't show again</button>
       </div>
-
       <div class="g2" style="margin-top:4px">
         <div class="card">
           <div class="card-head"><div><h2>Live Dashboard</h2><p>Game totals · current roster</p></div><button class="btn btn-primary" data-nav="live" style="min-height:34px;font-size:12px">▶ Live Game</button></div>
@@ -599,32 +424,20 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
               <div class="kpi"><div class="lbl">Games</div><div class="val" id="dashGames">0</div><div class="sub">Saved</div></div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
-              <div class="card" style="cursor:pointer;transition:.14s" data-nav="live" onmouseenter="this.style.borderColor='rgba(77,159,255,.3)'" onmouseleave="this.style.borderColor=''">
-                <div class="card-body" style="padding:13px"><div style="font-size:20px;margin-bottom:6px">⚡</div><strong style="font-size:13px">Quick Game</strong><div style="font-size:11px;color:var(--muted);margin-top:3px">Minimal interface for sideline speed</div></div>
-              </div>
-              <div class="card" style="cursor:pointer;transition:.14s" data-nav="compare" onmouseenter="this.style.borderColor='rgba(77,159,255,.3)'" onmouseleave="this.style.borderColor=''">
-                <div class="card-body" style="padding:13px"><div style="font-size:20px;margin-bottom:6px">⚖️</div><strong style="font-size:13px">Compare</strong><div style="font-size:11px;color:var(--muted);margin-top:3px">Side-by-side player efficiency</div></div>
-              </div>
-              <div class="card" style="cursor:pointer;transition:.14s" data-nav="season" onmouseenter="this.style.borderColor='rgba(77,159,255,.3)'" onmouseleave="this.style.borderColor=''">
-                <div class="card-body" style="padding:13px"><div style="font-size:20px;margin-bottom:6px">📈</div><strong style="font-size:13px">Season</strong><div style="font-size:11px;color:var(--muted);margin-top:3px">Trends, history, arcs</div></div>
-              </div>
+              <div class="card" style="cursor:pointer" data-nav="live"><div class="card-body" style="padding:13px"><div style="font-size:20px;margin-bottom:6px">⚡</div><strong style="font-size:13px">Quick Game</strong><div style="font-size:11px;color:var(--muted);margin-top:3px">Minimal interface for sideline speed</div></div></div>
+              <div class="card" style="cursor:pointer" data-nav="compare"><div class="card-body" style="padding:13px"><div style="font-size:20px;margin-bottom:6px">⚖️</div><strong style="font-size:13px">Compare</strong><div style="font-size:11px;color:var(--muted);margin-top:3px">Side-by-side player efficiency</div></div></div>
+              <div class="card" style="cursor:pointer" data-nav="season"><div class="card-body" style="padding:13px"><div style="font-size:20px;margin-bottom:6px">📈</div><strong style="font-size:13px">Season</strong><div style="font-size:11px;color:var(--muted);margin-top:3px">Trends, history, arcs</div></div></div>
             </div>
           </div>
         </div>
         <div class="gstack">
-          <div class="card">
-            <div class="card-head"><div><h2>AI Bench Insights</h2><p>Explainable suggestions from live data</p></div></div>
-            <div class="card-body"><div class="insights-list" id="aiInsightsDash"></div></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div><h2>Recent Games</h2></div><button class="btn btn-ghost" data-nav="season" style="min-height:30px;font-size:11px">View all</button></div>
-            <div class="card-body"><div class="history-list" id="recentHistoryDash"></div></div>
-          </div>
+          <div class="card"><div class="card-head"><div><h2>AI Bench Insights</h2><p>Explainable suggestions from live data</p></div></div><div class="card-body"><div class="insights-list" id="aiInsightsDash"></div></div></div>
+          <div class="card"><div class="card-head"><div><h2>Recent Games</h2></div><button class="btn btn-ghost" data-nav="season" style="min-height:30px;font-size:11px">View all</button></div><div class="card-body"><div class="history-list" id="recentHistoryDash"></div></div></div>
         </div>
       </div>
     </div>
 
-    <!-- ══════════ LIVE GAME ══════════ -->
+    <!-- LIVE -->
     <div class="view" id="view-live">
       <div class="g2">
         <div class="card">
@@ -638,14 +451,8 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
           </div>
           <div class="card-body">
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-              <label class="toggle">
-                <span style="font-size:12px;color:var(--muted)">Quick Mode</span>
-                <label class="switch"><input type="checkbox" id="quickToggle"><div class="sw-track"></div><div class="sw-thumb"></div></label>
-              </label>
-              <label class="toggle" style="margin-left:8px">
-                <span style="font-size:12px;color:var(--muted)">Youth Mode</span>
-                <label class="switch"><input type="checkbox" id="youthToggle"><div class="sw-track"></div><div class="sw-thumb"></div></label>
-              </label>
+              <label class="toggle"><span style="font-size:12px;color:var(--muted)">Quick Mode</span><label class="switch"><input type="checkbox" id="quickToggle"><div class="sw-track"></div><div class="sw-thumb"></div></label></label>
+              <label class="toggle" style="margin-left:8px"><span style="font-size:12px;color:var(--muted)">Youth Mode</span><label class="switch"><input type="checkbox" id="youthToggle"><div class="sw-track"></div><div class="sw-thumb"></div></label></label>
             </div>
             <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
               <div class="kpi"><div class="lbl">PTS</div><div class="val" id="livePts">0</div></div>
@@ -655,20 +462,19 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
             </div>
             <div class="players-list" id="playersList" style="margin-top:12px"></div>
             <div class="add-grid">
-              <input id="addNum" placeholder="#" style="text-align:center" inputmode="numeric" maxlength="3" aria-label="Jersey number"/>
-              <input id="addName" placeholder="Player name" maxlength="28" aria-label="Player name"/>
-              <input id="addPhone" placeholder="Position / note" maxlength="30" aria-label="Player note"/>
+              <input id="addNum" placeholder="#" style="text-align:center" inputmode="numeric" maxlength="3"/>
+              <input id="addName" placeholder="Player name" maxlength="28"/>
+              <input id="addPhone" placeholder="Position / note" maxlength="30"/>
               <button class="btn btn-primary" id="addBtn">+ Add</button>
             </div>
           </div>
         </div>
-
         <div class="gstack">
           <div class="card">
             <div class="card-head"><div><h2>Shot Chart</h2><p id="shotNote">Select player → tap court</p></div></div>
             <div class="card-body">
               <div class="shot-controls">
-                <select id="shotPlayerSel" style="min-height:34px;font-size:12px" aria-label="Shot player"></select>
+                <select id="shotPlayerSel" style="min-height:34px;font-size:12px"></select>
                 <button class="pill active" data-shot="made">✓ Made</button>
                 <button class="pill" data-shot="miss">✗ Miss</button>
                 <button class="pill" data-shot="ft">FT</button>
@@ -676,7 +482,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
                 <button class="btn btn-ghost" id="clearShotsBtn" style="min-height:30px;padding:4px 9px;font-size:11px">Clear</button>
               </div>
               <div class="court-wrap" id="courtWrap">
-                <svg id="court" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Basketball shot chart">
+                <svg id="court" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
                   <rect width="400" height="360" fill="#c69966"/>
                   <rect x="140" y="0" width="120" height="140" fill="#b18354" stroke="#8a6535" stroke-width="2"/>
                   <rect x="150" y="0" width="100" height="110" fill="none" stroke="#8a6535" stroke-width="2"/>
@@ -702,73 +508,46 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
               </div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-head"><div><h2>AI Insights</h2><p>Live coaching reads</p></div></div>
-            <div class="card-body"><div class="insights-list" id="aiInsightsLive"></div></div>
-          </div>
+          <div class="card"><div class="card-head"><div><h2>AI Insights</h2><p>Live coaching reads</p></div></div><div class="card-body"><div class="insights-list" id="aiInsightsLive"></div></div></div>
         </div>
       </div>
     </div>
 
-    <!-- ══════════ COACH ANALYTICS ══════════ -->
+    <!-- COACH -->
     <div class="view" id="view-coach">
-      <div class="paywall-strip" id="coachPaywall">
-        <div><strong>Coach Analytics — PRO feature</strong><span>Player development arcs, efficiency ratings, lineup +/−, and advanced breakdowns require GameIQ Pro.</span></div>
-        <button class="btn btn-pro" onclick="openPricing()">Upgrade to Pro ⭐</button>
-      </div>
+      <div class="paywall-strip" id="coachPaywall"><div><strong>Coach Analytics — PRO feature</strong><span>Player development arcs, efficiency ratings, lineup +/−, and advanced breakdowns.</span></div><button class="btn btn-pro" onclick="openPricing()">Upgrade to Pro ⭐</button></div>
       <div id="coachContent">
         <div class="analytics-row" id="coachMetrics"></div>
         <div class="g2">
-          <div class="card">
-            <div class="card-head"><div><h2>Player Performance</h2><p>Efficiency · scoring · development</p></div></div>
-            <div class="card-body" id="coachPlayerRows"></div>
-          </div>
+          <div class="card"><div class="card-head"><div><h2>Player Performance</h2><p>Efficiency · scoring · development</p></div></div><div class="card-body" id="coachPlayerRows"></div></div>
           <div class="gstack">
-            <div class="card">
-              <div class="card-head"><div><h2>Lineup +/−</h2><p>Score differential by player on/off court</p></div></div>
-              <div class="card-body" id="pmBoard"></div>
-            </div>
-            <div class="card">
-              <div class="card-head"><div><h2>Team Summary</h2></div></div>
-              <div class="card-body" id="teamSummaryCoach"></div>
-            </div>
+            <div class="card"><div class="card-head"><div><h2>Lineup +/−</h2><p>Score differential by player on/off court</p></div></div><div class="card-body" id="pmBoard"></div></div>
+            <div class="card"><div class="card-head"><div><h2>Team Summary</h2></div></div><div class="card-body" id="teamSummaryCoach"></div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ══════════ COMPARE ══════════ -->
+    <!-- COMPARE -->
     <div class="view" id="view-compare">
-      <div class="card">
-        <div class="card-head"><div><h2>Player Comparison</h2><p>Side-by-side scoring, efficiency, and ball security</p></div></div>
-        <div class="card-body">
-          <div class="gcols"><select id="compareA" aria-label="Player A"></select><select id="compareB" aria-label="Player B"></select></div>
-          <div id="compareResult" style="margin-top:12px"></div>
-        </div>
-      </div>
+      <div class="card"><div class="card-head"><div><h2>Player Comparison</h2><p>Side-by-side scoring, efficiency, and ball security</p></div></div>
+      <div class="card-body"><div class="gcols"><select id="compareA"></select><select id="compareB"></select></div><div id="compareResult" style="margin-top:12px"></div></div></div>
     </div>
 
-    <!-- ══════════ TEAMS ══════════ -->
+    <!-- TEAMS -->
     <div class="view" id="view-teams">
       <div class="gcols">
-        <div class="card">
-          <div class="card-head"><div><h2>Team Management</h2></div></div>
+        <div class="card"><div class="card-head"><div><h2>Team Management</h2></div></div>
           <div class="card-body">
-            <div style="display:flex;gap:8px;margin-bottom:14px">
-              <input id="newTeamName" placeholder="New team name" style="flex:1" maxlength="40" aria-label="New team name"/>
-              <button class="btn btn-primary" id="createTeamBtn">Create</button>
-            </div>
+            <div style="display:flex;gap:8px;margin-bottom:14px"><input id="newTeamName" placeholder="New team name" style="flex:1" maxlength="40"/><button class="btn btn-primary" id="createTeamBtn">Create</button></div>
             <div id="teamsList"></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-head"><div><h2>Roster Summary</h2></div></div>
-          <div class="card-body" id="teamSummaryBody"></div>
-        </div>
+        <div class="card"><div class="card-head"><div><h2>Roster Summary</h2></div></div><div class="card-body" id="teamSummaryBody"></div></div>
       </div>
     </div>
 
-    <!-- ══════════ SEASON ══════════ -->
+    <!-- SEASON -->
     <div class="view" id="view-season">
       <div class="gcols">
         <div class="card">
@@ -781,52 +560,31 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
             </div>
           </div>
           <div class="card-body">
-            <div class="chart-wrap" style="height:200px"><canvas id="pointsChart" height="180" role="img" aria-label="Points per game chart"></canvas></div>
+            <div class="chart-wrap" style="height:200px"><canvas id="pointsChart" height="180"></canvas></div>
             <div style="height:10px"></div>
-            <div class="chart-wrap" style="height:200px"><canvas id="fgChart" height="180" role="img" aria-label="FG% per game chart"></canvas></div>
-            <div style="margin-top:14px">
-              <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Player Development Arcs</div>
-              <div class="dev-row" id="devArcs"></div>
-            </div>
+            <div class="chart-wrap" style="height:200px"><canvas id="fgChart" height="180"></canvas></div>
+            <div style="margin-top:14px"><div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Player Development Arcs</div><div class="dev-row" id="devArcs"></div></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-head"><div><h2>Saved Games</h2></div></div>
-          <div class="card-body"><div class="history-list" id="fullHistory"></div></div>
-        </div>
+        <div class="card"><div class="card-head"><div><h2>Saved Games</h2></div></div><div class="card-body"><div class="history-list" id="fullHistory"></div></div></div>
       </div>
     </div>
 
-    <!-- ══════════ AI COACH ══════════ -->
+    <!-- AI COACH -->
     <div class="view" id="view-aicoach">
-      <div id="aiCoachPaywall" class="paywall-strip">
-        <div><strong>AI Coach — PRO feature</strong><span>Ask any coaching question. Get personalized answers using your real game data.</span></div>
-        <button class="btn btn-pro" onclick="openPricing()">Unlock AI Coach ⭐</button>
-      </div>
-      <div id="aiApiNotice" class="ai-api-notice hidden">
-        <strong>Anthropic API key required</strong>
-        AI Coach is powered by Claude. Add your API key in Settings to enable real-time coaching conversations.
-        <br><button onclick="openSettings()">⚙ Open Settings</button>
-      </div>
+      <div id="aiCoachPaywall" class="paywall-strip"><div><strong>AI Coach — PRO feature</strong><span>Ask any coaching question. Get personalized answers using your real game data.</span></div><button class="btn btn-pro" onclick="openPricing()">Unlock AI Coach ⭐</button></div>
+      <div id="aiApiNotice" class="ai-api-notice hidden"><strong>Anthropic API key required</strong> AI Coach is powered by Claude. Add your API key in Settings.<br><button onclick="openSettings()">⚙ Open Settings</button></div>
       <div class="card">
-        <div class="card-head">
-          <div><h2>Ask the AI Coach 🤖</h2><p>Powered by Claude · your game data + coaching intelligence</p></div>
-          <button class="btn btn-ghost" id="clearChatBtn" style="min-height:30px;font-size:11px">Clear chat</button>
-        </div>
+        <div class="card-head"><div><h2>Ask the AI Coach 🤖</h2><p>Powered by Claude · your game data + coaching intelligence</p></div><button class="btn btn-ghost" id="clearChatBtn" style="min-height:30px;font-size:11px">Clear chat</button></div>
         <div class="card-body">
           <div class="ai-chat" id="aiChatMessages"></div>
-          <div class="ai-input-row">
-            <input id="aiInput" placeholder="Ask anything — lineup questions, strategy, player reads..." aria-label="AI coach input"/>
-            <button class="btn btn-primary" id="aiSendBtn" style="min-height:42px">Send</button>
-          </div>
+          <div class="ai-input-row"><input id="aiInput" placeholder="Ask anything — lineup questions, strategy, player reads..."/><button class="btn btn-primary" id="aiSendBtn" style="min-height:42px">Send</button></div>
           <div class="ai-suggestions" id="aiSuggestions"></div>
         </div>
       </div>
     </div>
+  </div>
 
-  </div><!-- /views -->
-
-  <!-- MOBILE FOOTER NAV -->
   <nav class="footernav">
     <button class="btn fav" data-nav="live">🏀 Live</button>
     <button class="btn btn-secondary" data-nav="dashboard">🏠</button>
@@ -837,11 +595,11 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 </section>
 </div>
 
-<!-- ═══════════════ GAME OVER OVERLAY ═══════════════ -->
+<!-- GAME OVER -->
 <div class="gameover-overlay hidden" id="gameOverScreen">
   <div class="gameover-card">
     <div class="gameover-title">GAME OVER</div>
-    <div class="gameover-sub" id="goSubtitle">Final stats — great game</div>
+    <div class="gameover-sub" id="goSubtitle">Final stats</div>
     <div class="gameover-stats" id="goStats"></div>
     <div class="gameover-mvp" id="goMvp"></div>
     <div class="gameover-insight" id="goInsight"></div>
@@ -853,13 +611,10 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   </div>
 </div>
 
-<!-- ═══════════════ DIALOGS ═══════════════ -->
-
-<!-- Report -->
+<!-- DIALOGS -->
 <dialog id="dlgReport">
   <div class="modal">
-    <h3>Game Report</h3>
-    <p id="reportSummaryText">No data yet.</p>
+    <h3>Game Report</h3><p id="reportSummaryText">No data yet.</p>
     <div id="reportTableWrap"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="window.print()">🖨 Print / PDF</button>
@@ -869,116 +624,60 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   </div>
 </dialog>
 
-<!-- Pricing -->
 <dialog id="dlgPricing">
   <div class="modal">
-    <h3>GameIQ Elite — Plans</h3>
-    <p>Start free. Upgrade when your coaching demands more.</p>
+    <h3>GameIQ Elite — Plans</h3><p>Start free. Upgrade when your coaching demands more.</p>
     <div class="pricing-grid">
       <div class="price-card">
-        <div class="price-name">Free</div>
-        <div class="price-amt">$0</div>
-        <div class="price-period">forever</div>
-        <ul class="price-features">
-          <li>1 team, up to 8 players</li>
-          <li>5 saved games</li>
-          <li>Live stat tracking</li>
-          <li>Shot chart</li>
-          <li>1 AI insight per game</li>
-          <li class="locked-feat">Advanced analytics</li>
-          <li class="locked-feat">AI Coach chat</li>
-          <li class="locked-feat">Player dev arcs</li>
-          <li class="locked-feat">PDF reports</li>
-        </ul>
+        <div class="price-name">Free</div><div class="price-amt">$0</div><div class="price-period">forever</div>
+        <ul class="price-features"><li>1 team, up to 8 players</li><li>5 saved games</li><li>Live stat tracking</li><li>Shot chart</li><li>1 AI insight per game</li><li class="locked-feat">Advanced analytics</li><li class="locked-feat">AI Coach chat</li><li class="locked-feat">Player dev arcs</li><li class="locked-feat">PDF reports</li></ul>
         <button class="btn btn-secondary" style="width:100%" onclick="setTier('free');document.getElementById('dlgPricing').close()">Current plan</button>
       </div>
       <div class="price-card featured popular-tag">
-        <div class="price-name" style="color:var(--gold)">Pro ⭐</div>
-        <div class="price-amt" style="color:var(--gold)">$9.99</div>
-        <div class="price-period">/month · billed monthly</div>
-        <ul class="price-features">
-          <li>Unlimited teams &amp; players</li>
-          <li>Unlimited saved games</li>
-          <li>All 5 AI insights</li>
-          <li>AI Coach chat (Claude-powered)</li>
-          <li>Coach Analytics dashboard</li>
-          <li>Player development arcs</li>
-          <li>+/− lineup tracking</li>
-          <li>PDF &amp; CSV export</li>
-          <li>Season narratives</li>
-        </ul>
+        <div class="price-name" style="color:var(--gold)">Pro ⭐</div><div class="price-amt" style="color:var(--gold)">$9.99</div><div class="price-period">/month</div>
+        <ul class="price-features"><li>Unlimited teams &amp; players</li><li>Unlimited saved games</li><li>All 5 AI insights</li><li>AI Coach chat (Claude)</li><li>Coach Analytics</li><li>Player dev arcs</li><li>+/− lineup tracking</li><li>PDF &amp; CSV export</li></ul>
         <button class="btn btn-pro" style="width:100%" onclick="setTier('pro');document.getElementById('dlgPricing').close()">Start Pro — $9.99/mo</button>
-        <div style="font-size:10px;color:var(--dim);text-align:center;margin-top:7px">Or $99/yr (save 17%)</div>
       </div>
       <div class="price-card">
-        <div class="price-name" style="color:var(--team)">Team 👥</div>
-        <div class="price-amt" style="color:var(--team)">$24.99</div>
-        <div class="price-period">/month per program</div>
-        <ul class="price-features">
-          <li>Everything in Pro</li>
-          <li>Multi-coach access</li>
-          <li>Parent sharing portal</li>
-          <li>League admin dashboard</li>
-          <li>Custom team branding</li>
-          <li>Priority support</li>
-          <li>Scout report generation</li>
-          <li>College export profiles</li>
-        </ul>
+        <div class="price-name" style="color:var(--team)">Team 👥</div><div class="price-amt" style="color:var(--team)">$24.99</div><div class="price-period">/month per program</div>
+        <ul class="price-features"><li>Everything in Pro</li><li>Multi-coach access</li><li>Parent sharing portal</li><li>League admin dashboard</li><li>Custom branding</li><li>Priority support</li></ul>
         <button class="btn btn-secondary" style="width:100%;border-color:rgba(157,126,252,.3);color:var(--team)" onclick="setTier('team');document.getElementById('dlgPricing').close()">Contact for Team plan</button>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="document.getElementById('dlgPricing').close()">Maybe later</button>
-    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById('dlgPricing').close()">Maybe later</button></div>
   </div>
 </dialog>
 
-<!-- Legal -->
 <dialog id="dlgLegal">
   <div class="modal">
     <h3>Terms &amp; Privacy</h3>
     <p style="font-size:11px;color:var(--dim)">Last updated 2025 · All data stored locally on your device only.</p>
     <div style="font-size:12px;color:var(--muted);line-height:1.8;max-height:320px;overflow-y:auto;background:rgba(0,0,0,.2);border-radius:12px;padding:14px;margin-bottom:12px">
-      <strong style="color:var(--text)">Terms of Service</strong><br><br>
-      GameIQ Elite is provided for personal coaching and statistical tracking. All data you enter is stored locally in your browser. We do not collect, transmit, or sell your data. The app is provided "as is" without warranty. We are not liable for data loss — use Export Backup regularly.<br><br>
-      <strong style="color:var(--text)">Privacy Policy</strong><br><br>
-      No personal data is sent to any server. No analytics, tracking, or cookies beyond localStorage are used. The only external network requests are Google Fonts and (when you use AI Coach) Anthropic's API. AI Coach sends anonymized game context — aggregate stats only, never player names. Your Anthropic API key is stored in this browser's localStorage only and never transmitted to any server other than Anthropic's API. You can delete all data via Settings → Clear All Data at any time.<br><br>
-      <strong style="color:var(--text)">Children's Privacy</strong><br><br>
-      If tracking minors, use jersey numbers or initials rather than full names. Ensure you have appropriate consent from parents or guardians before tracking personal information about players under 18.
+      <strong style="color:var(--text)">Terms of Service</strong><br><br>GameIQ Elite is provided for personal coaching and statistical tracking. All data is stored locally in your browser. We do not collect, transmit, or sell your data.<br><br>
+      <strong style="color:var(--text)">Privacy Policy</strong><br><br>No personal data is sent to any server. The only external requests are Google Fonts and (when using AI Coach) Anthropic's API. Your API key is stored in localStorage only.<br><br>
+      <strong style="color:var(--text)">Children's Privacy</strong><br><br>If tracking minors, use jersey numbers or initials. Ensure appropriate consent from parents/guardians.
     </div>
     <div class="modal-actions"><button class="btn btn-primary" onclick="document.getElementById('dlgLegal').close()">Got it</button></div>
   </div>
 </dialog>
 
-<!-- Settings -->
 <dialog id="dlgSettings">
   <div class="modal" style="max-width:480px">
     <h3>⚙ Settings</h3>
-
     <div class="settings-section">
       <h4>AI Coach — Anthropic API Key</h4>
-      <div class="api-key-wrap">
-        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false"/>
-        <button class="btn btn-primary" id="saveApiKeyBtn" style="white-space:nowrap">Save Key</button>
-      </div>
-      <p class="api-key-note">
-        Your key is stored only in this browser — never sent to any server except Anthropic's API directly.
-        Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.
-        Leave blank to clear.
-      </p>
+      <div class="api-key-wrap"><input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off"/><button class="btn btn-primary" id="saveApiKeyBtn" style="white-space:nowrap">Save Key</button></div>
+      <p class="api-key-note">Stored only in this browser. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. Leave blank to clear.</p>
     </div>
-
     <div class="settings-section">
       <h4>Period Duration</h4>
       <div class="period-opts">
         <button class="period-btn" data-secs="480">8 min (Youth)</button>
-        <button class="period-btn" data-secs="600">10 min (HS)</button>
+        <button class="period-btn active" data-secs="600">10 min (HS)</button>
         <button class="period-btn" data-secs="720">12 min (College/Pro)</button>
         <button class="period-btn" data-secs="900">15 min (FIBA)</button>
       </div>
-      <p class="api-key-note" style="margin-top:6px">Takes effect when you next reset the clock.</p>
     </div>
-
     <div class="settings-section">
       <h4>Data Management</h4>
       <div class="danger-zone">
@@ -986,22 +685,16 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <button class="btn btn-danger" id="clearAllDataBtn" style="font-size:12px;min-height:34px">🗑 Clear All Data</button>
       </div>
     </div>
-
     <div class="settings-section" style="margin-bottom:0">
       <h4>About</h4>
-      <p class="api-key-note">GameIQ Elite v1.1 · Offline-first PWA · All data stored locally in your browser.<br>
-      AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
+      <p class="api-key-note">GameIQ Elite v1.1 · Offline-first PWA · AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
     </div>
-
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="document.getElementById('dlgSettings').close()">Close</button>
-    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById('dlgSettings').close()">Close</button></div>
   </div>
 </dialog>
 
 <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
 
-<!-- ═══════════════ SCRIPT ═══════════════ -->
 <script>
 (function(){
 "use strict";
@@ -1009,24 +702,16 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 const SK="gameiq_v3",WK="gameiq_tutorial_v3",AK="gameiq_apikey";
 const TIER_LIMITS={free:{teams:1,players:8,games:5,insights:1},pro:{teams:999,players:999,games:9999,insights:5},team:{teams:999,players:999,games:9999,insights:5}};
 
-/* ═══════ STATE ═══════ */
 const S={
   view:"dashboard",mode:"live",quarter:1,shotMode:"made",
-  quickMode:false,youthMode:false,heatMode:false,
-  tier:"free",
-  nextId:1,
-  teams:[{id:"td",name:"My Team",players:[]}],
-  activeTeamId:"td",
+  quickMode:false,youthMode:false,heatMode:false,tier:"free",nextId:1,
+  teams:[{id:"td",name:"My Team",players:[]}],activeTeamId:"td",
   shots:[],games:[],history:[],
   clock:{secs:600,running:false,periodSecs:600},
   timeouts:{home:5,homeUsed:0,away:5,awayUsed:0},
-  awayScore:0,
-  pmData:{},
-  aiChat:[],
-  histStack:[]
+  awayScore:0,pmData:{},aiChat:[],histStack:[]
 };
 
-/* ═══════ UTILS ═══════ */
 const $=id=>document.getElementById(id);
 const qa=s=>Array.from(document.querySelectorAll(s));
 const today=()=>new Date().toISOString().slice(0,10);
@@ -1034,104 +719,51 @@ const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const vibe=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 
 function toast(msg,type=""){
-  const el=$("toast");
-  el.textContent=msg;el.className="toast show"+(type?" "+type:"");
+  const el=$("toast");el.textContent=msg;el.className="toast show"+(type?" "+type:"");
   clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),2400);
 }
 function setChip(msg,cls=""){const el=$("autosaveChip");if(!el)return;el.textContent=msg;el.className="chip"+(cls?" "+cls:"")}
 
-/* ═══════ STAT MATH ═══════ */
 const eq=()=>({p2m:0,p2a:0,p3m:0,p3a:0,ftm:0,fta:0,reb:0,ast:0,tov:0,stl:0,blk:0,fouls:0,tfouls:0,onCourt:true,minsOn:0,courtEnteredAt:null});
 const pts=t=>(t.p2m||0)*2+(t.p3m||0)*3+(t.ftm||0);
 const fgm=t=>(t.p2m||0)+(t.p3m||0);
 const fga=t=>(t.p2a||0)+(t.p3a||0);
 const pct=(m,a)=>a?Math.round(m/a*100):0;
-const efgpct=(t)=>fga(t)?Math.round(((fgm(t)+.5*(t.p3m||0))/fga(t))*100):0;
+const efgpct=t=>fga(t)?Math.round(((fgm(t)+.5*(t.p3m||0))/fga(t))*100):0;
 
 function team(){return S.teams.find(t=>t.id===S.activeTeamId)||S.teams[0]}
-
 function totPlayer(p){
   const t=eq();
-  [1,2,3,4,"OT"].forEach(k=>{
-    const s=p.q?.[k]||eq();
-    Object.keys(t).forEach(k2=>{if(typeof t[k2]==="number")t[k2]+=(s[k2]||0)});
-  });
+  [1,2,3,4,"OT"].forEach(k=>{const s=p.q?.[k]||eq();Object.keys(t).forEach(k2=>{if(typeof t[k2]==="number")t[k2]+=(s[k2]||0)})});
   return t;
 }
-
 function totTeam(){
-  const t=eq();
-  team().players.forEach(p=>{
-    const tp=totPlayer(p);
-    Object.keys(t).forEach(k=>{if(typeof t[k]==="number")t[k]+=tp[k]});
-  });
+  const t=eq();team().players.forEach(p=>{const tp=totPlayer(p);Object.keys(t).forEach(k=>{if(typeof t[k]==="number")t[k]+=tp[k]})});
   return t;
 }
-
-function leader(){
-  return team().players.map(p=>({p,t:totPlayer(p)})).sort((a,b)=>pts(b.t)-pts(a.t))[0]||null;
-}
-
-function is3pt(x,y){
-  if(y>140)return false;
-  if(x<=28||x>=372)return true;
-  return Math.sqrt((x-200)**2+(y-17)**2)>174;
-}
-
+function leader(){return team().players.map(p=>({p,t:totPlayer(p)})).sort((a,b)=>pts(b.t)-pts(a.t))[0]||null}
+function is3pt(x,y){if(y>140)return false;if(x<=28||x>=372)return true;return Math.sqrt((x-200)**2+(y-17)**2)>174}
 function aq(){return S.quarter}
 
-/* ═══════ PERSIST (IndexedDB + localStorage fallback) ═══════ */
 let db=null;
-function openDB(){
-  return new Promise(res=>{
-    try{
-      const req=indexedDB.open("gameiq_db",1);
-      req.onupgradeneeded=e=>{e.target.result.createObjectStore("kv")};
-      req.onsuccess=e=>{db=e.target.result;res(true)};
-      req.onerror=()=>res(false);
-    }catch(e){res(false)}
-  });
-}
+function openDB(){return new Promise(res=>{try{const req=indexedDB.open("gameiq_db",1);req.onupgradeneeded=e=>{e.target.result.createObjectStore("kv")};req.onsuccess=e=>{db=e.target.result;res(true)};req.onerror=()=>res(false)}catch(e){res(false)}})}
 async function dbSet(key,val){
-  if(db){
-    return new Promise(res=>{
-      const tx=db.transaction("kv","readwrite");
-      tx.objectStore("kv").put(val,key);
-      tx.oncomplete=()=>res();tx.onerror=()=>res();
-    });
-  }
-  try{localStorage.setItem(key,JSON.stringify(val))}catch(e){
-    toast("Storage nearly full — export a backup","err");
-  }
+  if(db){return new Promise(res=>{const tx=db.transaction("kv","readwrite");tx.objectStore("kv").put(val,key);tx.oncomplete=()=>res();tx.onerror=()=>res()})}
+  try{localStorage.setItem(key,JSON.stringify(val))}catch(e){toast("Storage nearly full","err")}
 }
 async function dbGet(key){
-  if(db){
-    return new Promise(res=>{
-      const tx=db.transaction("kv","readonly");
-      const req=tx.objectStore("kv").get(key);
-      req.onsuccess=()=>res(req.result);req.onerror=()=>res(null);
-    });
-  }
+  if(db){return new Promise(res=>{const tx=db.transaction("kv","readonly");const req=tx.objectStore("kv").get(key);req.onsuccess=()=>res(req.result);req.onerror=()=>res(null)})}
   try{const v=localStorage.getItem(key);return v?JSON.parse(v):null}catch(e){return null}
 }
-
 async function persist(){
   if(S.isDemo)return;
   const meta={home:$("homeTeam").value||"HOME",away:$("awayTeam").value||"AWAY",date:$("gameDate").value||today()};
-  const save={...S,meta,histStack:[]};
-  await dbSet(SK,save);
-  setChip("Saved ✓","saving");
-  clearTimeout(persist._t);persist._t=setTimeout(()=>setChip("Ready"),1200);
+  await dbSet(SK,{...S,meta,histStack:[]});
+  setChip("Saved ✓","saving");clearTimeout(persist._t);persist._t=setTimeout(()=>setChip("Ready"),1200);
 }
-
 async function hydrate(){
-  const raw=await dbGet(SK);
-  if(!raw)return;
-  const stack=S.histStack;
-  Object.keys(S).forEach(k=>delete S[k]);
-  Object.assign(S,raw);
-  S.histStack=stack;
-  S.isDemo=false;
+  const raw=await dbGet(SK);if(!raw)return;
+  const stack=S.histStack;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,raw);S.histStack=stack;S.isDemo=false;
   const meta=raw.meta||{};
   if($("homeTeam"))$("homeTeam").value=meta.home||"HOME";
   if($("awayTeam"))$("awayTeam").value=meta.away||"AWAY";
@@ -1139,405 +771,233 @@ async function hydrate(){
   if(!Array.isArray(S.teams)||!S.teams.length)S.teams=[{id:"td",name:"My Team",players:[]}];
   if(!S.clock)S.clock={secs:600,running:false,periodSecs:600};
   if(!S.timeouts)S.timeouts={home:5,homeUsed:0,away:5,awayUsed:0};
-  if(!S.pmData)S.pmData={};
-  if(!S.aiChat)S.aiChat=[];
-  if(!Array.isArray(S.games))S.games=[];
-  S.nextId=Number(S.nextId||1);
+  if(!S.pmData)S.pmData={};if(!S.aiChat)S.aiChat=[];
+  if(!Array.isArray(S.games))S.games=[];S.nextId=Number(S.nextId||1);
 }
 
-/* ═══════ HISTORY STACK ═══════ */
 function snap(){const c={...S};delete c.histStack;delete c.clock;return JSON.parse(JSON.stringify(c))}
 function pushH(){const s=snap();S.histStack.push(s);if(S.histStack.length>40)S.histStack.shift()}
-function undo(){
-  const p=S.histStack.pop();if(!p)return false;
-  const st=S.histStack;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,p);S.histStack=st;
-  return true;
-}
+function undo(){const p=S.histStack.pop();if(!p)return false;const st=S.histStack;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,p);S.histStack=st;return true}
 
-/* ═══════ CLOCK ═══════ */
 let clockInterval=null;
-function clockTick(){
-  if(!S.clock.running)return;
-  if(S.clock.secs>0){
-    S.clock.secs--;
-    renderClock();
-  } else {
-    stopClock();
-    toast("⏱ Period ended","");
-  }
-}
-function startClock(){
-  if(S.clock.running)return;
-  S.clock.running=true;
-  clockInterval=setInterval(clockTick,1000);
-  $("clockToggleBtn").textContent="⏸ Stop";
-  renderClock();
-}
-function stopClock(){
-  S.clock.running=false;
-  clearInterval(clockInterval);
-  $("clockToggleBtn").textContent="▶ Start";
-  renderClock();
-}
+function clockTick(){if(!S.clock.running)return;if(S.clock.secs>0){S.clock.secs--;renderClock()}else{stopClock();toast("⏱ Period ended")}}
+function startClock(){if(S.clock.running)return;S.clock.running=true;clockInterval=setInterval(clockTick,1000);$("clockToggleBtn").textContent="⏸ Stop";renderClock()}
+function stopClock(){S.clock.running=false;clearInterval(clockInterval);$("clockToggleBtn").textContent="▶ Start";renderClock()}
 function renderClock(){
-  const s=S.clock.secs;
-  const m=Math.floor(s/60),sec=s%60;
-  const txt=`${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-  const el=$("clockDisplay");
-  if(el){
-    el.textContent=txt;
-    el.className="clock-display"+(S.clock.running?" running":"")+(s<=30&&s>0?" danger":"");
-  }
+  const s=S.clock.secs,m=Math.floor(s/60),sec=s%60;
+  const el=$("clockDisplay");if(!el)return;
+  el.textContent=String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+  el.className="clock-display"+(S.clock.running?" running":"")+(s<=30&&s>0?" danger":"");
 }
-function resetClock(){
-  stopClock();
-  S.clock.secs=S.clock.periodSecs;
-  renderClock();
-}
+function resetClock(){stopClock();S.clock.secs=S.clock.periodSecs;renderClock()}
 
-/* ═══════ TIMEOUTS ═══════ */
 function renderTimeouts(){
   const renderDots=(containerId,total,used)=>{
-    const el=$(containerId);if(!el)return;
-    el.innerHTML="";
-    for(let i=0;i<total;i++){
-      const d=document.createElement("div");
-      d.className="to-dot"+(i<used?" used":"");
-      d.onclick=()=>{
-        if(containerId==="homeTimeouts"){S.timeouts.homeUsed=Math.min(total,S.timeouts.homeUsed+1)}
-        else{S.timeouts.awayUsed=Math.min(total,S.timeouts.awayUsed+1)}
-        persist();renderTimeouts();
-        toast("Timeout used");
-      };
-      el.appendChild(d);
-    }
+    const el=$(containerId);if(!el)return;el.innerHTML="";
+    for(let i=0;i<total;i++){const d=document.createElement("div");d.className="to-dot"+(i<used?" used":"");
+      d.onclick=()=>{if(containerId==="homeTimeouts")S.timeouts.homeUsed=Math.min(total,S.timeouts.homeUsed+1);else S.timeouts.awayUsed=Math.min(total,S.timeouts.awayUsed+1);persist();renderTimeouts();toast("Timeout used")};
+      el.appendChild(d)}
   };
   renderDots("homeTimeouts",S.timeouts.home,S.timeouts.homeUsed);
   renderDots("awayTimeouts",S.timeouts.away,S.timeouts.awayUsed);
 }
 
-/* ═══════ TIER / PAYWALL ═══════ */
-function setTier(t){S.tier=t;persist();updateTierUI();toast(`GameIQ ${t.toUpperCase()} activated`,"ok")}
+function setTier(t){S.tier=t;persist();updateTierUI();toast("GameIQ "+t.toUpperCase()+" activated","ok")}
 function tierLimit(){return TIER_LIMITS[S.tier]||TIER_LIMITS.free}
 function isPro(){return S.tier==="pro"||S.tier==="team"}
 function updateTierUI(){
-  const tb=$("tierBadge");
-  if(!tb)return;
+  const tb=$("tierBadge");if(!tb)return;
   if(S.tier==="pro"){tb.className="tier-badge tier-pro";tb.textContent="⭐ PRO"}
   else if(S.tier==="team"){tb.className="tier-badge tier-team";tb.textContent="👥 TEAM"}
   else{tb.className="tier-badge tier-free";tb.textContent="FREE"}
   const cp=$("coachPaywall");const ai=$("aiCoachPaywall");
-  if(cp)cp.classList.toggle("hidden",isPro());
-  if(ai)ai.classList.toggle("hidden",isPro());
+  if(cp)cp.classList.toggle("hidden",isPro());if(ai)ai.classList.toggle("hidden",isPro());
 }
 function openPricing(){$("dlgPricing").showModal()}
 function getApiKey(){return localStorage.getItem(AK)||""}
 function openSettings(){
   const dlg=$("dlgSettings");if(!dlg)return;
-  const inp=$("apiKeyInput");if(inp)inp.value=getApiKey()?"●●●●●●●●●●●●":"";
+  const inp=$("apiKeyInput");if(inp)inp.value=getApiKey()?"············":"";
   const secs=S.clock.periodSecs||600;
   document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",Number(b.dataset.secs)===secs));
   dlg.showModal();
 }
 
-/* ═══════ INSIGHTS ENGINE ═══════ */
 function generateInsights(){
   const t=team(),tt=totTeam(),items=[];
   if(!t.players.length)return [{title:"No roster yet",body:"Add players to unlock live coaching suggestions."}];
   const ldr=leader();
   const efficient=t.players.map(p=>({p,t:totPlayer(p),fg:pct(fgm(totPlayer(p)),fga(totPlayer(p)))})).filter(r=>fga(r.t)>=3).sort((a,b)=>b.fg-a.fg)[0];
   const turnover=t.players.map(p=>({p,t:totPlayer(p)})).sort((a,b)=>b.t.tov-a.t.tov)[0];
-  if(ldr&&pts(ldr.t)>=10)items.push({title:"Ride the hot hand",body:`${ldr.p.name} leads with ${pts(ldr.t)} pts. Keep running actions through that side.`});
-  if(turnover&&turnover.t.tov>=3)items.push({title:"Ball security alert",body:`${turnover.p.name} has ${turnover.t.tov} turnovers. Shorter reads or safer inbounds may help.`});
-  if(efficient)items.push({title:"Efficiency edge",body:`${efficient.p.name} is at ${efficient.fg}% FG on ${fga(efficient.t)} attempts — your most efficient volume scorer.`});
+  if(ldr&&pts(ldr.t)>=10)items.push({title:"Ride the hot hand",body:ldr.p.name+" leads with "+pts(ldr.t)+" pts. Keep running actions through that side."});
+  if(turnover&&turnover.t.tov>=3)items.push({title:"Ball security alert",body:turnover.p.name+" has "+turnover.t.tov+" turnovers. Shorter reads or safer inbounds may help."});
+  if(efficient)items.push({title:"Efficiency edge",body:efficient.p.name+" is at "+efficient.fg+"% FG on "+fga(efficient.t)+" attempts — your most efficient scorer."});
   const foulRisk=t.players.map(p=>({p,t:totPlayer(p)})).find(r=>r.t.fouls>=4);
-  if(foulRisk)items.push({title:"Foul pressure",body:`${foulRisk.p.name} is at ${foulRisk.t.fouls} fouls. Manage minutes or defensive assignment.`});
-  if(pct(fgm(tt),fga(tt))<35&&fga(tt)>=8)items.push({title:"Shot profile issue",body:`Team FG is ${pct(fgm(tt),fga(tt))}%. Shift to paint touches or your most efficient player.`});
-  const efg=efgpct(tt);
-  if(efg>0)items.push({title:"eFG% read",body:`Effective FG% is ${efg}%. League average is ~50%. ${efg>=50?"On pace.":"Push for more 3-pointers or free throws."}`});
+  if(foulRisk)items.push({title:"Foul pressure",body:foulRisk.p.name+" is at "+foulRisk.t.fouls+" fouls. Manage minutes or defensive assignment."});
+  if(pct(fgm(tt),fga(tt))<35&&fga(tt)>=8)items.push({title:"Shot profile issue",body:"Team FG is "+pct(fgm(tt),fga(tt))+"%. Shift to paint touches or your most efficient player."});
+  const efg=efgpct(tt);if(efg>0)items.push({title:"eFG% read",body:"Effective FG% is "+efg+"%. "+(efg>=50?"On pace.":"Push for more 3PT or FT.")});
   if(!items.length)items.push({title:"Game in control",body:"No major risk flags. Keep logging for stronger reads."});
   return items;
 }
-
 function renderInsights(containerId){
   const el=$(containerId);if(!el)return;
-  const items=generateInsights();
-  const limit=tierLimit().insights;
+  const items=generateInsights(),limit=tierLimit().insights;
   el.innerHTML=items.slice(0,5).map((item,i)=>{
     const locked=!isPro()&&i>=limit;
-    return `<div class="insight${locked?" locked":""}"><strong>${esc(item.title)}</strong><span>${esc(item.body)}</span></div>`;
+    return '<div class="insight'+(locked?" locked":"")+'"><strong>'+esc(item.title)+'</strong><span>'+esc(item.body)+'</span></div>';
   }).join("");
 }
 
-/* ═══════ RENDER NAV ═══════ */
 function renderNav(){
   qa(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===S.view));
-  qa(".view").forEach(v=>v.classList.toggle("active",v.id===`view-${S.view}`));
+  qa(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+S.view));
 }
-
-/* ═══════ RENDER SUMMARY ═══════ */
 function renderSummary(){
   const tt=totTeam();
   const v=(id,val)=>{const el=$(id);if(el)el.textContent=val};
   v("dashPts",pts(tt));v("dashFg",pct(fgm(tt),fga(tt))+"%");
-  const ldr=leader();v("dashLeader",ldr?ldr.p.name.split(" ")[0]:"—");
-  v("dashGames",S.games.length);
+  const ldr=leader();v("dashLeader",ldr?ldr.p.name.split(" ")[0]:"—");v("dashGames",S.games.length);
   v("livePts",pts(tt));v("liveReb",tt.reb);v("liveAst",tt.ast);v("liveTov",tt.tov);
-  $("scoreHome").textContent=pts(tt);
-  $("scoreAway").textContent=S.awayScore||0;
-  $("scoreHomeLabel").textContent=$("homeTeam")?.value||"HOME";
-  $("scoreAwayLabel").textContent=$("awayTeam")?.value||"AWAY";
+  $("scoreHome").textContent=pts(tt);$("scoreAway").textContent=S.awayScore||0;
+  $("scoreHomeLabel").textContent=($("homeTeam")?.value)||"HOME";$("scoreAwayLabel").textContent=($("awayTeam")?.value)||"AWAY";
   const onboard=$("onboardGuide");
-  if(onboard&&(team().players.length>0||localStorage.getItem("gameiq_onboard_dismissed"))){
-    onboard.classList.add("hidden");
-  }
+  if(onboard&&(team().players.length>0||localStorage.getItem("gameiq_onboard_dismissed")))onboard.classList.add("hidden");
 }
 
-/* ═══════ RENDER PLAYERS ═══════ */
 let renderTimeout=null;
 function scheduleRender(){clearTimeout(renderTimeout);renderTimeout=setTimeout(doRender,60)}
 
 function renderPlayers(){
   const wrap=$("playersList");if(!wrap)return;
   const players=team().players;
-  if(!players.length){
-    wrap.innerHTML=`<div class="empty-state"><span class="ei">👟</span><strong>No players yet</strong><span>Add jersey # and name below to start tracking.</span></div>`;
-    return;
-  }
-  const adv=S.mode==="advanced"&&!S.quickMode;
-  const youth=S.youthMode||S.quickMode;
-
+  if(!players.length){wrap.innerHTML='<div class="empty-state"><span class="ei">👟</span><strong>No players yet</strong><span>Add jersey # and name below to start tracking.</span></div>';return}
+  const adv=S.mode==="advanced"&&!S.quickMode,youth=S.youthMode||S.quickMode;
   wrap.innerHTML=players.map(p=>{
-    const q=p.q?.[aq()]||eq();
-    const t=totPlayer(p);
+    const q=p.q?.[aq()]||eq(),t=totPlayer(p);
     const p2p=pct(t.p2m,t.p2a),p3p=pct(t.p3m,t.p3a),ftp=pct(t.ftm,t.fta);
     const cls=t.fouls>=5?"danger":t.fouls>=3?"warn":"";
-    const onCt=p.onCourt!==false;
-    const pm=S.pmData[p.id]||0;
-    const pmCls=pm>0?"pm-pos":pm<0?"pm-neg":"pm-zero";
-    const pmSign=pm>0?"+":"";
-    return `<div class="pcard ${cls}${!onCt?" benched":""}" data-pid="${p.id}">
-      <div class="pcard-top">
-        <div class="pcard-id">
-          <div class="num-badge">#${esc(p.num)}</div>
-          <div>
-            <div class="pname">${esc(p.name)}</div>
-            <div class="ppos">${p.pos?esc(p.pos):""} <span class="court-badge ${onCt?"on-court":"off-court"}" data-toggle-court="${p.id}" style="cursor:pointer">${onCt?"ON COURT":"BENCH"}</span> <span class="pm-badge ${pmCls}">${pmSign}${pm}</span></div>
-            ${t.fouls>=5?'<div class="foul-flag danger">🚨 5 fouls</div>':t.fouls>=3?`<div class="foul-flag warn">⚠️ ${t.fouls} fouls</div>`:""}
-            ${t.tfouls>=1?`<div class="foul-flag danger">🟨 ${t.tfouls} tech${t.tfouls>1?"s":""}</div>`:""}
-          </div>
-        </div>
-        <div><div class="pts-lbl">PTS</div><div class="pts-big">${pts(t)}</div></div>
-      </div>
-      <div class="stat-ribbon">
-        <div class="stat-cell"><div class="sv" style="color:var(--accent2)">${pts(t)}</div><div class="sl">PTS</div></div>
-        <div class="stat-cell"><div class="sv" style="color:#79baff">${t.p2m}/${t.p2a}</div><div class="sl">2PT·${p2p}%</div></div>
-        <div class="stat-cell"><div class="sv" style="color:#ff7c2a">${t.p3m}/${t.p3a}</div><div class="sl">3PT·${p3p}%</div></div>
-        <div class="stat-cell"><div class="sv" style="color:#f0be3e">${t.ftm}/${t.fta}</div><div class="sl">FT·${ftp}%</div></div>
-        <div class="stat-cell"><div class="sv" style="color:#79baff">${t.reb}</div><div class="sl">REB</div></div>
-        <div class="stat-cell"><div class="sv" style="color:#21c55d">${t.ast}</div><div class="sl">AST</div></div>
-        <div class="stat-cell"><div class="sv" style="color:#ef4040">${t.tov}</div><div class="sl">TOV</div></div>
-        ${youth?"":
-          `<div class="stat-cell"><div class="sv" style="color:#1fd3ef">${t.stl}</div><div class="sl">STL</div></div>
-           <div class="stat-cell"><div class="sv" style="color:#9d7efc">${t.blk}</div><div class="sl">BLK</div></div>
-           <div class="stat-cell"><div class="sv" style="color:${t.fouls>=4?"#f0be3e":"var(--dim)"}">${t.fouls}</div><div class="sl">FOULS</div></div>
-           <div class="stat-cell"><div class="sv" style="color:${t.tfouls>0?"#ef4040":"var(--dim)"}">${t.tfouls}</div><div class="sl">TECH</div></div>`}
-      </div>
-      <div class="live-grid">
-        ${tile(p.id,"reb","Reb",q.reb)}
-        ${tile(p.id,"ast","Ast",q.ast)}
-        ${tile(p.id,"tov","Tov",q.tov)}
-        ${tile(p.id,"fouls","Fouls",q.fouls)}
-      </div>
-      ${adv?`<div class="adv-grid">
-        ${mini(p.id,"p2m","Made 2PT",q.p2m)}${mini(p.id,"p2a","2PT Att",q.p2a)}
-        ${mini(p.id,"p3m","Made 3PT",q.p3m)}${mini(p.id,"p3a","3PT Att",q.p3a)}
-        ${mini(p.id,"ftm","Made FT",q.ftm)}${mini(p.id,"fta","FT Att",q.fta)}
-        ${mini(p.id,"stl","Steals",q.stl)}${mini(p.id,"blk","Blocks",q.blk)}
-        ${mini(p.id,"tfouls","Tech Fouls",q.tfouls||0)}
-      </div>`:""}
-      <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
-        <button class="btn btn-secondary copy-btn" data-pid="${p.id}" style="min-height:32px;font-size:11px">📋 Copy</button>
-        <button class="btn btn-secondary share-btn" data-pid="${p.id}" style="min-height:32px;font-size:11px">↗ Share</button>
-        <button class="btn btn-danger del-btn" data-pid="${p.id}" style="min-height:32px;font-size:11px">Remove</button>
-      </div>
-    </div>`;
+    const onCt=p.onCourt!==false,pm=S.pmData[p.id]||0;
+    const pmCls=pm>0?"pm-pos":pm<0?"pm-neg":"pm-zero",pmSign=pm>0?"+":"";
+    return '<div class="pcard '+cls+(onCt?"":" benched")+'" data-pid="'+p.id+'">'+
+      '<div class="pcard-top"><div class="pcard-id">'+
+      '<div class="num-badge">#'+esc(p.num)+'</div>'+
+      '<div><div class="pname">'+esc(p.name)+'</div>'+
+      '<div class="ppos">'+(p.pos?esc(p.pos):"")+
+      ' <span class="court-badge '+(onCt?"on-court":"off-court")+'" data-toggle-court="'+p.id+'" style="cursor:pointer">'+(onCt?"ON COURT":"BENCH")+'</span>'+
+      ' <span class="pm-badge '+pmCls+'">'+pmSign+pm+'</span></div>'+
+      (t.fouls>=5?'<div class="foul-flag danger">🚨 5 fouls</div>':t.fouls>=3?'<div class="foul-flag warn">⚠️ '+t.fouls+' fouls</div>':"")+
+      (t.tfouls>=1?'<div class="foul-flag danger">🟨 '+t.tfouls+' tech'+(t.tfouls>1?"s":"")+'</div>':"")+
+      '</div></div>'+
+      '<div><div class="pts-lbl">PTS</div><div class="pts-big">'+pts(t)+'</div></div></div>'+
+      '<div class="stat-ribbon">'+
+      '<div class="stat-cell"><div class="sv" style="color:var(--accent2)">'+pts(t)+'</div><div class="sl">PTS</div></div>'+
+      '<div class="stat-cell"><div class="sv" style="color:#79baff">'+t.p2m+"/"+t.p2a+'</div><div class="sl">2PT·'+p2p+'%</div></div>'+
+      '<div class="stat-cell"><div class="sv" style="color:#ff7c2a">'+t.p3m+"/"+t.p3a+'</div><div class="sl">3PT·'+p3p+'%</div></div>'+
+      '<div class="stat-cell"><div class="sv" style="color:#f0be3e">'+t.ftm+"/"+t.fta+'</div><div class="sl">FT·'+ftp+'%</div></div>'+
+      '<div class="stat-cell"><div class="sv" style="color:#79baff">'+t.reb+'</div><div class="sl">REB</div></div>'+
+      '<div class="stat-cell"><div class="sv" style="color:#21c55d">'+t.ast+'</div><div class="sl">AST</div></div>'+
+      '<div class="stat-cell"><div class="sv" style="color:#ef4040">'+t.tov+'</div><div class="sl">TOV</div></div>'+
+      (youth?"":
+        '<div class="stat-cell"><div class="sv" style="color:#1fd3ef">'+t.stl+'</div><div class="sl">STL</div></div>'+
+        '<div class="stat-cell"><div class="sv" style="color:#9d7efc">'+t.blk+'</div><div class="sl">BLK</div></div>'+
+        '<div class="stat-cell"><div class="sv" style="color:'+(t.fouls>=4?"#f0be3e":"var(--dim)")+'">'+t.fouls+'</div><div class="sl">FOULS</div></div>'+
+        '<div class="stat-cell"><div class="sv" style="color:'+(t.tfouls>0?"#ef4040":"var(--dim)")+'">'+t.tfouls+'</div><div class="sl">TECH</div></div>')+
+      '</div>'+
+      '<div class="live-grid">'+tile(p.id,"reb","Reb",q.reb)+tile(p.id,"ast","Ast",q.ast)+tile(p.id,"tov","Tov",q.tov)+tile(p.id,"fouls","Fouls",q.fouls)+'</div>'+
+      (adv?'<div class="adv-grid">'+mini(p.id,"p2m","Made 2PT",q.p2m)+mini(p.id,"p2a","2PT Att",q.p2a)+mini(p.id,"p3m","Made 3PT",q.p3m)+mini(p.id,"p3a","3PT Att",q.p3a)+mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"fta","FT Att",q.fta)+mini(p.id,"stl","Steals",q.stl)+mini(p.id,"blk","Blocks",q.blk)+mini(p.id,"tfouls","Tech Fouls",q.tfouls||0)+'</div>':"")+
+      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">'+
+      '<button class="btn btn-secondary copy-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">📋 Copy</button>'+
+      '<button class="btn btn-secondary share-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">↗ Share</button>'+
+      '<button class="btn btn-danger del-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">Remove</button>'+
+      '</div></div>';
   }).join("");
-
-  wrap.querySelectorAll(".stepper button").forEach(b=>b.addEventListener("click",e=>{
-    vibe(12);
-    adjustStat(Number(b.dataset.pid),b.dataset.stat,Number(b.dataset.delta));
-  }));
+  wrap.querySelectorAll(".stepper button").forEach(b=>b.addEventListener("click",()=>{vibe(12);adjustStat(Number(b.dataset.pid),b.dataset.stat,Number(b.dataset.delta))}));
   wrap.querySelectorAll(".copy-btn").forEach(b=>b.addEventListener("click",()=>copyPlayer(Number(b.dataset.pid))));
   wrap.querySelectorAll(".share-btn").forEach(b=>b.addEventListener("click",()=>sharePlayer(Number(b.dataset.pid))));
   wrap.querySelectorAll(".del-btn").forEach(b=>b.addEventListener("click",()=>removePlayer(Number(b.dataset.pid))));
   wrap.querySelectorAll("[data-toggle-court]").forEach(b=>b.addEventListener("click",()=>toggleCourt(Number(b.dataset.toggleCourt))));
 }
+function tile(id,stat,label,val){return '<div class="stat-tile"><div class="th"><div class="tn">'+label+'</div><div class="tv">'+val+'</div></div><div class="stepper"><button class="step-minus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="-1">−</button><div class="step-display">'+val+'</div><button class="step-plus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="1">+</button></div></div>'}
+function mini(id,stat,label,val){return '<div class="mini-card"><h4>'+label+'</h4><div class="stepper"><button class="step-minus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="-1">−</button><div class="step-display">'+val+'</div><button class="step-plus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="1">+</button></div></div>'}
 
-function tile(id,stat,label,val){
-  return `<div class="stat-tile"><div class="th"><div class="tn">${label}</div><div class="tv">${val}</div></div>
-    <div class="stepper">
-      <button class="step-minus" data-pid="${id}" data-stat="${stat}" data-delta="-1" aria-label="Decrease ${label}">−</button>
-      <div class="step-display">${val}</div>
-      <button class="step-plus" data-pid="${id}" data-stat="${stat}" data-delta="1" aria-label="Increase ${label}">+</button>
-    </div></div>`;
-}
-function mini(id,stat,label,val){
-  return `<div class="mini-card"><h4>${label}</h4>
-    <div class="stepper">
-      <button class="step-minus" data-pid="${id}" data-stat="${stat}" data-delta="-1">−</button>
-      <div class="step-display">${val}</div>
-      <button class="step-plus" data-pid="${id}" data-stat="${stat}" data-delta="1">+</button>
-    </div></div>`;
-}
-
-/* ═══════ SHOT CHART ═══════ */
 function renderShots(){
-  const sl=$("shotLayer");if(!sl)return;
-  const hl=$("heatLayer");
-  sl.innerHTML="";
-  const pid=Number($("shotPlayerSel")?.value||0);
-  const shots=pid?S.shots.filter(s=>s.pid===pid):S.shots;
-  if(S.heatMode&&shots.length>0&&hl){
-    hl.innerHTML=renderHeatMap(shots);
-  } else if(hl){hl.innerHTML=""}
+  const sl=$("shotLayer");if(!sl)return;const hl=$("heatLayer");sl.innerHTML="";
+  const pid=Number($("shotPlayerSel")?.value||0),shots=pid?S.shots.filter(s=>s.pid===pid):S.shots;
+  if(S.heatMode&&shots.length&&hl)hl.innerHTML=renderHeatMap(shots);else if(hl)hl.innerHTML="";
   shots.forEach(s=>{
     const c=s.type==="miss"?"#ef4040":s.type==="ft"?"#f0be3e":s.det==="3pt"?"#ff7c2a":"#21c55d";
     const sym=s.type==="miss"?"✕":s.type==="ft"?"F":s.det==="3pt"?"3":"2";
     const el=document.createElementNS("http://www.w3.org/2000/svg","g");
-    el.innerHTML=`<circle cx="${s.x}" cy="${s.y}" r="7.5" fill="${c}38" stroke="${c}" stroke-width="1.6"/>
-      <text x="${s.x}" y="${s.y+3}" text-anchor="middle" font-size="7" fill="${c}" font-family="DM Mono,monospace" font-weight="700">${sym}</text>`;
+    el.innerHTML='<circle cx="'+s.x+'" cy="'+s.y+'" r="7.5" fill="'+c+'38" stroke="'+c+'" stroke-width="1.6"/><text x="'+s.x+'" y="'+(s.y+3)+'" text-anchor="middle" font-size="7" fill="'+c+'" font-family="DM Mono,monospace" font-weight="700">'+sym+'</text>';
     sl.appendChild(el);
   });
 }
-
 function renderHeatMap(shots){
-  const made=shots.filter(s=>s.type==="made");
-  if(!made.length)return"";
-  let cells="";
-  const gs=40;
-  for(let gx=0;gx<400;gx+=gs){for(let gy=0;gy<360;gy+=gs){
+  const made=shots.filter(s=>s.type==="made");if(!made.length)return"";
+  let cells="";const gs=40;
+  for(let gx=0;gx<400;gx+=gs)for(let gy=0;gy<360;gy+=gs){
     const near=made.filter(s=>Math.abs(s.x-gx-gs/2)<gs&&Math.abs(s.y-gy-gs/2)<gs).length;
-    if(near>0){
-      const op=Math.min(.65,near*.15);
-      const col=near>=4?"#ef4040":near>=2?"#ff7c2a":"#f0be3e";
-      cells+=`<rect x="${gx}" y="${gy}" width="${gs}" height="${gs}" fill="${col}" opacity="${op}" rx="4"/>`;
-    }
-  }}
+    if(near>0){const op=Math.min(.65,near*.15);const col=near>=4?"#ef4040":near>=2?"#ff7c2a":"#f0be3e";cells+='<rect x="'+gx+'" y="'+gy+'" width="'+gs+'" height="'+gs+'" fill="'+col+'" opacity="'+op+'" rx="4"/>'}
+  }
   return cells;
 }
-
 function renderShotStats(){
-  const pid=Number($("shotPlayerSel")?.value||0);
-  const sh=pid?S.shots.filter(s=>s.pid===pid):S.shots;
-  const m2=sh.filter(s=>s.type==="made"&&s.det==="2pt").length;
-  const a2=sh.filter(s=>s.type!=="ft"&&s.det==="2pt").length;
-  const m3=sh.filter(s=>s.type==="made"&&s.det==="3pt").length;
-  const a3=sh.filter(s=>s.type!=="ft"&&s.det==="3pt").length;
-  const mft=sh.filter(s=>s.type==="ft").length;
-  const tm=m2+m3+mft,ta=a2+a3+mft;
+  const pid=Number($("shotPlayerSel")?.value||0),sh=pid?S.shots.filter(s=>s.pid===pid):S.shots;
+  const m2=sh.filter(s=>s.type==="made"&&s.det==="2pt").length,a2=sh.filter(s=>s.type!=="ft"&&s.det==="2pt").length;
+  const m3=sh.filter(s=>s.type==="made"&&s.det==="3pt").length,a3=sh.filter(s=>s.type!=="ft"&&s.det==="3pt").length;
+  const mft=sh.filter(s=>s.type==="ft").length,tm=m2+m3+mft,ta=a2+a3+mft;
   const v=(id,val)=>{const el=$(id);if(el)el.textContent=val};
-  v("ssFg",pct(tm,ta)+"%");v("ss2pt",`${m2}/${a2}`);v("ss3pt",`${m3}/${a3}`);v("ssFt",`${mft}/${mft}`);
-  const ef=ta?Math.round(((m2+m3+mft+.5*m3)/ta)*100):0;
-  v("ssEfg",ef+"%");
+  v("ssFg",pct(tm,ta)+"%");v("ss2pt",m2+"/"+a2);v("ss3pt",m3+"/"+a3);v("ssFt",mft+"/"+mft);
+  v("ssEfg",(ta?Math.round(((m2+m3+mft+.5*m3)/ta)*100):0)+"%");
   const p=pid?team().players.find(x=>x.id===pid):null;
-  if($("shotNote"))$("shotNote").textContent=p?`Showing ${p.name}'s shots. Tap court to log.`:"Select player → tap court to log shots.";
+  if($("shotNote"))$("shotNote").textContent=p?"Showing "+p.name+"'s shots. Tap court to log.":"Select player → tap court to log shots.";
 }
-
 function onCourtTap(evt){
-  const pid=Number($("shotPlayerSel")?.value||0);
-  if(!pid){toast("Pick a player first","err");return}
-  const svg=$("court");
-  const pt=svg.createSVGPoint();
-  const src=evt.touches?evt.touches[0]:evt;
+  const pid=Number($("shotPlayerSel")?.value||0);if(!pid){toast("Pick a player first","err");return}
+  const svg=$("court"),pt=svg.createSVGPoint(),src=evt.touches?evt.touches[0]:evt;
   pt.x=src.clientX;pt.y=src.clientY;
   const cur=pt.matrixTransform(svg.getScreenCTM().inverse());
   const x=Math.max(4,Math.min(396,cur.x)),y=Math.max(4,Math.min(356,cur.y));
   const player=team().players.find(p=>p.id===pid);if(!player)return;
-  pushH();
-  const q=player.q[aq()]||eq();
-  let det="2pt";
+  pushH();if(!player.q)player.q={};if(!player.q[aq()])player.q[aq()]=eq();
+  const q=player.q[aq()];let det="2pt";
   if(S.shotMode==="ft"){q.ftm++;q.fta++;det="ft"}
   else if(S.shotMode==="made"){if(is3pt(x,y)){q.p3m++;q.p3a++;det="3pt"}else{q.p2m++;q.p2a++}}
   else{if(is3pt(x,y)){q.p3a++;det="3pt"}else{q.p2a++}}
-  S.shots.push({pid,x,y,type:S.shotMode,det,q:aq(),t:Date.now()});
-  vibe([10,5,10]);
-  scheduleRender();
+  S.shots.push({pid,x,y,type:S.shotMode,det,q:aq(),t:Date.now()});vibe([10,5,10]);scheduleRender();
 }
 
-/* ═══════ PLUS MINUS ═══════ */
 function toggleCourt(pid){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
-  const wasOn=p.onCourt!==false;
-  p.onCourt=!wasOn;
-  if(!wasOn){
-    p.courtEnteredAt=pts(totTeam());
-  } else if(p.courtEnteredAt!==null){
-    const diff=pts(totTeam())-p.courtEnteredAt-(S.awayScore||0);
-    if(!S.pmData[pid])S.pmData[pid]=0;
-    S.pmData[pid]+=diff;
-    p.courtEnteredAt=null;
-  }
-  scheduleRender();
-  toast(`${p.name} — ${p.onCourt!==false?"ON COURT":"BENCH"}`);
+  const wasOn=p.onCourt!==false;p.onCourt=!wasOn;
+  if(!wasOn)p.courtEnteredAt=pts(totTeam());
+  else if(p.courtEnteredAt!==null){const diff=pts(totTeam())-p.courtEnteredAt-(S.awayScore||0);if(!S.pmData[pid])S.pmData[pid]=0;S.pmData[pid]+=diff;p.courtEnteredAt=null}
+  scheduleRender();toast(p.name+" — "+(p.onCourt!==false?"ON COURT":"BENCH"));
 }
 
-/* ═══════ COACH ANALYTICS ═══════ */
 function renderCoachView(){
-  if(!isPro()){
-    const cc=$("coachContent");if(cc)cc.style.opacity="0.35";
-    return;
-  }
+  if(!isPro()){const cc=$("coachContent");if(cc)cc.style.opacity="0.35";return}
   const cc=$("coachContent");if(cc)cc.style.opacity="1";
-  const players=team().players;
-  const tt=totTeam();
-
+  const players=team().players,tt=totTeam();
   const mr=$("coachMetrics");
-  if(mr){
-    mr.innerHTML=[
-      {l:"Team FG%",v:pct(fgm(tt),fga(tt))+"%",s:"Shooting efficiency"},
-      {l:"Team eFG%",v:efgpct(tt)+"%",s:"Effective field goal"},
-      {l:"AST/TOV",v:tt.tov?Math.round(tt.ast/tt.tov*10)/10+"x":"∞",s:"Ball movement ratio"}
-    ].map(m=>`<div class="metric-card"><div class="ml">${m.l}</div><div class="mv">${m.v}</div><div class="ms">${m.s}</div></div>`).join("");
-  }
-
+  if(mr)mr.innerHTML=[{l:"Team FG%",v:pct(fgm(tt),fga(tt))+"%",s:"Shooting efficiency"},{l:"Team eFG%",v:efgpct(tt)+"%",s:"Effective field goal"},{l:"AST/TOV",v:tt.tov?Math.round(tt.ast/tt.tov*10)/10+"x":"∞",s:"Ball movement ratio"}].map(m=>'<div class="metric-card"><div class="ml">'+m.l+'</div><div class="mv">'+m.v+'</div><div class="ms">'+m.s+'</div></div>').join("");
   const pr=$("coachPlayerRows");
   if(pr){
     pr.innerHTML=players.map(p=>{
-      const t=totPlayer(p);
-      const fg=pct(fgm(t),fga(t));
-      const efg=efgpct(t);
+      const t=totPlayer(p),fg=pct(fgm(t),fga(t)),efg=efgpct(t);
       const games=S.games.filter(g=>g.players?.some(gp=>gp.num===p.num&&gp.name===p.name));
-      const trend=games.length>=2?(() => {
-        const recent=games.slice(-2).map(g=>{const gp=g.players.find(x=>x.num===p.num&&x.name===p.name);return gp?pts(totPlayer(gp)):0});
-        return recent[1]-recent[0];
-      })():0;
-      return `<div class="dev-player">
-        <div class="dev-head">
-          <div><strong class="dev-name">#${esc(p.num)} ${esc(p.name)}</strong><div style="font-size:11px;color:var(--muted);margin-top:2px">${pts(t)} pts · ${fg}% FG · ${efg}% eFG · ${t.reb} reb · ${t.ast} ast</div></div>
-          <div class="${trend>0?"trend-up":trend<0?"trend-dn":"dev-trend"}">${trend>0?"▲ +"+trend:trend<0?"▼ "+trend:"—"}</div>
-        </div>
-        <div class="dev-arc"><div class="dev-fill" style="width:${Math.min(100,fg)}%;background:${fg>=45?"#21c55d":fg>=35?"#f0be3e":"#ef4040"}"></div></div>
-      </div>`;
+      const trend=games.length>=2?(()=>{const r=games.slice(-2).map(g=>{const gp=g.players.find(x=>x.num===p.num&&x.name===p.name);return gp?pts(totPlayer(gp)):0});return r[1]-r[0]})():0;
+      return '<div class="dev-player"><div class="dev-head"><div><strong class="dev-name">#'+esc(p.num)+" "+esc(p.name)+'</strong><div style="font-size:11px;color:var(--muted);margin-top:2px">'+pts(t)+" pts · "+fg+"% FG · "+efg+"% eFG · "+t.reb+" reb · "+t.ast+' ast</div></div><div class="'+(trend>0?"trend-up":trend<0?"trend-dn":"dev-trend")+'">'+(trend>0?"▲ +"+trend:trend<0?"▼ "+trend:"—")+'</div></div><div class="dev-arc"><div class="dev-fill" style="width:'+Math.min(100,fg)+'%;background:'+(fg>=45?"#21c55d":fg>=35?"#f0be3e":"#ef4040")+'"></div></div></div>';
     }).join("");
-    if(!players.length)pr.innerHTML=`<div class="empty-state"><span class="ei">📊</span><strong>No players yet</strong><span>Add players in the Live view to see analytics.</span></div>`;
+    if(!players.length)pr.innerHTML='<div class="empty-state"><span class="ei">📊</span><strong>No players yet</strong><span>Add players in the Live view.</span></div>';
   }
-
   const pm=$("pmBoard");
   if(pm){
-    if(!players.length){pm.innerHTML=`<div style="color:var(--muted);font-size:13px">No players yet.</div>`;return}
-    pm.innerHTML=players.map(p=>{
-      const v=S.pmData[p.id]||0;
-      const cls=v>0?"pm-pos":v<0?"pm-neg":"pm-zero";
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">
-        <span style="font-size:13px">#${esc(p.num)} ${esc(p.name)}</span>
-        <span class="pm-badge ${cls}">${v>0?"+":""}${v}</span>
-      </div>`;
-    }).join("");
+    if(!players.length){pm.innerHTML='<div style="color:var(--muted);font-size:13px">No players yet.</div>';return}
+    pm.innerHTML=players.map(p=>{const v=S.pmData[p.id]||0;const cls=v>0?"pm-pos":v<0?"pm-neg":"pm-zero";return'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)"><span style="font-size:13px">#'+esc(p.num)+" "+esc(p.name)+'</span><span class="pm-badge '+cls+'">'+(v>0?"+":"")+v+'</span></div>'}).join("");
   }
 }
 
-/* ═══════ SEASON CHARTS ═══════ */
 function drawChart(id,data,labels,color,title){
   const c=$(id);if(!c)return;
   const ctx=c.getContext("2d");
@@ -1547,4 +1007,762 @@ function drawChart(id,data,labels,color,title){
   ctx.fillStyle="#eef3ff";ctx.font="700 12px 'DM Sans',sans-serif";ctx.fillText(title,14,18);
   const L=44,R=W-14,T=32,B=H-28;
   ctx.strokeStyle="rgba(255,255,255,.08)";ctx.lineWidth=1;
-  for(let i=0;i<4;i++){const y=T+(B-T)*(i/3);ctx.beginPath();ctx.moveTo(
+  for(let i=0;i<4;i++){
+    const y=T+(B-T)*(i/3);
+    ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(R,y);ctx.stroke();
+    const val=data.length?Math.max(...data)*(1-i/3):0;
+    ctx.fillStyle="rgba(255,255,255,.3)";ctx.font="10px 'DM Mono',monospace";
+    ctx.fillText(Math.round(val),4,y+4);
+  }
+  if(!data.length){
+    ctx.fillStyle="rgba(255,255,255,.2)";ctx.font="12px 'DM Sans',sans-serif";ctx.textAlign="center";
+    ctx.fillText("No saved games yet",W/2,H/2);ctx.textAlign="left";return;
+  }
+  const max=Math.max(...data,1);
+  const xStep=(R-L)/(Math.max(data.length-1,1));
+  ctx.beginPath();
+  data.forEach((v,i)=>{
+    const x=L+i*xStep,y=B-(v/max)*(B-T);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
+  // fill under
+  ctx.lineTo(L+(data.length-1)*xStep,B);ctx.lineTo(L,B);ctx.closePath();
+  ctx.fillStyle=color.replace(")",",0.1)").replace("rgb(","rgba(");
+  if(color.startsWith("#")){ctx.fillStyle=color+"18"}
+  ctx.fill();
+  // dots
+  data.forEach((v,i)=>{
+    const x=L+i*xStep,y=B-(v/max)*(B-T);
+    ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.fill();
+  });
+  // x labels
+  ctx.fillStyle="rgba(255,255,255,.3)";ctx.font="9px 'DM Mono',monospace";
+  labels.forEach((l,i)=>{
+    if(i%Math.max(1,Math.floor(labels.length/6))===0){
+      ctx.fillText(l,L+i*xStep-8,H-6);
+    }
+  });
+}
+
+function renderSeasonView(){
+  const games=S.games;
+  const labels=games.map(g=>g.date?g.date.slice(5):"?");
+  const ptsData=games.map(g=>g.teamPts||0);
+  const fgData=games.map(g=>g.teamFg||0);
+  drawChart("pointsChart",ptsData,labels,"#4d9fff","Points per Game");
+  drawChart("fgChart",fgData,labels,"#1ecfb0","FG% per Game");
+
+  // dev arcs
+  const da=$("devArcs");
+  if(da){
+    const allPlayers=team().players;
+    if(!allPlayers.length){da.innerHTML=`<div style="color:var(--muted);font-size:13px">No players yet.</div>`;return}
+    da.innerHTML=allPlayers.map(p=>{
+      const gameStats=games.map(g=>{
+        const gp=g.players?.find(x=>x.num===p.num&&x.name===p.name);
+        return gp?pts(totPlayer(gp)):null;
+      }).filter(x=>x!==null);
+      const avg=gameStats.length?Math.round(gameStats.reduce((a,b)=>a+b,0)/gameStats.length):0;
+      const trend=gameStats.length>=2?gameStats[gameStats.length-1]-gameStats[gameStats.length-2]:0;
+      return `<div class="dev-player">
+        <div class="dev-head">
+          <div><strong class="dev-name">#${esc(p.num)} ${esc(p.name)}</strong>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${avg} avg pts · ${gameStats.length} games</div></div>
+          <div class="${trend>0?"trend-up":trend<0?"trend-dn":"dev-trend"}">${trend>0?"▲ +"+trend:trend<0?"▼ "+trend:"—"}</div>
+        </div>
+        <div class="dev-arc"><div class="dev-fill" style="width:${Math.min(100,avg*3)}%;background:${avg>=15?"#21c55d":avg>=8?"#4d9fff":"#8ba3c4"}"></div></div>
+      </div>`;
+    }).join("");
+  }
+
+  // full history
+  const fh=$("fullHistory");
+  if(fh){
+    if(!games.length){fh.innerHTML=`<div class="empty-state"><span class="ei">📅</span><strong>No saved games</strong><span>Hit Save Game after each game to build your season history.</span></div>`;return}
+    fh.innerHTML=[...games].reverse().map((g,ri)=>{
+      const i=games.length-1-ri;
+      return `<div class="hcard">
+        <div class="hcard-top">
+          <div><strong style="font-size:14px">${esc(g.home||"HOME")} vs ${esc(g.away||"AWAY")}</strong>
+          <div class="hcard-meta">${g.date||""} · Q${g.quarter||4} · ${g.teamName||"My Team"}</div></div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--accent2)">${g.teamPts||0}</div>
+        </div>
+        <div class="hcard-stats">${g.teamFg||0}% FG · ${g.teamReb||0} reb · ${g.teamAst||0} ast · ${g.teamTov||0} tov</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-ghost" data-del-game="${i}" style="min-height:28px;font-size:11px;padding:4px 9px">🗑 Delete</button>
+        </div>
+      </div>`;
+    }).join("");
+    fh.querySelectorAll("[data-del-game]").forEach(b=>b.addEventListener("click",()=>{
+      const idx=Number(b.dataset.delGame);
+      S.games.splice(idx,1);
+      persist();renderSeasonView();
+      renderSummary();
+      toast("Game deleted");
+    }));
+  }
+
+  // dashboard recent
+  const rd=$("recentHistoryDash");
+  if(rd){
+    const recent=[...games].slice(-3).reverse();
+    if(!recent.length){rd.innerHTML=`<div style="color:var(--muted);font-size:12px">No games saved yet.</div>`;return}
+    rd.innerHTML=recent.map(g=>`<div class="hcard">
+      <div class="hcard-top">
+        <div><strong style="font-size:13px">${esc(g.home||"HOME")} vs ${esc(g.away||"AWAY")}</strong>
+        <div class="hcard-meta">${g.date||""}</div></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--accent2)">${g.teamPts||0}</div>
+      </div>
+    </div>`).join("");
+  }
+
+  const sc=$("gamesTrackedCount");
+  if(sc)sc.textContent=games.length;
+}
+
+/* ═══════ TEAMS VIEW ═══════ */
+function renderTeamsView(){
+  const tl=$("teamsList");
+  if(tl){
+    tl.innerHTML=S.teams.map(t=>`
+      <div class="team-card">
+        <div class="team-top">
+          <div>
+            <strong style="font-size:14px">${esc(t.name)}</strong>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.players.length} players</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn ${t.id===S.activeTeamId?"btn-primary":"btn-secondary"} sel-team" data-tid="${t.id}" style="min-height:30px;font-size:11px">${t.id===S.activeTeamId?"✓ Active":"Select"}</button>
+            ${S.teams.length>1?`<button class="btn btn-danger del-team" data-tid="${t.id}" style="min-height:30px;font-size:11px">🗑</button>`:""}
+          </div>
+        </div>
+        <div class="player-chips">${t.players.map(p=>`<span class="pchip">#${esc(p.num)} ${esc(p.name)}</span>`).join("")}</div>
+      </div>`).join("");
+    tl.querySelectorAll(".sel-team").forEach(b=>b.addEventListener("click",()=>{
+      S.activeTeamId=b.dataset.tid;persist();doRender();toast("Team switched");
+    }));
+    tl.querySelectorAll(".del-team").forEach(b=>b.addEventListener("click",()=>{
+      if(!confirm("Delete this team?"))return;
+      S.teams=S.teams.filter(t=>t.id!==b.dataset.tid);
+      if(!S.teams.length)S.teams=[{id:"td",name:"My Team",players:[]}];
+      if(!S.teams.find(t=>t.id===S.activeTeamId))S.activeTeamId=S.teams[0].id;
+      persist();doRender();toast("Team deleted");
+    }));
+  }
+
+  const sb=$("teamSummaryBody");
+  if(sb){
+    const t=team();
+    const tt=totTeam();
+    sb.innerHTML=`
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi"><div class="lbl">Players</div><div class="val">${t.players.length}</div></div>
+        <div class="kpi"><div class="lbl">Team PTS</div><div class="val">${pts(tt)}</div></div>
+        <div class="kpi"><div class="lbl">FG%</div><div class="val">${pct(fgm(tt),fga(tt))}%</div></div>
+      </div>`;
+  }
+
+  // team select dropdown
+  const ts=$("teamSelect");
+  if(ts){
+    ts.innerHTML=S.teams.map(t=>`<option value="${t.id}"${t.id===S.activeTeamId?" selected":""}>${esc(t.name)}</option>`).join("");
+  }
+}
+
+/* ═══════ COMPARE VIEW ═══════ */
+function renderCompareView(){
+  const players=team().players;
+  const populateSel=(id)=>{
+    const el=$(id);if(!el)return;
+    el.innerHTML=`<option value="">— Select player —</option>`+players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
+  };
+  populateSel("compareA");populateSel("compareB");
+  renderCompareResult();
+}
+
+function renderCompareResult(){
+  const cr=$("compareResult");if(!cr)return;
+  const idA=Number($("compareA")?.value||0);
+  const idB=Number($("compareB")?.value||0);
+  if(!idA||!idB){cr.innerHTML=`<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Select two players to compare.</div>`;return}
+  const pA=team().players.find(p=>p.id===idA);
+  const pB=team().players.find(p=>p.id===idB);
+  if(!pA||!pB){cr.innerHTML="";return}
+  const tA=totPlayer(pA),tB=totPlayer(pB);
+  const rows=[
+    {l:"Points",a:pts(tA),b:pts(tB)},
+    {l:"2PT%",a:pct(tA.p2m,tA.p2a),b:pct(tB.p2m,tB.p2a),suf:"%"},
+    {l:"3PT%",a:pct(tA.p3m,tA.p3a),b:pct(tB.p3m,tB.p3a),suf:"%"},
+    {l:"FT%",a:pct(tA.ftm,tA.fta),b:pct(tB.ftm,tB.fta),suf:"%"},
+    {l:"eFG%",a:efgpct(tA),b:efgpct(tB),suf:"%"},
+    {l:"Rebounds",a:tA.reb,b:tB.reb},
+    {l:"Assists",a:tA.ast,b:tB.ast},
+    {l:"Turnovers",a:tA.tov,b:tB.tov,lower:true},
+    {l:"Steals",a:tA.stl,b:tB.stl},
+    {l:"Blocks",a:tA.blk,b:tB.blk},
+    {l:"Fouls",a:tA.fouls,b:tB.fouls,lower:true},
+  ];
+  cr.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden">
+      <div style="padding:11px 14px;background:rgba(77,159,255,.07);text-align:center;font-weight:800;font-size:14px;border-bottom:1px solid var(--line)">#${esc(pA.num)} ${esc(pA.name)}</div>
+      <div style="padding:11px 14px;background:rgba(255,255,255,.03);text-align:center;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line);border-left:1px solid var(--line);border-right:1px solid var(--line)">STAT</div>
+      <div style="padding:11px 14px;background:rgba(30,207,176,.07);text-align:center;font-weight:800;font-size:14px;border-bottom:1px solid var(--line)">#${esc(pB.num)} ${esc(pB.name)}</div>
+      ${rows.map(r=>{
+        const better=r.lower?(r.a<r.b?"a":r.a>r.b?"b":""):(r.a>r.b?"a":r.a<r.b?"b":"");
+        return `
+          <div style="padding:9px 14px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:${better==="a"?"var(--accent2)":"var(--text)"};border-bottom:1px solid var(--line)">${r.a}${r.suf||""}</div>
+          <div style="padding:9px 14px;text-align:center;font-size:10px;color:var(--dim);border-bottom:1px solid var(--line);border-left:1px solid var(--line);border-right:1px solid var(--line)">${r.l}</div>
+          <div style="padding:9px 14px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:${better==="b"?"#1ecfb0":"var(--text)"};border-bottom:1px solid var(--line)">${r.b}${r.suf||""}</div>`;
+      }).join("")}
+    </div>`;
+}
+
+/* ═══════ AI COACH VIEW ═══════ */
+function renderAICoachView(){
+  const notice=$("aiApiNotice");
+  if(notice){
+    const hasKey=!!getApiKey();
+    notice.classList.toggle("hidden",hasKey||!isPro());
+  }
+  renderAIChat();
+  renderAISuggestions();
+}
+
+function renderAIChat(){
+  const wrap=$("aiChatMessages");if(!wrap)return;
+  if(!S.aiChat.length){
+    wrap.innerHTML=`<div class="ai-msg assistant">👋 I'm your AI Coach, powered by Claude. Ask me anything about your lineup, strategy, or player development. I have access to your current game data.</div>`;
+    return;
+  }
+  wrap.innerHTML=S.aiChat.map(m=>`<div class="ai-msg ${m.role}">${esc(m.content).replace(/\n/g,"<br>")}</div>`).join("");
+  wrap.scrollTop=wrap.scrollHeight;
+}
+
+function renderAISuggestions(){
+  const el=$("aiSuggestions");if(!el)return;
+  const sugs=["Who should I play more?","What's our biggest weakness?","How do I improve our FG%?","Who's our best defender?","Lineup recommendation for final 2 minutes"];
+  el.innerHTML=sugs.map(s=>`<button class="ai-sug" data-sug="${esc(s)}">${esc(s)}</button>`).join("");
+  el.querySelectorAll(".ai-sug").forEach(b=>b.addEventListener("click",()=>{
+    const inp=$("aiInput");if(inp){inp.value=b.dataset.sug;inp.focus()}
+  }));
+}
+
+async function sendAIMessage(){
+  if(!isPro()){openPricing();return}
+  const inp=$("aiInput");if(!inp)return;
+  const msg=inp.value.trim();if(!msg)return;
+  const key=getApiKey();
+  if(!key){
+    const notice=$("aiApiNotice");if(notice)notice.classList.remove("hidden");
+    toast("Add API key in Settings to use AI Coach","err");return;
+  }
+  inp.value="";
+  S.aiChat.push({role:"user",content:msg});
+  renderAIChat();
+  // thinking indicator
+  const wrap=$("aiChatMessages");
+  if(wrap){const t=document.createElement("div");t.className="ai-msg assistant thinking";t.id="aiThinking";t.textContent="Analyzing your game data…";wrap.appendChild(t);wrap.scrollTop=wrap.scrollHeight;}
+  const sendBtn=$("aiSendBtn");if(sendBtn)sendBtn.disabled=true;
+  inp.disabled=true;
+  try{
+    const tt=totTeam();
+    const context=`You are an expert basketball coach AI. Current game data:
+Team: ${team().name}
+Score: Home ${pts(tt)} - Away ${S.awayScore}
+Quarter: Q${S.quarter}
+Team stats: ${pts(tt)} pts, ${pct(fgm(tt),fga(tt))}% FG, ${efgpct(tt)}% eFG, ${tt.reb} reb, ${tt.ast} ast, ${tt.tov} tov
+Players: ${team().players.map(p=>{const t=totPlayer(p);return `#${p.num} ${p.name}: ${pts(t)}pts ${pct(fgm(t),fga(t))}%FG ${t.fouls}fouls`}).join("; ")}
+Be concise, direct, and actionable. Max 3 sentences unless explaining something complex.`;
+    const messages=[
+      ...S.aiChat.slice(-8).map(m=>({role:m.role,content:m.content}))
+    ];
+    messages[0]={...messages[0]};
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-opus-4-5",max_tokens:512,system:context,messages})
+    });
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||"Sorry, I couldn't get a response. Check your API key.";
+    const thinking=document.getElementById("aiThinking");if(thinking)thinking.remove();
+    S.aiChat.push({role:"assistant",content:reply});
+    persist();
+    renderAIChat();
+  }catch(e){
+    const thinking=document.getElementById("aiThinking");if(thinking)thinking.remove();
+    S.aiChat.push({role:"assistant",content:"Connection error. Check your API key and network."});
+    renderAIChat();
+  }finally{
+    if(sendBtn)sendBtn.disabled=false;
+    inp.disabled=false;inp.focus();
+  }
+}
+
+/* ═══════ SHOT PLAYER SELECT ═══════ */
+function populateShotSel(){
+  const sel=$("shotPlayerSel");if(!sel)return;
+  const players=team().players;
+  const cur=sel.value;
+  sel.innerHTML=`<option value="0">All players</option>`+players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
+  if(cur)sel.value=cur;
+}
+
+/* ═══════ STAT ADJUSTMENT ═══════ */
+function adjustStat(pid,stat,delta){
+  const p=team().players.find(x=>x.id===pid);if(!p)return;
+  pushH();
+  if(!p.q)p.q={};
+  if(!p.q[aq()])p.q[aq()]=eq();
+  const q=p.q[aq()];
+  q[stat]=Math.max(0,(q[stat]||0)+delta);
+  // foul auto-alert
+  if(stat==="fouls"){
+    if(q.fouls>=5)toast(`🚨 ${p.name} — 5th foul!`,"err");
+    else if(q.fouls>=3)toast(`⚠️ ${p.name} — ${q.fouls} fouls`,"");
+  }
+  scheduleRender();
+}
+
+/* ═══════ ADD / REMOVE PLAYER ═══════ */
+function addPlayer(){
+  const num=($("addNum")?.value||"").trim();
+  const name=($("addName")?.value||"").trim();
+  const pos=($("addPhone")?.value||"").trim();
+  if(!name){toast("Enter player name","err");return}
+  const lim=tierLimit().players;
+  if(team().players.length>=lim){
+    toast(`Free plan: max ${lim} players. Upgrade for unlimited.`,"err");
+    openPricing();return;
+  }
+  pushH();
+  const id=S.nextId++;
+  team().players.push({id,num:num||"?",name,pos,q:{},onCourt:true,courtEnteredAt:null});
+  if($("addNum"))$("addNum").value="";
+  if($("addName"))$("addName").value="";
+  if($("addPhone"))$("addPhone").value="";
+  persist();scheduleRender();
+  toast(`${name} added`,"ok");
+}
+
+function removePlayer(pid){
+  if(!confirm("Remove this player?"))return;
+  pushH();
+  const t=team();
+  t.players=t.players.filter(p=>p.id!==pid);
+  S.shots=S.shots.filter(s=>s.pid!==pid);
+  persist();scheduleRender();
+  toast("Player removed");
+}
+
+/* ═══════ COPY / SHARE ═══════ */
+function copyPlayer(pid){
+  const p=team().players.find(x=>x.id===pid);if(!p)return;
+  const t=totPlayer(p);
+  const text=`#${p.num} ${p.name}: ${pts(t)} pts | ${pct(fgm(t),fga(t))}% FG | ${t.reb} reb | ${t.ast} ast | ${t.tov} tov | ${t.fouls} fouls`;
+  navigator.clipboard?.writeText(text).then(()=>toast("Copied to clipboard","ok")).catch(()=>toast("Copy failed","err"));
+}
+
+function sharePlayer(pid){
+  const p=team().players.find(x=>x.id===pid);if(!p)return;
+  const t=totPlayer(p);
+  const text=`#${p.num} ${p.name}\n${pts(t)} pts · ${pct(fgm(t),fga(t))}% FG · ${t.reb} reb · ${t.ast} ast\nTracked with GameIQ Elite`;
+  if(navigator.share){navigator.share({text,title:"GameIQ Player Stats"}).catch(()=>{})}
+  else{navigator.clipboard?.writeText(text).then(()=>toast("Stats copied","ok"))}
+}
+
+/* ═══════ SAVE GAME ═══════ */
+function saveGame(){
+  const lim=tierLimit().games;
+  if(S.games.length>=lim&&!isPro()){
+    toast(`Free plan: max ${lim} saved games. Upgrade for unlimited.`,"err");
+    openPricing();return;
+  }
+  const tt=totTeam();
+  const ldr=leader();
+  const game={
+    id:Date.now(),
+    date:$("gameDate")?.value||today(),
+    home:$("homeTeam")?.value||"HOME",
+    away:$("awayTeam")?.value||"AWAY",
+    quarter:S.quarter,
+    teamName:team().name,
+    teamPts:pts(tt),
+    teamFg:pct(fgm(tt),fga(tt)),
+    teamReb:tt.reb,teamAst:tt.ast,teamTov:tt.tov,
+    awayScore:S.awayScore,
+    mvp:ldr?{name:ldr.p.name,pts:pts(ldr.t)}:null,
+    players:JSON.parse(JSON.stringify(team().players)),
+    shots:JSON.parse(JSON.stringify(S.shots))
+  };
+  S.games.push(game);
+  persist();
+  renderSeasonView();
+  renderSummary();
+  toast("Game saved ✓","ok");
+  vibe(50);
+}
+
+/* ═══════ GAME OVER SCREEN ═══════ */
+function showGameOver(){
+  const tt=totTeam();
+  const ldr=leader();
+  const gs=$("goStats");
+  if(gs){gs.innerHTML=[
+    {v:pts(tt),l:"Team PTS"},{v:pct(fgm(tt),fga(tt))+"%",l:"FG%"},
+    {v:tt.reb,l:"Rebounds"},{v:tt.ast,l:"Assists"}
+  ].map(s=>`<div class="gs-box"><div class="gs-v">${s.v}</div><div class="gs-l">${s.l}</div></div>`).join("")}
+  const mv=$("goMvp");
+  if(mv&&ldr){mv.innerHTML=`<div class="mvp-lbl">🏆 MVP</div><div class="mvp-name">${esc(ldr.p.name)}</div><div class="mvp-line">${pts(ldr.t)} pts · ${pct(fgm(ldr.t),fga(ldr.t))}% FG · ${ldr.t.reb} reb</div>`}
+  const gi=$("goInsight");
+  if(gi){
+    const ins=generateInsights()[0];
+    gi.innerHTML=`<div class="gi-label">💡 Key Takeaway</div><div class="gi-text">${esc(ins.body)}</div>`;
+  }
+  const sub=$("goSubtitle");
+  if(sub)sub.textContent=`${$("homeTeam")?.value||"HOME"} ${pts(tt)} — ${$("awayTeam")?.value||"AWAY"} ${S.awayScore} · Final`;
+  $("gameOverScreen").classList.remove("hidden");
+}
+
+/* ═══════ EXPORT ═══════ */
+function exportCsv(){
+  const players=team().players;if(!players.length){toast("No players to export","err");return}
+  const hdr=["#","Name","Pos","PTS","2PM","2PA","2P%","3PM","3PA","3P%","FTM","FTA","FT%","eFG%","REB","AST","TOV","STL","BLK","FOULS"];
+  const rows=players.map(p=>{
+    const t=totPlayer(p);
+    return [p.num,p.name,p.pos||"",pts(t),t.p2m,t.p2a,pct(t.p2m,t.p2a),t.p3m,t.p3a,pct(t.p3m,t.p3a),t.ftm,t.fta,pct(t.ftm,t.fta),efgpct(t),t.reb,t.ast,t.tov,t.stl,t.blk,t.fouls].join(",");
+  });
+  const csv=[hdr.join(","),...rows].join("\n");
+  dlBlob(csv,"gameiq_stats.csv","text/csv");
+  toast("CSV exported","ok");
+}
+
+function exportSeasonCsv(){
+  if(!S.games.length){toast("No saved games","err");return}
+  const hdr=["Date","Home","Away","TeamPTS","AwayPTS","FG%","REB","AST","TOV","MVP"];
+  const rows=S.games.map(g=>[g.date,g.home,g.away,g.teamPts,g.awayScore||0,g.teamFg,g.teamReb,g.teamAst,g.teamTov,g.mvp?.name||""].join(","));
+  dlBlob([hdr.join(","),...rows].join("\n"),"gameiq_season.csv","text/csv");
+  toast("Season CSV exported","ok");
+}
+
+function exportJson(){
+  dlBlob(JSON.stringify({...S,histStack:[]},null,2),"gameiq_backup.json","application/json");
+  toast("Backup exported","ok");
+}
+
+function dlBlob(content,filename,type){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ═══════ REPORT ═══════ */
+function showReport(){
+  const players=team().players;
+  const tt=totTeam();
+  const txt=$("reportSummaryText");
+  if(txt)txt.textContent=`${team().name} · ${$("gameDate")?.value||today()} · ${pts(tt)} pts · ${pct(fgm(tt),fga(tt))}% FG`;
+  const wrap=$("reportTableWrap");
+  if(!wrap)return;
+  if(!players.length){wrap.innerHTML=`<p style="color:var(--muted)">No players to report.</p>`;$("dlgReport").showModal();return}
+  wrap.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="border-bottom:1px solid var(--line);text-align:left">${["#","Name","PTS","2PT%","3PT%","FT%","eFG%","REB","AST","TOV","STL","BLK","FOULS"].map(h=>`<th style="padding:6px 8px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${h}</th>`).join("")}</tr></thead>
+    <tbody>${players.map(p=>{const t=totPlayer(p);return`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 8px">${esc(p.num)}</td><td style="padding:6px 8px">${esc(p.name)}</td><td style="padding:6px 8px;font-weight:800;color:var(--accent2)">${pts(t)}</td><td style="padding:6px 8px">${pct(t.p2m,t.p2a)}%</td><td style="padding:6px 8px">${pct(t.p3m,t.p3a)}%</td><td style="padding:6px 8px">${pct(t.ftm,t.fta)}%</td><td style="padding:6px 8px">${efgpct(t)}%</td><td style="padding:6px 8px">${t.reb}</td><td style="padding:6px 8px">${t.ast}</td><td style="padding:6px 8px">${t.tov}</td><td style="padding:6px 8px">${t.stl}</td><td style="padding:6px 8px">${t.blk}</td><td style="padding:6px 8px;color:${t.fouls>=4?"var(--gold)":"inherit"}">${t.fouls}</td></tr>`}).join("")}</tbody>
+  </table>`;
+  $("dlgReport").showModal();
+}
+
+/* ═══════ MASTER RENDER ═══════ */
+function doRender(){
+  renderNav();
+  renderSummary();
+  renderPlayers();
+  populateShotSel();
+  renderShots();
+  renderShotStats();
+  renderInsights("aiInsightsDash");
+  renderInsights("aiInsightsLive");
+  renderCoachView();
+  renderTeamsView();
+  renderCompareView();
+  renderSeasonView();
+  renderAICoachView();
+  renderTimeouts();
+  updateTierUI();
+  renderClock();
+}
+
+/* ═══════ NAVIGATE ═══════ */
+function navigate(view){
+  S.view=view;
+  renderNav();
+  if(view==="season")renderSeasonView();
+  if(view==="coach")renderCoachView();
+  if(view==="compare")renderCompareView();
+  if(view==="aicoach")renderAICoachView();
+}
+
+/* ═══════ NEW GAME ═══════ */
+function newGame(){
+  if(!confirm("Start a new game? Current unsaved stats will be lost."))return;
+  pushH();
+  team().players.forEach(p=>{p.q={};p.onCourt=true;p.courtEnteredAt=null});
+  S.shots=[];S.awayScore=0;S.quarter=1;S.pmData={};
+  stopClock();S.clock.secs=S.clock.periodSecs;
+  if($("gameDate"))$("gameDate").value=today();
+  persist();doRender();
+  toast("New game started","ok");
+}
+
+/* ═══════ INIT ═══════ */
+async function init(){
+  await openDB();
+  await hydrate();
+  if($("gameDate")&&!$("gameDate").value)$("gameDate").value=today();
+
+  /* ── NAV BUTTONS (sidebar + footer) ── */
+  document.addEventListener("click",e=>{
+    const nb=e.target.closest("[data-nav]");
+    if(nb){navigate(nb.dataset.nav);return}
+    const vb=e.target.closest("[data-view]");
+    if(vb&&vb.classList.contains("nav-btn")){navigate(vb.dataset.view);return}
+  });
+
+  /* ── TOPBAR BUTTONS ── */
+  const saveBtn=$("saveBtn");
+  if(saveBtn)saveBtn.addEventListener("click",saveGame);
+
+  const newBtn=$("newBtn");
+  if(newBtn)newBtn.addEventListener("click",newGame);
+
+  const undoBtn=$("undoBtn");
+  if(undoBtn)undoBtn.addEventListener("click",()=>{
+    if(undo()){persist();doRender();toast("Undone","ok")}
+    else toast("Nothing to undo","");
+  });
+
+  const settingsBtn=$("settingsBtn");
+  if(settingsBtn)settingsBtn.addEventListener("click",openSettings);
+
+  /* ── CLOCK ── */
+  const clockToggleBtn=$("clockToggleBtn");
+  if(clockToggleBtn)clockToggleBtn.addEventListener("click",()=>{
+    S.clock.running?stopClock():startClock();
+  });
+
+  const clockDisplay=$("clockDisplay");
+  if(clockDisplay)clockDisplay.addEventListener("click",()=>{
+    S.clock.running?stopClock():startClock();
+  });
+
+  const clockResetBtn=$("clockResetBtn");
+  if(clockResetBtn)clockResetBtn.addEventListener("click",resetClock);
+
+  /* ── QUARTER BUTTONS ── */
+  document.querySelectorAll(".qbtn").forEach(b=>b.addEventListener("click",()=>{
+    S.quarter=isNaN(Number(b.dataset.q))?b.dataset.q:Number(b.dataset.q);
+    document.querySelectorAll(".qbtn").forEach(x=>x.classList.toggle("active",x.dataset.q===b.dataset.q));
+    doRender();
+  }));
+
+  /* ── MODE TABS ── */
+  document.querySelectorAll(".seg").forEach(b=>b.addEventListener("click",()=>{
+    S.mode=b.dataset.mode;
+    document.querySelectorAll(".seg").forEach(x=>x.classList.toggle("active",x.dataset.mode===b.dataset.mode));
+    doRender();
+  }));
+
+  /* ── AWAY SCORE ── */
+  const awayPlus=$("awayScorePlus");
+  if(awayPlus)awayPlus.addEventListener("click",()=>{S.awayScore=(S.awayScore||0)+1;renderSummary();persist()});
+  const awayMinus=$("awayScoreMinus");
+  if(awayMinus)awayMinus.addEventListener("click",()=>{S.awayScore=Math.max(0,(S.awayScore||0)-1);renderSummary();persist()});
+
+  /* ── QUICK MODE BTN ── */
+  const qmb=$("quickModeBtn");
+  if(qmb)qmb.addEventListener("click",()=>{
+    S.quickMode=!S.quickMode;
+    qmb.textContent=`⚡ Quick: ${S.quickMode?"On":"Off"}`;
+    const qt=$("quickToggle");if(qt)qt.checked=S.quickMode;
+    doRender();
+  });
+
+  /* ── GAME OVER BTN ── */
+  const gob=$("gameOverBtn");
+  if(gob)gob.addEventListener("click",showGameOver);
+
+  /* ── GAME OVER SCREEN ── */
+  const goSaveBtn=$("goSaveBtn");
+  if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{saveGame();$("gameOverScreen").classList.add("hidden")});
+  const goShareBtn=$("goShareBtn");
+  if(goShareBtn)goShareBtn.addEventListener("click",()=>{
+    const tt=totTeam();
+    const text=`Game Over!\n${$("homeTeam")?.value||"HOME"} ${pts(tt)} — ${$("awayTeam")?.value||"AWAY"} ${S.awayScore}\nTracked with GameIQ Elite`;
+    navigator.clipboard?.writeText(text).then(()=>toast("Summary copied","ok"));
+  });
+  const goCloseBtn=$("goCloseBtn");
+  if(goCloseBtn)goCloseBtn.addEventListener("click",()=>$("gameOverScreen").classList.add("hidden"));
+
+  /* ── ADD PLAYER ── */
+  const addBtn=$("addBtn");
+  if(addBtn)addBtn.addEventListener("click",addPlayer);
+  const addName=$("addName");
+  if(addName)addName.addEventListener("keydown",e=>{if(e.key==="Enter")addPlayer()});
+  const addNum=$("addNum");
+  if(addNum)addNum.addEventListener("keydown",e=>{if(e.key==="Enter"){$("addName")?.focus()}});
+
+  /* ── TOGGLES ── */
+  const quickToggle=$("quickToggle");
+  if(quickToggle)quickToggle.addEventListener("change",()=>{
+    S.quickMode=quickToggle.checked;
+    const qmb=$("quickModeBtn");if(qmb)qmb.textContent=`⚡ Quick: ${S.quickMode?"On":"Off"}`;
+    doRender();
+  });
+  const youthToggle=$("youthToggle");
+  if(youthToggle)youthToggle.addEventListener("change",()=>{S.youthMode=youthToggle.checked;doRender()});
+
+  /* ── SHOT CHART ── */
+  const court=$("court");
+  if(court){
+    court.addEventListener("click",onCourtTap);
+    court.addEventListener("touchend",e=>{e.preventDefault();onCourtTap(e)},{passive:false});
+  }
+  document.querySelectorAll(".pill[data-shot]").forEach(b=>b.addEventListener("click",()=>{
+    S.shotMode=b.dataset.shot;
+    document.querySelectorAll(".pill[data-shot]").forEach(x=>x.classList.toggle("active",x.dataset.shot===b.dataset.shot));
+    renderShotStats();
+  }));
+  const heatmapToggle=$("heatmapToggle");
+  if(heatmapToggle)heatmapToggle.addEventListener("click",()=>{
+    S.heatMode=!S.heatMode;
+    heatmapToggle.classList.toggle("active",S.heatMode);
+    renderShots();
+  });
+  const clearShotsBtn=$("clearShotsBtn");
+  if(clearShotsBtn)clearShotsBtn.addEventListener("click",()=>{
+    if(!confirm("Clear all shot data?"))return;
+    pushH();S.shots=[];persist();renderShots();renderShotStats();toast("Shots cleared");
+  });
+  const shotPlayerSel=$("shotPlayerSel");
+  if(shotPlayerSel)shotPlayerSel.addEventListener("change",()=>{renderShots();renderShotStats()});
+
+  /* ── REPORT / CSV ── */
+  const reportBtn=$("reportBtn");
+  if(reportBtn)reportBtn.addEventListener("click",showReport);
+  const exportCsvBtn=$("exportCsvBtn");
+  if(exportCsvBtn)exportCsvBtn.addEventListener("click",exportCsv);
+  const exportReportCsvBtn=$("exportReportCsvBtn");
+  if(exportReportCsvBtn)exportReportCsvBtn.addEventListener("click",exportCsv);
+  const toggleDetailBtn=$("toggleDetailBtn");
+  if(toggleDetailBtn)toggleDetailBtn.addEventListener("click",()=>{
+    S.mode=S.mode==="advanced"?"live":"advanced";
+    toggleDetailBtn.textContent=S.mode==="advanced"?"Basic":"Advanced";
+    document.querySelectorAll(".seg").forEach(x=>x.classList.toggle("active",x.dataset.mode===S.mode));
+    doRender();
+  });
+
+  /* ── SEASON EXPORT / IMPORT ── */
+  const exportSeasonCsvBtn=$("exportSeasonCsvBtn");
+  if(exportSeasonCsvBtn)exportSeasonCsvBtn.addEventListener("click",exportSeasonCsv);
+  const exportJsonBtn=$("exportJsonBtn");
+  if(exportJsonBtn)exportJsonBtn.addEventListener("click",exportJson);
+  const importJsonBtn=$("importJsonBtn");
+  if(importJsonBtn)importJsonBtn.addEventListener("click",()=>$("importFileInput")?.click());
+  const importFileInput=$("importFileInput");
+  if(importFileInput)importFileInput.addEventListener("change",e=>{
+    const f=e.target.files?.[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        if(!d.teams)throw new Error("Invalid backup");
+        Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,d);S.histStack=[];
+        persist();doRender();toast("Backup imported","ok");
+      }catch(err){toast("Invalid backup file","err")}
+    };
+    r.readAsText(f);
+    e.target.value="";
+  });
+
+  /* ── SETTINGS ── */
+  const saveApiKeyBtn=$("saveApiKeyBtn");
+  if(saveApiKeyBtn)saveApiKeyBtn.addEventListener("click",()=>{
+    const val=$("apiKeyInput")?.value?.trim()||"";
+    if(val&&!val.startsWith("●")){localStorage.setItem(AK,val);toast("API key saved","ok")}
+    else if(!val){localStorage.removeItem(AK);toast("API key cleared")}
+    else toast("Key unchanged");
+    $("dlgSettings").close();
+  });
+  document.querySelectorAll(".period-btn").forEach(b=>b.addEventListener("click",()=>{
+    S.clock.periodSecs=Number(b.dataset.secs);
+    document.querySelectorAll(".period-btn").forEach(x=>x.classList.toggle("active",x===b));
+    toast(`Period set to ${b.textContent}`);
+    persist();
+  }));
+  const exportJsonBtnSettings=$("exportJsonBtnSettings");
+  if(exportJsonBtnSettings)exportJsonBtnSettings.addEventListener("click",exportJson);
+  const clearAllDataBtn=$("clearAllDataBtn");
+  if(clearAllDataBtn)clearAllDataBtn.addEventListener("click",()=>{
+    if(!confirm("Delete ALL data including saved games, roster, and settings? This cannot be undone."))return;
+    localStorage.clear();
+    if(db){const tx=db.transaction("kv","readwrite");tx.objectStore("kv").clear()}
+    location.reload();
+  });
+
+  /* ── TEAM MANAGEMENT ── */
+  const teamSelect=$("teamSelect");
+  if(teamSelect)teamSelect.addEventListener("change",()=>{
+    S.activeTeamId=teamSelect.value;persist();doRender();
+  });
+  const createTeamBtn=$("createTeamBtn");
+  if(createTeamBtn)createTeamBtn.addEventListener("click",()=>{
+    const nm=($("newTeamName")?.value||"").trim();if(!nm){toast("Enter a team name","err");return}
+    const lim=tierLimit().teams;
+    if(S.teams.length>=lim&&!isPro()){toast(`Free plan: max ${lim} team. Upgrade for more.`,"err");openPricing();return}
+    const id="t"+Date.now();
+    S.teams.push({id,name:nm,players:[]});
+    S.activeTeamId=id;
+    if($("newTeamName"))$("newTeamName").value="";
+    persist();doRender();toast(`${nm} created`,"ok");
+  });
+
+  /* ── COMPARE ── */
+  const compareA=$("compareA");if(compareA)compareA.addEventListener("change",renderCompareResult);
+  const compareB=$("compareB");if(compareB)compareB.addEventListener("change",renderCompareResult);
+
+  /* ── AI COACH ── */
+  const aiSendBtn=$("aiSendBtn");
+  if(aiSendBtn)aiSendBtn.addEventListener("click",sendAIMessage);
+  const aiInput=$("aiInput");
+  if(aiInput)aiInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAIMessage()}});
+  const clearChatBtn=$("clearChatBtn");
+  if(clearChatBtn)clearChatBtn.addEventListener("click",()=>{S.aiChat=[];persist();renderAIChat();toast("Chat cleared")});
+
+  /* ── DISMISS ONBOARD ── */
+  const dismissOnboard=$("dismissOnboard");
+  if(dismissOnboard)dismissOnboard.addEventListener("click",()=>{
+    localStorage.setItem("gameiq_onboard_dismissed","1");
+    const og=$("onboardGuide");if(og)og.classList.add("hidden");
+  });
+
+  /* ── HOME/AWAY INPUTS ── */
+  [$("homeTeam"),$("awayTeam"),$("gameDate")].forEach(el=>{
+    if(el)el.addEventListener("input",()=>{renderSummary();persist()});
+  });
+
+  /* ── AUTOSAVE on blur ── */
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="hidden")persist();
+  });
+
+  /* ── INITIAL RENDER ── */
+  doRender();
+}
+
+init();
+})();
+</script>
+</body>
+</html>
