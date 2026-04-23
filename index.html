@@ -399,6 +399,33 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .ob-body strong{display:block;font-size:13px;margin-bottom:3px}
 .ob-body span{font-size:12px;color:var(--muted);line-height:1.5}
 
+/* ── SETTINGS MODAL ── */
+.settings-section{margin-bottom:18px}
+.settings-section h4{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.api-key-wrap{display:flex;gap:8px}
+.api-key-wrap input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--line2);border-radius:10px;padding:9px 13px;font-size:13px;color:var(--text);outline:none;transition:.14s}
+.api-key-wrap input:focus{border-color:var(--accent);background:rgba(77,159,255,.07)}
+.api-key-note{font-size:11px;color:var(--dim);line-height:1.7;margin-top:6px}
+.api-key-note a{color:var(--accent2);text-decoration:none}
+.period-opts{display:flex;gap:6px;flex-wrap:wrap}
+.period-btn{padding:7px 14px;border-radius:9px;border:1px solid var(--line2);background:rgba(255,255,255,.04);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:.14s}
+.period-btn.active,.period-btn:hover{background:rgba(77,159,255,.14);border-color:rgba(77,159,255,.3);color:var(--text)}
+.danger-zone{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── SCORE STEPPER ── */
+.score-entry{display:flex;flex-direction:column;align-items:center;gap:0}
+.score-btns{display:flex;align-items:center;gap:3px}
+.score-adj{width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--muted);font-size:15px;display:grid;place-items:center;cursor:pointer;transition:.12s;line-height:1;padding:0;min-height:unset}
+.score-adj:hover{background:rgba(77,159,255,.18);border-color:rgba(77,159,255,.35);color:var(--text)}
+
+/* ── AI LOADING STATE ── */
+.ai-input-row input:disabled,.ai-input-row button:disabled{opacity:.5;pointer-events:none}
+.ai-msg.thinking{opacity:.6;font-style:italic}
+.ai-api-notice{background:rgba(240,190,62,.1);border:1px solid rgba(240,190,62,.25);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--gold);line-height:1.6;margin-bottom:10px}
+.ai-api-notice strong{display:block;margin-bottom:3px;font-size:13px}
+.ai-api-notice button{background:rgba(240,190,62,.18);border:1px solid rgba(240,190,62,.35);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:800;color:var(--gold);cursor:pointer;margin-top:7px;transition:.14s}
+.ai-api-notice button:hover{background:rgba(240,190,62,.28)}
+
 /* ── RESPONSIVE ── */
 @media(max-width:1200px){.g2,.g2r,.gcols{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:860px){
@@ -482,6 +509,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <button class="btn btn-secondary" id="newBtn">New</button>
         <button class="btn btn-secondary" id="undoBtn">↩</button>
         <button class="btn btn-gold" onclick="openPricing()">⭐ Upgrade</button>
+        <button class="btn btn-secondary" id="settingsBtn" title="Settings" style="min-height:38px;padding:8px 11px;font-size:16px">⚙</button>
         <span class="chip" id="autosaveChip">Ready</span>
       </div>
     </div>
@@ -518,12 +546,19 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         </div>
       </div>
       <div class="score-vs">
-        <div><span class="score-lbl" id="scoreHomeLabel">HOME</span><div class="score-val" id="scoreHome">0</div></div>
+        <div class="score-entry"><span class="score-lbl" id="scoreHomeLabel">HOME</span><div class="score-val" id="scoreHome">0</div></div>
         <span style="color:var(--dim);font-size:18px">vs</span>
-        <div><span class="score-lbl" id="scoreAwayLabel">AWAY</span><div class="score-val" id="scoreAway">0</div></div>
+        <div class="score-entry">
+          <span class="score-lbl" id="scoreAwayLabel">AWAY</span>
+          <div class="score-btns">
+            <button class="score-adj" id="awayScoreMinus" title="Decrease away score">−</button>
+            <div class="score-val" id="scoreAway">0</div>
+            <button class="score-adj" id="awayScorePlus" title="Increase away score">+</button>
+          </div>
+        </div>
       </div>
       <div style="margin-left:auto">
-        <span class="social-proof" id="socialProof">🏀 <span id="gamesTrackedCount">12,847</span> games tracked</span>
+        <span class="social-proof" id="socialProof">🏀 <span id="gamesTrackedCount">0</span> games saved</span>
       </div>
     </div>
   </header>
@@ -768,6 +803,11 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <div><strong>AI Coach — PRO feature</strong><span>Ask any coaching question. Get personalized answers using your real game data.</span></div>
         <button class="btn btn-pro" onclick="openPricing()">Unlock AI Coach ⭐</button>
       </div>
+      <div id="aiApiNotice" class="ai-api-notice hidden">
+        <strong>Anthropic API key required</strong>
+        AI Coach is powered by Claude. Add your API key in Settings to enable real-time coaching conversations.
+        <br><button onclick="openSettings()">⚙ Open Settings</button>
+      </div>
       <div class="card">
         <div class="card-head">
           <div><h2>Ask the AI Coach 🤖</h2><p>Powered by Claude · your game data + coaching intelligence</p></div>
@@ -902,11 +942,60 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       <strong style="color:var(--text)">Terms of Service</strong><br><br>
       GameIQ Elite is provided for personal coaching and statistical tracking. All data you enter is stored locally in your browser. We do not collect, transmit, or sell your data. The app is provided "as is" without warranty. We are not liable for data loss — use Export Backup regularly.<br><br>
       <strong style="color:var(--text)">Privacy Policy</strong><br><br>
-      No personal data is sent to any server. No analytics, tracking, or cookies beyond localStorage are used. The only external network request is Google Fonts loading. AI Coach feature sends your anonymized game context to Anthropic's API when used. Player names are never sent — only aggregate stats. You can delete all data via Settings → Clear All Data at any time.<br><br>
+      No personal data is sent to any server. No analytics, tracking, or cookies beyond localStorage are used. The only external network requests are Google Fonts and (when you use AI Coach) Anthropic's API. AI Coach sends anonymized game context — aggregate stats only, never player names. Your Anthropic API key is stored in this browser's localStorage only and never transmitted to any server other than Anthropic's API. You can delete all data via Settings → Clear All Data at any time.<br><br>
       <strong style="color:var(--text)">Children's Privacy</strong><br><br>
       If tracking minors, use jersey numbers or initials rather than full names. Ensure you have appropriate consent from parents or guardians before tracking personal information about players under 18.
     </div>
     <div class="modal-actions"><button class="btn btn-primary" onclick="document.getElementById('dlgLegal').close()">Got it</button></div>
+  </div>
+</dialog>
+
+<!-- Settings -->
+<dialog id="dlgSettings">
+  <div class="modal" style="max-width:480px">
+    <h3>⚙ Settings</h3>
+
+    <div class="settings-section">
+      <h4>AI Coach — Anthropic API Key</h4>
+      <div class="api-key-wrap">
+        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false"/>
+        <button class="btn btn-primary" id="saveApiKeyBtn" style="white-space:nowrap">Save Key</button>
+      </div>
+      <p class="api-key-note">
+        Your key is stored only in this browser — never sent to any server except Anthropic's API directly.
+        Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.
+        Leave blank to clear.
+      </p>
+    </div>
+
+    <div class="settings-section">
+      <h4>Period Duration</h4>
+      <div class="period-opts">
+        <button class="period-btn" data-secs="480">8 min (Youth)</button>
+        <button class="period-btn" data-secs="600">10 min (HS)</button>
+        <button class="period-btn" data-secs="720">12 min (College/Pro)</button>
+        <button class="period-btn" data-secs="900">15 min (FIBA)</button>
+      </div>
+      <p class="api-key-note" style="margin-top:6px">Takes effect when you next reset the clock.</p>
+    </div>
+
+    <div class="settings-section">
+      <h4>Data Management</h4>
+      <div class="danger-zone">
+        <button class="btn btn-secondary" id="exportJsonBtnSettings" style="font-size:12px;min-height:34px">⬇ Export Backup</button>
+        <button class="btn btn-danger" id="clearAllDataBtn" style="font-size:12px;min-height:34px">🗑 Clear All Data</button>
+      </div>
+    </div>
+
+    <div class="settings-section" style="margin-bottom:0">
+      <h4>About</h4>
+      <p class="api-key-note">GameIQ Elite v1.1 · Offline-first PWA · All data stored locally in your browser.<br>
+      AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('dlgSettings').close()">Close</button>
+    </div>
   </div>
 </dialog>
 
@@ -917,7 +1006,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 (function(){
 "use strict";
 
-const SK="gameiq_v3",WK="gameiq_tutorial_v3",RK="gameiq_review";
+const SK="gameiq_v3",WK="gameiq_tutorial_v3",AK="gameiq_apikey";
 const TIER_LIMITS={free:{teams:1,players:8,games:5,insights:1},pro:{teams:999,players:999,games:9999,insights:5},team:{teams:999,players:999,games:9999,insights:5}};
 
 /* ═══════ STATE ═══════ */
@@ -1142,6 +1231,14 @@ function updateTierUI(){
   if(ai)ai.classList.toggle("hidden",isPro());
 }
 function openPricing(){$("dlgPricing").showModal()}
+function getApiKey(){return localStorage.getItem(AK)||""}
+function openSettings(){
+  const dlg=$("dlgSettings");if(!dlg)return;
+  const inp=$("apiKeyInput");if(inp)inp.value=getApiKey()?"●●●●●●●●●●●●":"";
+  const secs=S.clock.periodSecs||600;
+  document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",Number(b.dataset.secs)===secs));
+  dlg.showModal();
+}
 
 /* ═══════ INSIGHTS ENGINE ═══════ */
 function generateInsights(){
@@ -1450,572 +1547,4 @@ function drawChart(id,data,labels,color,title){
   ctx.fillStyle="#eef3ff";ctx.font="700 12px 'DM Sans',sans-serif";ctx.fillText(title,14,18);
   const L=44,R=W-14,T=32,B=H-28;
   ctx.strokeStyle="rgba(255,255,255,.08)";ctx.lineWidth=1;
-  for(let i=0;i<4;i++){const y=T+(B-T)*(i/3);ctx.beginPath();ctx.moveTo(L,y);ctx.lineTo(R,y);ctx.stroke()}
-  ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(R,B);ctx.stroke();
-  if(!data.length){ctx.fillStyle="#8ba3c4";ctx.font="11px 'DM Sans',sans-serif";ctx.fillText("Save games to populate chart.",L+8,T+20);return}
-  const mx=Math.max(...data,1),mn=Math.min(...data,0),rng=Math.max(1,mx-mn);
-  const sx=data.length>1?(R-L)/(data.length-1):0;
-  ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.beginPath();
-  data.forEach((v,i)=>{const x=L+sx*i,y=B-((v-mn)/rng)*(B-T);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
-  ctx.stroke();
-  data.forEach((v,i)=>{
-    const x=L+sx*i,y=B-((v-mn)/rng)*(B-T);
-    ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#8ba3c4";ctx.font="9px 'DM Mono',monospace";
-    const lbl=labels[i]||"";ctx.fillText(lbl,Math.max(8,x-8),B+16);
-    ctx.fillStyle="#eef3ff";ctx.font="700 10px 'DM Sans',sans-serif";ctx.fillText(v,x-6,y-8);
-  });
-}
-
-function renderSeasonCharts(){
-  const nm=team().name;
-  const games=S.games.filter(g=>g.teamName===nm);
-  const labels=games.map((_,i)=>`G${i+1}`);
-  drawChart("pointsChart",games.map(g=>g.summary.points),labels,"#4d9fff",`${nm} — points per game`);
-  drawChart("fgChart",games.map(g=>g.summary.fgPct),labels,"#1ecfb0",`${nm} — FG% per game`);
-}
-
-function renderDevArcs(){
-  const el=$("devArcs");if(!el)return;
-  const players=team().players;
-  if(!players.length){el.innerHTML=`<div style="color:var(--muted);font-size:13px">Add players and save games to see development arcs.</div>`;return}
-  el.innerHTML=players.slice(0,6).map(p=>{
-    const t=totPlayer(p);
-    const fg=pct(fgm(t),fga(t));
-    return `<div class="dev-player">
-      <div class="dev-head">
-        <strong class="dev-name">#${esc(p.num)} ${esc(p.name)}</strong>
-        <span style="font-size:11px;color:var(--muted)">${pts(t)} pts · ${fg}% FG</span>
-      </div>
-      <div class="dev-arc"><div class="dev-fill" style="width:${Math.min(100,fg||10)}%;background:${fg>=45?"#21c55d":fg>=35?"#f0be3e":"#ef4040"}"></div></div>
-    </div>`;
-  }).join("");
-}
-
-/* ═══════ HISTORY ═══════ */
-function renderHistory(){
-  const full=$("fullHistory"),rec=$("recentHistoryDash");
-  const html=g=>`<div class="hcard">
-    <div class="hcard-top">
-      <div><strong style="font-size:14px">${esc(g.home)} vs ${esc(g.away)}</strong><div class="hcard-meta">${esc(g.date)} · ${esc(g.teamName||"?")} · ${g.players?.length||0} players</div></div>
-      <div style="text-align:right"><strong>${g.summary.points} pts</strong><div class="hcard-meta">FG ${g.summary.fgPct}%</div></div>
-    </div>
-    <div class="hcard-stats">REB ${g.summary.rebounds} · AST ${g.summary.assists} · TOV ${g.summary.turnovers}</div>
-  </div>`;
-  const empty=`<div class="empty-state"><span class="ei">📚</span><strong>No saved games</strong><span>Save a game to start building your season history.</span></div>`;
-  if(full)full.innerHTML=S.games.length?[...S.games].reverse().map((g,i)=>`<div>${html(g)}<div style="display:flex;gap:6px;margin-top:7px;margin-bottom:14px">
-    <button class="btn btn-secondary load-game" data-idx="${i}" style="min-height:30px;font-size:11px">Load</button>
-    <button class="btn btn-ghost del-game" data-idx="${i}" style="min-height:30px;font-size:11px;color:#fca5a5">Delete</button>
-  </div></div>`).join(""):empty;
-  if(rec)rec.innerHTML=S.games.length?[...S.games].slice(-3).reverse().map(g=>html(g)).join(""):empty;
-  document.querySelectorAll(".load-game").forEach(b=>b.addEventListener("click",()=>loadGame(Number(b.dataset.idx))));
-  document.querySelectorAll(".del-game").forEach(b=>b.addEventListener("click",()=>deleteGame(Number(b.dataset.idx))));
-}
-
-/* ═══════ TEAMS VIEW ═══════ */
-function renderTeams(){
-  const tl=$("teamsList");
-  if(tl){
-    tl.innerHTML=S.teams.map(t=>`<div class="team-card">
-      <div class="team-top">
-        <div><strong>${esc(t.name)}</strong><div style="font-size:11px;color:var(--muted);margin-top:2px">${t.players.length} players</div></div>
-        <div style="display:flex;gap:7px">
-          <button class="btn btn-secondary sel-team" data-tid="${t.id}" style="min-height:30px;font-size:11px">${t.id===S.activeTeamId?"✓ Active":"Use"}</button>
-          ${t.id==="td"?"":
-            `<button class="btn btn-ghost del-team" data-tid="${t.id}" style="min-height:30px;font-size:11px;color:#fca5a5">Del</button>`}
-        </div>
-      </div>
-      <div class="player-chips">${t.players.length?t.players.map(p=>`<span class="pchip">#${esc(p.num)} ${esc(p.name)}</span>`).join(""):"<span class='pchip'>No players</span>"}</div>
-    </div>`).join("");
-    tl.querySelectorAll(".sel-team").forEach(b=>b.addEventListener("click",()=>{S.activeTeamId=b.dataset.tid;doRender()}));
-    tl.querySelectorAll(".del-team").forEach(b=>b.addEventListener("click",()=>deleteTeam(b.dataset.tid)));
-  }
-  const ts=$("teamSummaryBody");
-  if(ts){
-    const t=team(),tt=totTeam();
-    ts.innerHTML=t.players.length?`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
-      <div class="kpi"><div class="lbl">Players</div><div class="val">${t.players.length}</div></div>
-      <div class="kpi"><div class="lbl">Points</div><div class="val">${pts(tt)}</div></div>
-      <div class="kpi"><div class="lbl">FG%</div><div class="val">${pct(fgm(tt),fga(tt))}%</div></div>
-    </div><div class="player-chips" style="margin-top:10px">${t.players.map(p=>`<span class="pchip">#${esc(p.num)} ${esc(p.name)}</span>`).join("")}</div>`
-    :`<div class="empty-state"><span class="ei">👥</span><strong>No roster</strong><span>Add players from the live screen.</span></div>`;
-  }
-}
-
-/* ═══════ COMPARE ═══════ */
-function renderCompare(){
-  const players=team().players;
-  const opts=`<option value="">— Select —</option>`+players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
-  const aEl=$("compareA"),bEl=$("compareB");
-  if(!aEl||!bEl)return;
-  const aV=aEl.value,bV=bEl.value;
-  aEl.innerHTML=opts;bEl.innerHTML=opts;
-  if(players.some(p=>String(p.id)===aV))aEl.value=aV;
-  if(players.some(p=>String(p.id)===bV))bEl.value=bV;
-  const pa=players.find(p=>String(p.id)===aEl.value),pb=players.find(p=>String(p.id)===bEl.value);
-  const box=$("compareResult");if(!box)return;
-  if(!pa||!pb){box.innerHTML=`<div class="empty-state"><span class="ei">⚖️</span><strong>Select two players</strong><span>Pick players above to compare their stats side by side.</span></div>`;return}
-  const ta=totPlayer(pa),tb=totPlayer(pb);
-  const rows=[
-    ["Points",pts(ta),pts(tb),"higher"],["FG%",pct(fgm(ta),fga(ta)),pct(fgm(tb),fga(tb)),"higher"],
-    ["eFG%",efgpct(ta),efgpct(tb),"higher"],["Rebounds",ta.reb,tb.reb,"higher"],
-    ["Assists",ta.ast,tb.ast,"higher"],["Turnovers",ta.tov,tb.tov,"lower"],["Fouls",ta.fouls,tb.fouls,"lower"]
-  ];
-  box.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px">
-    <thead><tr><th style="text-align:left;color:var(--muted);font-size:10px;padding:6px 0;border-bottom:1px solid var(--line)">Metric</th>
-    <th style="text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)">${esc(pa.name)}</th>
-    <th style="text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)">${esc(pb.name)}</th></tr></thead>
-    <tbody>${rows.map(r=>{
-      const aWin=(r[3]==="higher"&&r[1]>r[2])||(r[3]==="lower"&&r[1]<r[2]);
-      const bWin=(r[3]==="higher"&&r[2]>r[1])||(r[3]==="lower"&&r[2]<r[1]);
-      return `<tr>
-        <td style="color:var(--muted);padding:7px 0;border-bottom:1px solid var(--line)">${r[0]}</td>
-        <td style="text-align:right;padding:7px 4px;border-bottom:1px solid var(--line);color:${aWin?"#21c55d":"var(--text)"};font-weight:${aWin?800:400}">${r[1]}${r[0].includes("%")?"%":""}</td>
-        <td style="text-align:right;padding:7px 4px;border-bottom:1px solid var(--line);color:${bWin?"#21c55d":"var(--text)"};font-weight:${bWin?800:400}">${r[2]}${r[0].includes("%")?"%":""}</td>
-      </tr>`;
-    }).join("")}</tbody></table>`;
-}
-
-/* ═══════ SHOT PLAYER SELECTOR ═══════ */
-function renderShotSelector(){
-  const sel=$("shotPlayerSel");if(!sel)return;
-  const cur=sel.value;
-  sel.innerHTML=`<option value="">— Player —</option>`+team().players.map(p=>`<option value="${p.id}">#${esc(p.num)} ${esc(p.name)}</option>`).join("");
-  if(team().players.some(p=>String(p.id)===cur))sel.value=cur;
-}
-
-/* ═══════ TEAM SELECT ═══════ */
-function renderTeamSelect(){
-  const sel=$("teamSelect");if(!sel)return;
-  const cur=S.activeTeamId;
-  sel.innerHTML=S.teams.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("");
-  sel.value=cur;
-}
-
-/* ═══════ GAME OVER SCREEN ═══════ */
-function showGameOver(){
-  const tt=totTeam(),ldr=leader();
-  const screen=$("gameOverScreen");if(!screen)return;
-  const sub=$("goSubtitle");
-  if(sub)sub.textContent=`${$("homeTeam")?.value||"HOME"} — final stats · ${$("gameDate")?.value||today()}`;
-  const gs=$("goStats");
-  if(gs)gs.innerHTML=[
-    {v:pts(tt),l:"Points"},{v:pct(fgm(tt),fga(tt))+"%",l:"FG%"},
-    {v:tt.reb,l:"Rebounds"},{v:tt.ast,l:"Assists"}
-  ].map(s=>`<div class="gs-box"><div class="gs-v">${s.v}</div><div class="gs-l">${s.l}</div></div>`).join("");
-  const mv=$("goMvp");
-  if(mv&&ldr){
-    const lt=ldr.t;
-    mv.innerHTML=`<div class="mvp-lbl">⭐ MVP Performance</div>
-      <div class="mvp-name">${esc(ldr.p.name)}</div>
-      <div class="mvp-line">${pts(lt)} pts · ${pct(fgm(lt),fga(lt))}% FG · ${lt.reb} reb · ${lt.ast} ast · ${lt.tov} tov</div>`;
-  }
-  const gi=$("goInsight");
-  const insights=generateInsights();
-  if(gi)gi.innerHTML=`<div class="gi-label">AI Game Summary</div><div class="gi-text">${esc(buildGameNarrative(tt,ldr))}</div>`;
-  screen.classList.remove("hidden");
-}
-
-function buildGameNarrative(tt,ldr){
-  const fg=pct(fgm(tt),fga(tt));
-  let n=`Team finished with ${pts(tt)} points on ${fg}% shooting`;
-  if(ldr)n+=`, led by ${ldr.p.name}'s ${pts(ldr.t)} points`;
-  n+=". ";
-  if(fg>=45)n+="Strong shooting performance. ";
-  else if(fg<35)n+="Shooting was the key challenge tonight. ";
-  if(tt.tov>=10)n+="Turnover issues need to be addressed before next game. ";
-  else if(tt.tov<=4)n+="Excellent ball security throughout. ";
-  if(tt.ast>=12)n+="Ball movement was a highlight — team played unselfishly.";
-  return n;
-}
-
-/* ═══════ AI COACH ═══════ */
-function buildGameContext(){
-  const tt=totTeam(),t=team();
-  const top=t.players.map(p=>{const tp=totPlayer(p);return `${p.name} #${p.num}: ${pts(tp)}pts ${pct(fgm(tp),fga(tp))}%FG ${tp.reb}reb ${tp.ast}ast ${tp.tov}tov`}).join("; ");
-  return `Current game context for ${t.name}: Team totals — ${pts(tt)}pts, ${pct(fgm(tt),fga(tt))}% FG, ${tt.reb} reb, ${tt.ast} ast, ${tt.tov} tov. Player lines: ${top||"No players tracked yet"}. Quarter: ${S.quarter}. Coaching data only — no player names sent to API.`;
-}
-
-function renderAIChat(){
-  const el=$("aiChatMessages");if(!el)return;
-  if(!S.aiChat.length){
-    el.innerHTML=`<div class="ai-msg assistant">Hey Coach! I'm your AI assistant powered by Claude. I have context on your current game stats. Ask me anything — lineup decisions, strategy adjustments, player matchups, or end-of-game scenarios.</div>`;
-    return;
-  }
-  el.innerHTML=S.aiChat.map(m=>`<div class="ai-msg ${m.role==="user"?"user":"assistant"}">${esc(m.content)}</div>`).join("");
-  el.scrollTop=el.scrollHeight;
-}
-
-function renderAISuggestions(){
-  const el=$("aiSuggestions");if(!el)return;
-  const sugs=["What lineup should I run?","Who should I take off the court?","How do I stop their scoring run?","Best play to draw a foul?","End-game strategy with 2 min left?"];
-  el.innerHTML=sugs.map(s=>`<button class="ai-sug" onclick="sendAIMessage('${s.replace(/'/g,"\\'")}');">${s}</button>`).join("");
-}
-
-async function sendAIMessage(msg){
-  if(!isPro()){openPricing();return}
-  msg=msg||$("aiInput")?.value?.trim()||"";
-  if(!msg)return;
-  if($("aiInput"))$("aiInput").value="";
-  S.aiChat.push({role:"user",content:msg});
-  renderAIChat();
-  const thinkEl=document.createElement("div");thinkEl.className="ai-msg assistant thinking";thinkEl.textContent="Thinking...";
-  $("aiChatMessages").appendChild(thinkEl);
-  $("aiChatMessages").scrollTop=$("aiChatMessages").scrollHeight;
-
-  const messages=[
-    {role:"user",content:`You are GameIQ Elite's AI coaching assistant. Be concise, direct, and use basketball coaching language. Here is the current game context:\n${buildGameContext()}\n\nCoach's question: ${msg}`}
-  ];
-  if(S.aiChat.length>2){
-    const prev=S.aiChat.slice(-4);
-    messages[0].content=`You are GameIQ Elite's AI coaching assistant. Game context: ${buildGameContext()}\n\nConversation so far: ${prev.map(m=>`${m.role}: ${m.content}`).join("\n")}\n\nLatest question: ${msg}`;
-  }
-
-  try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages})
-    });
-    const data=await res.json();
-    const reply=data.content?.find(c=>c.type==="text")?.text||"I couldn't process that — please try again.";
-    thinkEl.remove();
-    S.aiChat.push({role:"assistant",content:reply});
-    renderAIChat();
-    persist();
-  }catch(e){
-    thinkEl.remove();
-    S.aiChat.push({role:"assistant",content:"Connection issue. Make sure you're online and your API key is configured."});
-    renderAIChat();
-  }
-}
-window.sendAIMessage=sendAIMessage;
-window.openPricing=openPricing;
-window.setTier=setTier;
-
-/* ═══════ REPORT ═══════ */
-function openReport(){
-  const games=S.games.length?S.games:[{players:team().players,summary:{points:pts(totTeam()),rebounds:totTeam().reb,assists:totTeam().ast,turnovers:totTeam().tov,fgPct:pct(fgm(totTeam()),fga(totTeam()))}}];
-  const map=new Map();
-  games.forEach(g=>g.players?.forEach(p=>{
-    const t=totPlayer(p),key=`${p.num}-${p.name}`;
-    if(!map.has(key))map.set(key,{num:p.num,name:p.name,g:0,pts:0,reb:0,ast:0,tov:0,p2m:0,p2a:0,p3m:0,p3a:0});
-    const r=map.get(key);r.g++;r.pts+=pts(t);r.reb+=t.reb;r.ast+=t.ast;r.tov+=t.tov;r.p2m+=t.p2m;r.p2a+=t.p2a;r.p3m+=t.p3m;r.p3a+=t.p3a;
-  }));
-  const rows=[...map.values()].sort((a,b)=>b.pts-a.pts);
-  const txt=$("reportSummaryText");if(txt)txt.textContent=`${games.length} game(s) · ${rows.length} players · ${team().name}`;
-  const tw=$("reportTableWrap");
-  if(tw)tw.innerHTML=rows.length?`<table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr>${["Player","G","PTS","REB","AST","TOV","FG%","3P%"].map(h=>`<th style="text-align:left;color:var(--muted);font-size:10px;padding:6px 4px;border-bottom:1px solid var(--line)">${h}</th>`).join("")}</tr></thead>
-    <tbody>${rows.map(r=>`<tr>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">#${esc(r.num)} ${esc(r.name)}</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">${r.g}</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line);font-weight:700">${r.pts}</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">${r.reb}</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">${r.ast}</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">${r.tov}</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">${pct(r.p2m+r.p3m,r.p2a+r.p3a)}%</td>
-      <td style="padding:7px 4px;border-bottom:1px solid var(--line)">${pct(r.p3m,r.p3a)}%</td>
-    </tr>`).join("")}</tbody>
-  </table>`:"<div style='color:var(--muted)'>No player data yet.</div>";
-  $("dlgReport").showModal();
-}
-
-/* ═══════ PLAYER ACTIONS ═══════ */
-function adjustStat(id,stat,delta){
-  const p=team().players.find(x=>x.id===id);if(!p)return;
-  pushH();
-  const q=p.q[aq()]||eq();
-  if(["p2m","p3m","ftm","reb","ast","tov","stl","blk","fouls","tfouls"].includes(stat)){
-    q[stat]=Math.max(0,(q[stat]||0)+delta);
-    if(stat==="p2m"&&delta>0)q.p2a++;
-    if(stat==="p3m"&&delta>0)q.p3a++;
-    if(stat==="ftm"&&delta>0)q.fta++;
-    if(stat==="p2m"&&delta<0)q.p2a=Math.max(q.p2m,q.p2a-1);
-    if(stat==="p3m"&&delta<0)q.p3a=Math.max(q.p3m,q.p3a-1);
-    if(stat==="ftm"&&delta<0)q.fta=Math.max(q.ftm,q.fta-1);
-  }else{
-    q[stat]=Math.max(0,(q[stat]||0)+delta);
-    if(stat==="p2a")q.p2m=Math.min(q.p2m,q.p2a);
-    if(stat==="p3a")q.p3m=Math.min(q.p3m,q.p3a);
-    if(stat==="fta")q.ftm=Math.min(q.ftm,q.fta);
-  }
-  scheduleRender();
-}
-
-function addPlayer(){
-  const num=$("addNum")?.value.trim(),name=$("addName")?.value.trim(),pos=$("addPhone")?.value.trim();
-  if(!name||name.length<2){toast("Enter a player name (2+ chars)","err");return}
-  if(!num||!/^\d{1,3}$/.test(num)){toast("Enter a jersey number (1–3 digits)","err");return}
-  const lim=tierLimit();
-  if(team().players.length>=lim.players){
-    toast(`${lim.players}-player limit on Free plan — upgrade to Pro`,"err");openPricing();return;
-  }
-  if(team().players.some(p=>String(p.num)===num)){toast(`#${num} already in roster`,"err");return}
-  pushH();
-  const pid=S.nextId++;
-  const p={id:pid,num,name,pos:pos||"",onCourt:true,courtEnteredAt:null,q:{1:eq(),2:eq(),3:eq(),4:eq(),OT:eq()}};
-  team().players.push(p);
-  $("addNum").value="";$("addName").value="";$("addPhone").value="";
-  scheduleRender();toast(`${name} (#${num}) added`,"ok");
-  $("addNum").focus();
-}
-
-function removePlayer(id){
-  if(!confirm("Remove this player?"))return;
-  pushH();
-  const p=team().players.find(x=>x.id===id);
-  team().players=team().players.filter(x=>x.id!==id);
-  S.shots=S.shots.filter(s=>s.pid!==id);
-  delete S.pmData[id];
-  scheduleRender();toast(p?`${p.name} removed`:"Player removed");
-}
-
-function copyPlayer(id){
-  const p=team().players.find(x=>x.id===id);if(!p)return;
-  const t=totPlayer(p);
-  const txt=`${p.name} (#${p.num}) — ${pts(t)} PTS | ${t.reb} REB | ${t.ast} AST | ${t.tov} TOV | FG ${fgm(t)}/${fga(t)} (${pct(fgm(t),fga(t))}%) | 3PT ${t.p3m}/${t.p3a} | FT ${t.ftm}/${t.fta} | +/− ${S.pmData[id]||0}`;
-  navigator.clipboard?.writeText(txt).then(()=>toast("Stat line copied","ok")).catch(()=>toast("Copy failed","err"));
-}
-
-function sharePlayer(id){
-  const p=team().players.find(x=>x.id===id);if(!p)return;
-  const t=totPlayer(p);
-  const text=`${p.name} (#${p.num}) — ${pts(t)} PTS | ${pct(fgm(t),fga(t))}% FG | +/− ${S.pmData[id]||0} — via GameIQ Elite`;
-  if(navigator.share){navigator.share({title:"GameIQ Elite",text}).catch(()=>{})}
-  else{copyPlayer(id)}
-}
-
-/* ═══════ GAME ACTIONS ═══════ */
-function newGame(){
-  if(!confirm("Start a new game? Current roster stats will be cleared."))return;
-  pushH();
-  team().players=[];S.shots=[];S.mode="live";S.quickMode=false;S.youthMode=false;
-  S.quarter=1;S.awayScore=0;S.pmData={};
-  S.clock={secs:600,running:false,periodSecs:600};
-  S.timeouts={home:5,homeUsed:0,away:5,awayUsed:0};
-  if($("homeTeam"))$("homeTeam").value="HOME";
-  if($("awayTeam"))$("awayTeam").value="AWAY";
-  if($("gameDate"))$("gameDate").value=today();
-  stopClock();doRender();toast("New game ready — add your roster");
-  S.view="live";renderNav();
-}
-
-function saveGame(){
-  if(!team().players.length){toast("Add players before saving","err");return}
-  const lim=tierLimit();
-  if(S.games.length>=lim.games){
-    toast(`${lim.games}-game limit on Free plan — upgrade to Pro`,"err");openPricing();return;
-  }
-  pushH();
-  const tt=totTeam();
-  S.games.push({
-    home:$("homeTeam")?.value||"HOME",away:$("awayTeam")?.value||"AWAY",
-    date:$("gameDate")?.value||today(),teamName:team().name,savedAt:new Date().toISOString(),
-    summary:{points:pts(tt),rebounds:tt.reb,assists:tt.ast,turnovers:tt.tov,fgPct:pct(fgm(tt),fga(tt))},
-    players:JSON.parse(JSON.stringify(team().players)),
-    shots:JSON.parse(JSON.stringify(S.shots)),
-    pmData:JSON.parse(JSON.stringify(S.pmData))
-  });
-  doRender();toast("Game saved! 🏀","ok");
-  const count=Number(localStorage.getItem("gameiq_games_count")||0)+1;
-  localStorage.setItem("gameiq_games_count",count);
-  const gEl=$("gamesTrackedCount");
-  if(gEl)gEl.textContent=(12847+count).toLocaleString();
-}
-
-function loadGame(ri){
-  pushH();
-  const g=S.games[S.games.length-1-ri];if(!g)return;
-  if($("homeTeam"))$("homeTeam").value=g.home;
-  if($("awayTeam"))$("awayTeam").value=g.away;
-  if($("gameDate"))$("gameDate").value=g.date;
-  team().players=JSON.parse(JSON.stringify(g.players));
-  S.shots=JSON.parse(JSON.stringify(g.shots||[]));
-  S.pmData=JSON.parse(JSON.stringify(g.pmData||{}));
-  S.nextId=Math.max(S.nextId,...team().players.map(p=>p.id||0))+1;
-  S.view="live";doRender();toast("Game loaded","ok");
-}
-
-function deleteGame(ri){
-  if(!confirm("Delete this saved game? Cannot be undone."))return;
-  pushH();S.games.splice(S.games.length-1-ri,1);doRender();toast("Game deleted");
-}
-
-/* ═══════ TEAMS ═══════ */
-function createTeam(){
-  const name=$("newTeamName")?.value.trim();if(!name){toast("Enter a team name","err");return}
-  const lim=tierLimit();
-  if(S.teams.length>=lim.teams){toast(`${lim.teams}-team limit — upgrade to Pro`,"err");openPricing();return}
-  if(S.teams.some(t=>t.name.toLowerCase()===name.toLowerCase())){toast("Team name exists","err");return}
-  pushH();
-  const id="t"+Date.now().toString(36);
-  S.teams.push({id,name,players:[]});S.activeTeamId=id;
-  if($("newTeamName"))$("newTeamName").value="";
-  doRender();toast(`"${name}" created`,"ok");
-}
-
-function deleteTeam(id){
-  if(S.teams.length<=1){toast("Keep at least one team","err");return}
-  if(!confirm("Delete this team?"))return;
-  pushH();S.teams=S.teams.filter(t=>t.id!==id);
-  if(S.activeTeamId===id)S.activeTeamId=S.teams[0].id;
-  doRender();toast("Team deleted");
-}
-
-/* ═══════ EXPORT / IMPORT ═══════ */
-function exportCsv(rows,name){
-  const csv=rows.map(r=>r.map(v=>{const s=String(v);return s.includes(",")?"\""+s+"\"":s}).join(",")).join("\n");
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
-  a.download=name;a.click();URL.revokeObjectURL(a.href);
-}
-
-function doExportCsv(){
-  const players=team().players;if(!players.length){toast("No players to export","err");return}
-  const h=["#","Name","PTS","REB","AST","TOV","STL","BLK","2PM","2PA","3PM","3PA","FTM","FTA","FG%","3P%","FT%","eFG%","+/-"];
-  const rows=[h,...players.map(p=>{
-    const t=totPlayer(p);
-    return[p.num,p.name,pts(t),t.reb,t.ast,t.tov,t.stl,t.blk,t.p2m,t.p2a,t.p3m,t.p3a,t.ftm,t.fta,pct(fgm(t),fga(t))+"%",pct(t.p3m,t.p3a)+"%",pct(t.ftm,t.fta)+"%",efgpct(t)+"%",S.pmData[p.id]||0];
-  })];
-  exportCsv(rows,`gameiq-${$("homeTeam")?.value||"game"}-${today()}.csv`);
-  toast("CSV exported","ok");
-}
-
-function doExportSeasonCsv(){
-  if(!S.games.length){toast("No games to export","err");return}
-  const h=["Date","Home","Away","Points","FG%","Rebounds","Assists","Turnovers","Team"];
-  exportCsv([h,...S.games.map(g=>[g.date,g.home,g.away,g.summary.points,g.summary.fgPct+"%",g.summary.rebounds,g.summary.assists,g.summary.turnovers,g.teamName||""])],`gameiq-season-${today()}.csv`);
-  toast("Season CSV exported","ok");
-}
-
-function doExportJson(){
-  const data=JSON.stringify({v:3,at:new Date().toISOString(),teams:S.teams,games:S.games},null,2);
-  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));
-  a.download=`gameiq-backup-${today()}.json`;a.click();URL.revokeObjectURL(a.href);
-  toast("Backup exported","ok");
-}
-
-function doImportJson(file){
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const d=JSON.parse(e.target.result);
-      if(!d.teams||!Array.isArray(d.teams)){toast("Invalid backup","err");return}
-      if(!confirm(`Import ${d.teams.length} team(s) and ${d.games?.length||0} games? This merges — won't delete existing data.`))return;
-      d.teams.forEach(t=>{if(!S.teams.find(x=>x.id===t.id))S.teams.push(t)});
-      if(Array.isArray(d.games))S.games.push(...d.games.filter(g=>!S.games.find(x=>x.savedAt===g.savedAt)));
-      doRender();toast("Backup imported","ok");
-    }catch(e){toast("Could not parse backup","err")}
-  };
-  reader.readAsText(file);
-}
-
-/* ═══════ MASTER RENDER ═══════ */
-function doRender(){
-  try{
-    renderNav();renderTeamSelect();renderShotSelector();
-    renderSummary();renderPlayers();
-    renderInsights("aiInsightsDash");renderInsights("aiInsightsLive");
-    renderShots();renderShotStats();renderCompare();
-    renderHistory();renderTeams();renderSeasonCharts();renderDevArcs();
-    renderCoachView();renderTimeouts();renderAIChat();renderAISuggestions();
-    updateTierUI();
-    qa("#modeTabs .seg").forEach(b=>b.classList.toggle("active",b.dataset.mode===S.mode));
-    qa(".qbtn").forEach(b=>b.classList.toggle("active",String(b.dataset.q)===String(S.quarter)));
-    if($("quickModeBtn"))$("quickModeBtn").textContent=`⚡ Quick: ${S.quickMode?"On":"Off"}`;
-    if($("quickToggle"))$("quickToggle").checked=!!S.quickMode;
-    if($("youthToggle"))$("youthToggle").checked=!!S.youthMode;
-    persist();
-  }catch(err){
-    console.error("Render error:",err);setChip("Render error — try reloading","err");
-  }
-}
-
-scheduleRender.flush=()=>{clearTimeout(renderTimeout);doRender()};
-
-/* ═══════ BIND EVENTS ═══════ */
-function bind(){
-  qa(".nav-btn[data-view]").forEach(b=>b.addEventListener("click",()=>{S.view=b.dataset.view;doRender()}));
-  qa("[data-nav]").forEach(b=>b.addEventListener("click",()=>{S.view=b.dataset.nav;renderNav()}));
-  $("teamSelect")?.addEventListener("change",e=>{S.activeTeamId=e.target.value;doRender()});
-  qa("#modeTabs .seg").forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.mode;scheduleRender()}));
-  qa(".qbtn").forEach(b=>b.addEventListener("click",()=>{S.quarter=b.dataset.q==="OT"?"OT":Number(b.dataset.q);scheduleRender()}));
-  $("addBtn")?.addEventListener("click",addPlayer);
-  $("addName")?.addEventListener("keydown",e=>{if(e.key==="Enter")addPlayer()});
-  $("addNum")?.addEventListener("keydown",e=>{if(e.key==="Enter")$("addName").focus()});
-  $("saveBtn")?.addEventListener("click",saveGame);
-  $("newBtn")?.addEventListener("click",newGame);
-  $("undoBtn")?.addEventListener("click",()=>{if(undo()){doRender();toast("Undone")}else toast("Nothing to undo")});
-  $("toggleDetailBtn")?.addEventListener("click",()=>{S.mode=S.mode==="live"?"advanced":"live";doRender()});
-  $("reportBtn")?.addEventListener("click",openReport);
-  $("exportCsvBtn")?.addEventListener("click",doExportCsv);
-  $("exportReportCsvBtn")?.addEventListener("click",()=>{doExportCsv();$("dlgReport").close()});
-  $("exportSeasonCsvBtn")?.addEventListener("click",doExportSeasonCsv);
-  $("exportJsonBtn")?.addEventListener("click",doExportJson);
-  $("importJsonBtn")?.addEventListener("click",()=>$("importFileInput").click());
-  $("importFileInput")?.addEventListener("change",e=>{if(e.target.files[0])doImportJson(e.target.files[0]);e.target.value=""});
-  $("quickModeBtn")?.addEventListener("click",()=>{S.quickMode=!S.quickMode;doRender()});
-  $("quickToggle")?.addEventListener("change",e=>{S.quickMode=!!e.target.checked;scheduleRender()});
-  $("youthToggle")?.addEventListener("change",e=>{S.youthMode=!!e.target.checked;scheduleRender()});
-  $("clockDisplay")?.addEventListener("click",()=>{S.clock.running?stopClock():startClock()});
-  $("clockToggleBtn")?.addEventListener("click",()=>{S.clock.running?stopClock():startClock()});
-  $("clockResetBtn")?.addEventListener("click",resetClock);
-  $("gameOverBtn")?.addEventListener("click",showGameOver);
-  $("goSaveBtn")?.addEventListener("click",()=>{saveGame();$("gameOverScreen").classList.add("hidden")});
-  $("goCloseBtn")?.addEventListener("click",()=>$("gameOverScreen").classList.add("hidden"));
-  $("goShareBtn")?.addEventListener("click",()=>{
-    const tt=totTeam(),ldr=leader();
-    const txt=buildGameNarrative(tt,ldr)+` — tracked with GameIQ Elite`;
-    navigator.clipboard?.writeText(txt).then(()=>toast("Summary copied","ok")).catch(()=>{});
-  });
-  qa(".pill[data-shot]").forEach(b=>b.addEventListener("click",()=>{S.shotMode=b.dataset.shot;renderShots()}));
-  $("heatmapToggle")?.addEventListener("click",()=>{S.heatMode=!S.heatMode;$("heatmapToggle").classList.toggle("active",S.heatMode);renderShots()});
-  $("shotPlayerSel")?.addEventListener("change",()=>{renderShots();renderShotStats()});
-  $("clearShotsBtn")?.addEventListener("click",()=>{if(!S.shots.length)return;pushH();S.shots=[];renderShots();renderShotStats();toast("Shots cleared")});
-  const court=$("court");
-  court?.addEventListener("click",onCourtTap);
-  court?.addEventListener("touchend",e=>{e.preventDefault();onCourtTap(e)},{passive:false});
-  $("compareA")?.addEventListener("change",renderCompare);
-  $("compareB")?.addEventListener("change",renderCompare);
-  $("createTeamBtn")?.addEventListener("click",createTeam);
-  $("newTeamName")?.addEventListener("keydown",e=>{if(e.key==="Enter")createTeam()});
-  ["homeTeam","awayTeam","gameDate"].forEach(id=>$(id)?.addEventListener("input",persist));
-  $("dismissOnboard")?.addEventListener("click",()=>{localStorage.setItem("gameiq_onboard_dismissed","1");$("onboardGuide").classList.add("hidden")});
-  const aiInput=$("aiInput");
-  $("aiSendBtn")?.addEventListener("click",()=>sendAIMessage());
-  aiInput?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAIMessage()}});
-  $("clearChatBtn")?.addEventListener("click",()=>{S.aiChat=[];renderAIChat();persist()});
-  let deferredPrompt=null;
-  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e});
-  window.addEventListener("online",()=>setChip("Online","online"));
-  window.addEventListener("offline",()=>setChip("Offline"));
-  document.addEventListener("keydown",e=>{
-    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;
-    if((e.metaKey||e.ctrlKey)&&e.key==="s"){e.preventDefault();saveGame()}
-    if((e.metaKey||e.ctrlKey)&&e.key==="z"){if(undo()){doRender();toast("Undone")}}
-    if(e.key===" "&&S.view==="live"){e.preventDefault();S.clock.running?stopClock():startClock()}
-  });
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("/sw.js").catch(()=>{});
-  }
-  window.addEventListener("appinstalled",()=>toast("GameIQ Elite installed!","ok"));
-}
-
-/* ═══════ INIT ═══════ */
-async function init(){
-  await openDB();
-  await hydrate();
-  if($("gameDate"))$("gameDate").value=$("gameDate").value||today();
-  bind();doRender();renderClock();renderTimeouts();
-  const cnt=Number(localStorage.getItem("gameiq_games_count")||0);
-  const gEl=$("gamesTrackedCount");if(gEl)gEl.textContent=(12847+cnt).toLocaleString();
-  if(!localStorage.getItem(WK)){
-    $("dlgLegal").showModal();
-    localStorage.setItem(WK,"1");
-  }
-}
-init();
-})();
-</script>
-</body>
-</html>
+  for(let i=0;i<4;i++){const y=T+(B-T)*(i/3);ctx.beginPath();ctx.moveTo(
