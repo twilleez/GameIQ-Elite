@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.json"/>
 <title>GameIQ Elite — AI Basketball Coaching</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --bg:#07101e;--bg2:#0a1628;--panel:#0d1d33;--panel2:#11243d;--panel3:#162c49;
@@ -665,6 +666,17 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   <div class="modal" style="max-width:480px">
     <h3>⚙ Settings</h3>
     <div class="settings-section">
+      <h4>Account</h4>
+      <div id="acctSignedOut">
+        <div class="api-key-wrap"><input type="email" id="acctEmailInput" placeholder="you@example.com" autocomplete="email"/><button class="btn btn-primary" id="acctSendLinkBtn" style="white-space:nowrap">Send Link</button></div>
+        <p class="api-key-note">Sign in to unlock Pro/Team billing and the hosted AI Coach (no API key needed). We'll email you a one-time sign-in link — no password.</p>
+      </div>
+      <div id="acctSignedIn" class="hidden">
+        <p class="api-key-note" style="margin-top:0"><strong id="acctEmail" style="color:var(--text)"></strong> · plan: <span id="acctTier">free</span></p>
+        <button class="btn btn-secondary" id="acctSignOutBtn" style="font-size:12px;min-height:34px">Sign out</button>
+      </div>
+    </div>
+    <div class="settings-section">
       <h4>AI Coach — Anthropic API Key</h4>
       <div class="api-key-wrap"><input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off"/><button class="btn btn-primary" id="saveApiKeyBtn" style="white-space:nowrap">Save Key</button></div>
       <p class="api-key-note">Stored only in this browser. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. Leave blank to clear.</p>
@@ -701,6 +713,71 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 
 const SK="gameiq_v3",WK="gameiq_tutorial_v3",AK="gameiq_apikey";
 const TIER_LIMITS={free:{teams:1,players:8,games:5,insights:1},pro:{teams:999,players:999,games:9999,insights:5},team:{teams:999,players:999,games:9999,insights:5}};
+
+/* ═══════ ACCOUNT / AUTH (Phase 1) ═══════
+   Left blank on purpose — the app behaves exactly as before (fully offline,
+   free-tier only) until these are filled in with a real Supabase project.
+   Fill in after running phase1_schema.sql: Project Settings → API. */
+const SUPABASE_URL="https://vkefnajzxgdtovfjdctt.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_Zu19I4RMUQu_oHntsNLF5w_MtbITO6r";
+let sb=null;
+let authUser=null;   // {id,email} when signed in, else null
+function authEnabled(){return !!(SUPABASE_URL&&SUPABASE_ANON_KEY)}
+function initAuth(){
+  if(!authEnabled())return;
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  sb.auth.onAuthStateChange((_event,session)=>{
+    authUser=session?.user?{id:session.user.id,email:session.user.email}:null;
+    onAuthChange();
+  });
+  sb.auth.getSession().then(({data})=>{
+    authUser=data?.session?.user?{id:data.session.user.id,email:data.session.user.email}:null;
+    onAuthChange();
+  });
+}
+async function onAuthChange(){
+  renderAccountUI();
+  if(!authUser){return}
+  // Pull server-side tier and reconcile into local state.
+  // Phase 1: profiles.tier is always 'free' until Stripe (Phase 2) writes to it.
+  // This intentionally never *lowers* trust below what Phase 2/3 will enforce —
+  // it only ever sets S.tier from the server, never lets the client invent a tier.
+  try{
+    const {data,error}=await sb.from("profiles").select("tier,email").eq("id",authUser.id).single();
+    if(!error&&data){
+      S.tier=data.tier;
+      persist();updateTierUI();renderAccountUI();
+    }
+  }catch(e){/* offline or RLS misconfigured — fail closed, keep local tier */}
+}
+async function sendMagicLink(){
+  if(!authEnabled()){toast("Account sign-in isn't configured yet","err");return}
+  const email=($("acctEmailInput")?.value||"").trim();
+  if(!email){toast("Enter an email","err");return}
+  const btn=$("acctSendLinkBtn");if(btn)btn.disabled=true;
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}});
+  if(btn)btn.disabled=false;
+  if(error){toast("Couldn't send link: "+error.message,"err");return}
+  toast("Check your email for a sign-in link","ok");
+}
+async function signOut(){
+  if(!sb)return;
+  await sb.auth.signOut();
+  authUser=null;
+  renderAccountUI();
+  toast("Signed out");
+}
+function renderAccountUI(){
+  const out=$("acctSignedOut"),inEl=$("acctSignedIn");
+  if(!out||!inEl)return;
+  if(authUser){
+    out.classList.add("hidden");inEl.classList.remove("hidden");
+    const em=$("acctEmail");if(em)em.textContent=authUser.email;
+    const tr=$("acctTier");if(tr)tr.textContent=S.tier;
+  }else{
+    out.classList.remove("hidden");inEl.classList.add("hidden");
+  }
+}
 
 const S={
   view:"dashboard",mode:"live",quarter:1,shotMode:"made",
@@ -820,6 +897,7 @@ function openSettings(){
   const inp=$("apiKeyInput");if(inp)inp.value=getApiKey()?"············":"";
   const secs=S.clock.periodSecs||600;
   document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",Number(b.dataset.secs)===secs));
+  renderAccountUI();
   dlg.showModal();
 }
 
@@ -954,7 +1032,8 @@ function renderShotStats(){
 }
 function onCourtTap(evt){
   const pid=Number($("shotPlayerSel")?.value||0);if(!pid){toast("Pick a player first","err");return}
-  const svg=$("court"),pt=svg.createSVGPoint(),src=evt.touches?evt.touches[0]:evt;
+  const svg=$("court"),pt=svg.createSVGPoint();
+  const src=(evt.changedTouches&&evt.changedTouches[0])||(evt.touches&&evt.touches[0])||evt;
   pt.x=src.clientX;pt.y=src.clientY;
   const cur=pt.matrixTransform(svg.getScreenCTM().inverse());
   const x=Math.max(4,Math.min(396,cur.x)),y=Math.max(4,Math.min(356,cur.y));
@@ -970,8 +1049,15 @@ function onCourtTap(evt){
 function toggleCourt(pid){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
   const wasOn=p.onCourt!==false;p.onCourt=!wasOn;
-  if(!wasOn)p.courtEnteredAt=pts(totTeam());
-  else if(p.courtEnteredAt!==null){const diff=pts(totTeam())-p.courtEnteredAt-(S.awayScore||0);if(!S.pmData[pid])S.pmData[pid]=0;S.pmData[pid]+=diff;p.courtEnteredAt=null}
+  const tt=totTeam();
+  if(!wasOn){
+    p.courtEnteredAt={home:pts(tt),away:S.awayScore||0};
+  }else if(p.courtEnteredAt){
+    const diff=(pts(tt)-p.courtEnteredAt.home)-((S.awayScore||0)-p.courtEnteredAt.away);
+    if(!S.pmData[pid])S.pmData[pid]=0;
+    S.pmData[pid]+=diff;
+    p.courtEnteredAt=null;
+  }
   scheduleRender();toast(p.name+" — "+(p.onCourt!==false?"ON COURT":"BENCH"));
 }
 
@@ -1026,18 +1112,15 @@ function drawChart(id,data,labels,color,title){
     i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
   });
   ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
-  // fill under
   ctx.lineTo(L+(data.length-1)*xStep,B);ctx.lineTo(L,B);ctx.closePath();
   ctx.fillStyle=color.replace(")",",0.1)").replace("rgb(","rgba(");
   if(color.startsWith("#")){ctx.fillStyle=color+"18"}
   ctx.fill();
-  // dots
   data.forEach((v,i)=>{
     const x=L+i*xStep,y=B-(v/max)*(B-T);
     ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);
     ctx.fillStyle=color;ctx.fill();
   });
-  // x labels
   ctx.fillStyle="rgba(255,255,255,.3)";ctx.font="9px 'DM Mono',monospace";
   labels.forEach((l,i)=>{
     if(i%Math.max(1,Math.floor(labels.length/6))===0){
@@ -1054,7 +1137,6 @@ function renderSeasonView(){
   drawChart("pointsChart",ptsData,labels,"#4d9fff","Points per Game");
   drawChart("fgChart",fgData,labels,"#1ecfb0","FG% per Game");
 
-  // dev arcs
   const da=$("devArcs");
   if(da){
     const allPlayers=team().players;
@@ -1077,7 +1159,6 @@ function renderSeasonView(){
     }).join("");
   }
 
-  // full history
   const fh=$("fullHistory");
   if(fh){
     if(!games.length){fh.innerHTML=`<div class="empty-state"><span class="ei">📅</span><strong>No saved games</strong><span>Hit Save Game after each game to build your season history.</span></div>`;return}
@@ -1104,7 +1185,6 @@ function renderSeasonView(){
     }));
   }
 
-  // dashboard recent
   const rd=$("recentHistoryDash");
   if(rd){
     const recent=[...games].slice(-3).reverse();
@@ -1122,7 +1202,6 @@ function renderSeasonView(){
   if(sc)sc.textContent=games.length;
 }
 
-/* ═══════ TEAMS VIEW ═══════ */
 function renderTeamsView(){
   const tl=$("teamsList");
   if(tl){
@@ -1164,14 +1243,12 @@ function renderTeamsView(){
       </div>`;
   }
 
-  // team select dropdown
   const ts=$("teamSelect");
   if(ts){
     ts.innerHTML=S.teams.map(t=>`<option value="${t.id}"${t.id===S.activeTeamId?" selected":""}>${esc(t.name)}</option>`).join("");
   }
 }
 
-/* ═══════ COMPARE VIEW ═══════ */
 function renderCompareView(){
   const players=team().players;
   const populateSel=(id)=>{
@@ -1219,7 +1296,6 @@ function renderCompareResult(){
     </div>`;
 }
 
-/* ═══════ AI COACH VIEW ═══════ */
 function renderAICoachView(){
   const notice=$("aiApiNotice");
   if(notice){
@@ -1261,7 +1337,6 @@ async function sendAIMessage(){
   inp.value="";
   S.aiChat.push({role:"user",content:msg});
   renderAIChat();
-  // thinking indicator
   const wrap=$("aiChatMessages");
   if(wrap){const t=document.createElement("div");t.className="ai-msg assistant thinking";t.id="aiThinking";t.textContent="Analyzing your game data…";wrap.appendChild(t);wrap.scrollTop=wrap.scrollHeight;}
   const sendBtn=$("aiSendBtn");if(sendBtn)sendBtn.disabled=true;
@@ -1282,7 +1357,7 @@ Be concise, direct, and actionable. Max 3 sentences unless explaining something 
     const res=await fetch("https://api.anthropic.com/v1/messages",{
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:"claude-opus-4-5",max_tokens:512,system:context,messages})
+      body:JSON.stringify({model:"claude-sonnet-5",max_tokens:512,system:context,messages})
     });
     const data=await res.json();
     const reply=data.content?.[0]?.text||"Sorry, I couldn't get a response. Check your API key.";
@@ -1300,7 +1375,6 @@ Be concise, direct, and actionable. Max 3 sentences unless explaining something 
   }
 }
 
-/* ═══════ SHOT PLAYER SELECT ═══════ */
 function populateShotSel(){
   const sel=$("shotPlayerSel");if(!sel)return;
   const players=team().players;
@@ -1309,7 +1383,6 @@ function populateShotSel(){
   if(cur)sel.value=cur;
 }
 
-/* ═══════ STAT ADJUSTMENT ═══════ */
 function adjustStat(pid,stat,delta){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
   pushH();
@@ -1317,7 +1390,6 @@ function adjustStat(pid,stat,delta){
   if(!p.q[aq()])p.q[aq()]=eq();
   const q=p.q[aq()];
   q[stat]=Math.max(0,(q[stat]||0)+delta);
-  // foul auto-alert
   if(stat==="fouls"){
     if(q.fouls>=5)toast(`🚨 ${p.name} — 5th foul!`,"err");
     else if(q.fouls>=3)toast(`⚠️ ${p.name} — ${q.fouls} fouls`,"");
@@ -1325,7 +1397,6 @@ function adjustStat(pid,stat,delta){
   scheduleRender();
 }
 
-/* ═══════ ADD / REMOVE PLAYER ═══════ */
 function addPlayer(){
   const num=($("addNum")?.value||"").trim();
   const name=($("addName")?.value||"").trim();
@@ -1356,7 +1427,6 @@ function removePlayer(pid){
   toast("Player removed");
 }
 
-/* ═══════ COPY / SHARE ═══════ */
 function copyPlayer(pid){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
   const t=totPlayer(p);
@@ -1372,7 +1442,6 @@ function sharePlayer(pid){
   else{navigator.clipboard?.writeText(text).then(()=>toast("Stats copied","ok"))}
 }
 
-/* ═══════ SAVE GAME ═══════ */
 function saveGame(){
   const lim=tierLimit().games;
   if(S.games.length>=lim&&!isPro()){
@@ -1404,7 +1473,6 @@ function saveGame(){
   vibe(50);
 }
 
-/* ═══════ GAME OVER SCREEN ═══════ */
 function showGameOver(){
   const tt=totTeam();
   const ldr=leader();
@@ -1425,7 +1493,6 @@ function showGameOver(){
   $("gameOverScreen").classList.remove("hidden");
 }
 
-/* ═══════ EXPORT ═══════ */
 function exportCsv(){
   const players=team().players;if(!players.length){toast("No players to export","err");return}
   const hdr=["#","Name","Pos","PTS","2PM","2PA","2P%","3PM","3PA","3P%","FTM","FTA","FT%","eFG%","REB","AST","TOV","STL","BLK","FOULS"];
@@ -1458,7 +1525,6 @@ function dlBlob(content,filename,type){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
-/* ═══════ REPORT ═══════ */
 function showReport(){
   const players=team().players;
   const tt=totTeam();
@@ -1474,7 +1540,6 @@ function showReport(){
   $("dlgReport").showModal();
 }
 
-/* ═══════ MASTER RENDER ═══════ */
 function doRender(){
   renderNav();
   renderSummary();
@@ -1494,7 +1559,6 @@ function doRender(){
   renderClock();
 }
 
-/* ═══════ NAVIGATE ═══════ */
 function navigate(view){
   S.view=view;
   renderNav();
@@ -1504,7 +1568,6 @@ function navigate(view){
   if(view==="aicoach")renderAICoachView();
 }
 
-/* ═══════ NEW GAME ═══════ */
 function newGame(){
   if(!confirm("Start a new game? Current unsaved stats will be lost."))return;
   pushH();
@@ -1516,13 +1579,17 @@ function newGame(){
   toast("New game started","ok");
 }
 
-/* ═══════ INIT ═══════ */
 async function init(){
   await openDB();
   await hydrate();
+  initAuth();
   if($("gameDate")&&!$("gameDate").value)$("gameDate").value=today();
 
-  /* ── NAV BUTTONS (sidebar + footer) ── */
+  const acctSendLinkBtn=$("acctSendLinkBtn");
+  if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);
+  const acctSignOutBtn=$("acctSignOutBtn");
+  if(acctSignOutBtn)acctSignOutBtn.addEventListener("click",signOut);
+
   document.addEventListener("click",e=>{
     const nb=e.target.closest("[data-nav]");
     if(nb){navigate(nb.dataset.nav);return}
@@ -1530,7 +1597,6 @@ async function init(){
     if(vb&&vb.classList.contains("nav-btn")){navigate(vb.dataset.view);return}
   });
 
-  /* ── TOPBAR BUTTONS ── */
   const saveBtn=$("saveBtn");
   if(saveBtn)saveBtn.addEventListener("click",saveGame);
 
@@ -1546,7 +1612,6 @@ async function init(){
   const settingsBtn=$("settingsBtn");
   if(settingsBtn)settingsBtn.addEventListener("click",openSettings);
 
-  /* ── CLOCK ── */
   const clockToggleBtn=$("clockToggleBtn");
   if(clockToggleBtn)clockToggleBtn.addEventListener("click",()=>{
     S.clock.running?stopClock():startClock();
@@ -1560,27 +1625,23 @@ async function init(){
   const clockResetBtn=$("clockResetBtn");
   if(clockResetBtn)clockResetBtn.addEventListener("click",resetClock);
 
-  /* ── QUARTER BUTTONS ── */
   document.querySelectorAll(".qbtn").forEach(b=>b.addEventListener("click",()=>{
     S.quarter=isNaN(Number(b.dataset.q))?b.dataset.q:Number(b.dataset.q);
     document.querySelectorAll(".qbtn").forEach(x=>x.classList.toggle("active",x.dataset.q===b.dataset.q));
     doRender();
   }));
 
-  /* ── MODE TABS ── */
   document.querySelectorAll(".seg").forEach(b=>b.addEventListener("click",()=>{
     S.mode=b.dataset.mode;
     document.querySelectorAll(".seg").forEach(x=>x.classList.toggle("active",x.dataset.mode===b.dataset.mode));
     doRender();
   }));
 
-  /* ── AWAY SCORE ── */
   const awayPlus=$("awayScorePlus");
   if(awayPlus)awayPlus.addEventListener("click",()=>{S.awayScore=(S.awayScore||0)+1;renderSummary();persist()});
   const awayMinus=$("awayScoreMinus");
   if(awayMinus)awayMinus.addEventListener("click",()=>{S.awayScore=Math.max(0,(S.awayScore||0)-1);renderSummary();persist()});
 
-  /* ── QUICK MODE BTN ── */
   const qmb=$("quickModeBtn");
   if(qmb)qmb.addEventListener("click",()=>{
     S.quickMode=!S.quickMode;
@@ -1589,11 +1650,9 @@ async function init(){
     doRender();
   });
 
-  /* ── GAME OVER BTN ── */
   const gob=$("gameOverBtn");
   if(gob)gob.addEventListener("click",showGameOver);
 
-  /* ── GAME OVER SCREEN ── */
   const goSaveBtn=$("goSaveBtn");
   if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{saveGame();$("gameOverScreen").classList.add("hidden")});
   const goShareBtn=$("goShareBtn");
@@ -1605,7 +1664,6 @@ async function init(){
   const goCloseBtn=$("goCloseBtn");
   if(goCloseBtn)goCloseBtn.addEventListener("click",()=>$("gameOverScreen").classList.add("hidden"));
 
-  /* ── ADD PLAYER ── */
   const addBtn=$("addBtn");
   if(addBtn)addBtn.addEventListener("click",addPlayer);
   const addName=$("addName");
@@ -1613,7 +1671,6 @@ async function init(){
   const addNum=$("addNum");
   if(addNum)addNum.addEventListener("keydown",e=>{if(e.key==="Enter"){$("addName")?.focus()}});
 
-  /* ── TOGGLES ── */
   const quickToggle=$("quickToggle");
   if(quickToggle)quickToggle.addEventListener("change",()=>{
     S.quickMode=quickToggle.checked;
@@ -1623,7 +1680,6 @@ async function init(){
   const youthToggle=$("youthToggle");
   if(youthToggle)youthToggle.addEventListener("change",()=>{S.youthMode=youthToggle.checked;doRender()});
 
-  /* ── SHOT CHART ── */
   const court=$("court");
   if(court){
     court.addEventListener("click",onCourtTap);
@@ -1648,7 +1704,6 @@ async function init(){
   const shotPlayerSel=$("shotPlayerSel");
   if(shotPlayerSel)shotPlayerSel.addEventListener("change",()=>{renderShots();renderShotStats()});
 
-  /* ── REPORT / CSV ── */
   const reportBtn=$("reportBtn");
   if(reportBtn)reportBtn.addEventListener("click",showReport);
   const exportCsvBtn=$("exportCsvBtn");
@@ -1663,7 +1718,6 @@ async function init(){
     doRender();
   });
 
-  /* ── SEASON EXPORT / IMPORT ── */
   const exportSeasonCsvBtn=$("exportSeasonCsvBtn");
   if(exportSeasonCsvBtn)exportSeasonCsvBtn.addEventListener("click",exportSeasonCsv);
   const exportJsonBtn=$("exportJsonBtn");
@@ -1686,11 +1740,10 @@ async function init(){
     e.target.value="";
   });
 
-  /* ── SETTINGS ── */
   const saveApiKeyBtn=$("saveApiKeyBtn");
   if(saveApiKeyBtn)saveApiKeyBtn.addEventListener("click",()=>{
     const val=$("apiKeyInput")?.value?.trim()||"";
-    if(val&&!val.startsWith("●")){localStorage.setItem(AK,val);toast("API key saved","ok")}
+    if(val&&!val.startsWith("·")){localStorage.setItem(AK,val);toast("API key saved","ok")}
     else if(!val){localStorage.removeItem(AK);toast("API key cleared")}
     else toast("Key unchanged");
     $("dlgSettings").close();
@@ -1711,7 +1764,6 @@ async function init(){
     location.reload();
   });
 
-  /* ── TEAM MANAGEMENT ── */
   const teamSelect=$("teamSelect");
   if(teamSelect)teamSelect.addEventListener("change",()=>{
     S.activeTeamId=teamSelect.value;persist();doRender();
@@ -1728,11 +1780,9 @@ async function init(){
     persist();doRender();toast(`${nm} created`,"ok");
   });
 
-  /* ── COMPARE ── */
   const compareA=$("compareA");if(compareA)compareA.addEventListener("change",renderCompareResult);
   const compareB=$("compareB");if(compareB)compareB.addEventListener("change",renderCompareResult);
 
-  /* ── AI COACH ── */
   const aiSendBtn=$("aiSendBtn");
   if(aiSendBtn)aiSendBtn.addEventListener("click",sendAIMessage);
   const aiInput=$("aiInput");
@@ -1740,28 +1790,23 @@ async function init(){
   const clearChatBtn=$("clearChatBtn");
   if(clearChatBtn)clearChatBtn.addEventListener("click",()=>{S.aiChat=[];persist();renderAIChat();toast("Chat cleared")});
 
-  /* ── DISMISS ONBOARD ── */
   const dismissOnboard=$("dismissOnboard");
   if(dismissOnboard)dismissOnboard.addEventListener("click",()=>{
     localStorage.setItem("gameiq_onboard_dismissed","1");
     const og=$("onboardGuide");if(og)og.classList.add("hidden");
   });
 
-  /* ── HOME/AWAY INPUTS ── */
   [$("homeTeam"),$("awayTeam"),$("gameDate")].forEach(el=>{
     if(el)el.addEventListener("input",()=>{renderSummary();persist()});
   });
 
-  /* ── AUTOSAVE on blur ── */
   document.addEventListener("visibilitychange",()=>{
     if(document.visibilityState==="hidden")persist();
   });
 
-  /* ── INITIAL RENDER ── */
   doRender();
 }
 
-/* ── expose functions called via inline onclick attributes ── */
 window.openPricing=openPricing;
 window.openSettings=openSettings;
 window.setTier=setTier;
