@@ -574,7 +574,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     <!-- AI COACH -->
     <div class="view" id="view-aicoach">
       <div id="aiCoachPaywall" class="paywall-strip"><div><strong>AI Coach — PRO feature</strong><span>Ask any coaching question. Get personalized answers using your real game data.</span></div><button class="btn btn-pro" onclick="openPricing()">Unlock AI Coach ⭐</button></div>
-      <div id="aiApiNotice" class="ai-api-notice hidden"><strong>Anthropic API key required</strong> AI Coach is powered by Claude. Add your API key in Settings.<br><button onclick="openSettings()">⚙ Open Settings</button></div>
+      <div id="aiApiNotice" class="ai-api-notice hidden"><strong>Sign in required</strong> Hosted AI Coach is available to eligible signed-in accounts.<br><button onclick="openSettings()">⚙ Open account settings</button></div>
       <div class="card">
         <div class="card-head"><div><h2>Ask the AI Coach 🤖</h2><p>Powered by Claude · your game data + coaching intelligence</p></div><button class="btn btn-ghost" id="clearChatBtn" style="min-height:30px;font-size:11px">Clear chat</button></div>
         <div class="card-body">
@@ -632,17 +632,17 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       <div class="price-card">
         <div class="price-name">Free</div><div class="price-amt">$0</div><div class="price-period">forever</div>
         <ul class="price-features"><li>1 team, up to 8 players</li><li>5 saved games</li><li>Live stat tracking</li><li>Shot chart</li><li>1 AI insight per game</li><li class="locked-feat">Advanced analytics</li><li class="locked-feat">AI Coach chat</li><li class="locked-feat">Player dev arcs</li><li class="locked-feat">PDF reports</li></ul>
-        <button class="btn btn-secondary" style="width:100%" onclick="setTier('free');document.getElementById('dlgPricing').close()">Current plan</button>
+        <button class="btn btn-secondary" style="width:100%" disabled>Free plan</button>
       </div>
       <div class="price-card featured popular-tag">
         <div class="price-name" style="color:var(--gold)">Pro ⭐</div><div class="price-amt" style="color:var(--gold)">$9.99</div><div class="price-period">/month</div>
         <ul class="price-features"><li>Unlimited teams &amp; players</li><li>Unlimited saved games</li><li>All 5 AI insights</li><li>AI Coach chat (Claude)</li><li>Coach Analytics</li><li>Player dev arcs</li><li>+/− lineup tracking</li><li>PDF &amp; CSV export</li></ul>
-        <button class="btn btn-pro" style="width:100%" onclick="setTier('pro');document.getElementById('dlgPricing').close()">Start Pro — $9.99/mo</button>
+        <button class="btn btn-pro" id="startProCheckoutBtn" style="width:100%">Start Pro — $9.99/mo</button>
       </div>
       <div class="price-card">
         <div class="price-name" style="color:var(--team)">Team 👥</div><div class="price-amt" style="color:var(--team)">$24.99</div><div class="price-period">/month per program</div>
-        <ul class="price-features"><li>Everything in Pro</li><li>Multi-coach access</li><li>Parent sharing portal</li><li>League admin dashboard</li><li>Custom branding</li><li>Priority support</li></ul>
-        <button class="btn btn-secondary" style="width:100%;border-color:rgba(157,126,252,.3);color:var(--team)" onclick="setTier('team');document.getElementById('dlgPricing').close()">Contact for Team plan</button>
+        <ul class="price-features"><li>Everything in Pro</li><li>Program features are in controlled beta</li><li class="locked-feat">Multi-coach access — beta</li><li class="locked-feat">Parent sharing — planned</li><li class="locked-feat">League admin — planned</li><li class="locked-feat">Custom branding — planned</li></ul>
+        <button class="btn btn-secondary" style="width:100%;border-color:rgba(157,126,252,.3);color:var(--team)" disabled>Program plan — beta waitlist</button>
       </div>
     </div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById('dlgPricing').close()">Maybe later</button></div>
@@ -652,11 +652,11 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 <dialog id="dlgLegal">
   <div class="modal">
     <h3>Terms &amp; Privacy</h3>
-    <p style="font-size:11px;color:var(--dim)">Last updated 2025 · All data stored locally on your device only.</p>
+    <p style="font-size:11px;color:var(--dim)">Last updated August 26, 2026 · Local-first game data with optional account services.</p>
     <div style="font-size:12px;color:var(--muted);line-height:1.8;max-height:320px;overflow-y:auto;background:rgba(0,0,0,.2);border-radius:12px;padding:14px;margin-bottom:12px">
-      <strong style="color:var(--text)">Terms of Service</strong><br><br>GameIQ Elite is provided for personal coaching and statistical tracking. All data is stored locally in your browser. We do not collect, transmit, or sell your data.<br><br>
-      <strong style="color:var(--text)">Privacy Policy</strong><br><br>No personal data is sent to any server. The only external requests are Google Fonts and (when using AI Coach) Anthropic's API. Your API key is stored in localStorage only.<br><br>
-      <strong style="color:var(--text)">Children's Privacy</strong><br><br>If tracking minors, use jersey numbers or initials. Ensure appropriate consent from parents/guardians.
+      <strong style="color:var(--text)">Terms of Service</strong><br><br>GameIQ Elite provides basketball coaching and statistical tools. Game statistics are stored locally in the browser in this release unless a feature explicitly states that it syncs to the cloud. Paid features are controlled by the signed-in account and server-side subscription status.<br><br>
+      <strong style="color:var(--text)">Privacy</strong><br><br>If you sign in, GameIQ uses Supabase to process account identifiers such as your email address and subscription tier. If you purchase a paid plan, billing is processed by Stripe. If you use hosted AI Coach, the question and relevant game context are sent through a protected GameIQ server function to the AI provider to generate a response. GameIQ does not require customers to provide an AI-provider API key.<br><br>
+      <strong style="color:var(--text)">Youth data</strong><br><br>Do not enter information that is unnecessary for basketball tracking. For minors, use jersey numbers or limited identifiers where practical and obtain any consent required by your organization and applicable law.
     </div>
     <div class="modal-actions"><button class="btn btn-primary" onclick="document.getElementById('dlgLegal').close()">Got it</button></div>
   </div>
@@ -677,9 +677,8 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       </div>
     </div>
     <div class="settings-section">
-      <h4>AI Coach — Anthropic API Key</h4>
-      <div class="api-key-wrap"><input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" autocomplete="off"/><button class="btn btn-primary" id="saveApiKeyBtn" style="white-space:nowrap">Save Key</button></div>
-      <p class="api-key-note">Stored only in this browser. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. Leave blank to clear.</p>
+      <h4>Hosted AI Coach</h4>
+      <p class="api-key-note">AI Coach uses the secure GameIQ server endpoint. No customer API key is stored in this browser. Sign in and maintain an eligible plan to use hosted AI.</p>
     </div>
     <div class="settings-section">
       <h4>Period Duration</h4>
@@ -711,7 +710,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 (function(){
 "use strict";
 
-const SK="gameiq_v3",WK="gameiq_tutorial_v3",AK="gameiq_apikey";
+const SK="gameiq_v3",WK="gameiq_tutorial_v3";
 const TIER_LIMITS={free:{teams:1,players:8,games:5,insights:1},pro:{teams:999,players:999,games:9999,insights:5},team:{teams:999,players:999,games:9999,insights:5}};
 
 /* ═══════ ACCOUNT / AUTH (Phase 1) ═══════
@@ -879,7 +878,7 @@ function renderTimeouts(){
   renderDots("awayTimeouts",S.timeouts.away,S.timeouts.awayUsed);
 }
 
-function setTier(t){S.tier=t;persist();updateTierUI();toast("GameIQ "+t.toUpperCase()+" activated","ok")}
+function setTier(){toast("Plan access is controlled by your GameIQ account subscription.","err")}
 function tierLimit(){return TIER_LIMITS[S.tier]||TIER_LIMITS.free}
 function isPro(){return S.tier==="pro"||S.tier==="team"}
 function updateTierUI(){
@@ -891,10 +890,22 @@ function updateTierUI(){
   if(cp)cp.classList.toggle("hidden",isPro());if(ai)ai.classList.toggle("hidden",isPro());
 }
 function openPricing(){$("dlgPricing").showModal()}
-function getApiKey(){return localStorage.getItem(AK)||""}
+async function requireSession(){
+  if(!sb){toast("Account services are unavailable","err");return null}
+  const {data,error}=await sb.auth.getSession();
+  if(error||!data?.session){toast("Sign in first to use this feature","err");openSettings();return null}
+  return data.session;
+}
+async function startCheckout(plan){
+  const session=await requireSession();if(!session)return;
+  try{
+    const {data,error}=await sb.functions.invoke("gameiq-create-checkout",{body:{plan}});
+    if(error||!data?.url)throw new Error(error?.message||data?.error||"Checkout unavailable");
+    window.location.assign(data.url);
+  }catch(e){toast("Billing is not configured yet. Please try again later.","err")}
+}
 function openSettings(){
   const dlg=$("dlgSettings");if(!dlg)return;
-  const inp=$("apiKeyInput");if(inp)inp.value=getApiKey()?"············":"";
   const secs=S.clock.periodSecs||600;
   document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",Number(b.dataset.secs)===secs));
   renderAccountUI();
@@ -1298,10 +1309,7 @@ function renderCompareResult(){
 
 function renderAICoachView(){
   const notice=$("aiApiNotice");
-  if(notice){
-    const hasKey=!!getApiKey();
-    notice.classList.toggle("hidden",hasKey||!isPro());
-  }
+  if(notice)notice.classList.toggle("hidden",!!authUser||!isPro());
   renderAIChat();
   renderAISuggestions();
 }
@@ -1327,20 +1335,16 @@ function renderAISuggestions(){
 
 async function sendAIMessage(){
   if(!isPro()){openPricing();return}
+  const session=await requireSession();if(!session)return;
   const inp=$("aiInput");if(!inp)return;
   const msg=inp.value.trim();if(!msg)return;
-  const key=getApiKey();
-  if(!key){
-    const notice=$("aiApiNotice");if(notice)notice.classList.remove("hidden");
-    toast("Add API key in Settings to use AI Coach","err");return;
-  }
   inp.value="";
+  const history=S.aiChat.slice(-8).map(m=>({role:m.role,content:m.content}));
   S.aiChat.push({role:"user",content:msg});
   renderAIChat();
   const wrap=$("aiChatMessages");
   if(wrap){const t=document.createElement("div");t.className="ai-msg assistant thinking";t.id="aiThinking";t.textContent="Analyzing your game data…";wrap.appendChild(t);wrap.scrollTop=wrap.scrollHeight;}
-  const sendBtn=$("aiSendBtn");if(sendBtn)sendBtn.disabled=true;
-  inp.disabled=true;
+  const sendBtn=$("aiSendBtn");if(sendBtn)sendBtn.disabled=true;inp.disabled=true;
   try{
     const tt=totTeam();
     const context=`You are an expert basketball coach AI. Current game data:
@@ -1350,31 +1354,15 @@ Quarter: Q${S.quarter}
 Team stats: ${pts(tt)} pts, ${pct(fgm(tt),fga(tt))}% FG, ${efgpct(tt)}% eFG, ${tt.reb} reb, ${tt.ast} ast, ${tt.tov} tov
 Players: ${team().players.map(p=>{const t=totPlayer(p);return `#${p.num} ${p.name}: ${pts(t)}pts ${pct(fgm(t),fga(t))}%FG ${t.fouls}fouls`}).join("; ")}
 Be concise, direct, and actionable. Max 3 sentences unless explaining something complex.`;
-    const messages=[
-      ...S.aiChat.slice(-8).map(m=>({role:m.role,content:m.content}))
-    ];
-    messages[0]={...messages[0]};
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:"claude-sonnet-5",max_tokens:512,system:context,messages})
-    });
-    const data=await res.json();
-    const reply=data.content?.[0]?.text||"Sorry, I couldn't get a response. Check your API key.";
-    const thinking=document.getElementById("aiThinking");if(thinking)thinking.remove();
-    S.aiChat.push({role:"assistant",content:reply});
-    persist();
-    renderAIChat();
+    const {data,error}=await sb.functions.invoke("gameiq-ai-coach",{body:{message:msg,context,history}});
+    if(error||!data?.reply)throw new Error(error?.message||data?.error||"AI unavailable");
+    document.getElementById("aiThinking")?.remove();
+    S.aiChat.push({role:"assistant",content:data.reply});persist();renderAIChat();
   }catch(e){
-    const thinking=document.getElementById("aiThinking");if(thinking)thinking.remove();
-    S.aiChat.push({role:"assistant",content:"Connection error. Check your API key and network."});
-    renderAIChat();
-  }finally{
-    if(sendBtn)sendBtn.disabled=false;
-    inp.disabled=false;inp.focus();
-  }
+    document.getElementById("aiThinking")?.remove();
+    S.aiChat.push({role:"assistant",content:"AI Coach is temporarily unavailable. Confirm your account and try again."});renderAIChat();
+  }finally{if(sendBtn)sendBtn.disabled=false;inp.disabled=false;inp.focus()}
 }
-
 function populateShotSel(){
   const sel=$("shotPlayerSel");if(!sel)return;
   const players=team().players;
@@ -1589,6 +1577,11 @@ async function init(){
   if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);
   const acctSignOutBtn=$("acctSignOutBtn");
   if(acctSignOutBtn)acctSignOutBtn.addEventListener("click",signOut);
+  const proCheckout=$("startProCheckoutBtn");
+  if(proCheckout)proCheckout.addEventListener("click",()=>startCheckout("pro"));
+  const billingState=new URLSearchParams(location.search).get("billing");
+  if(billingState==="success")toast("Subscription checkout completed. Updating your plan…","ok");
+  if(billingState==="cancelled")toast("Checkout cancelled");
 
   document.addEventListener("click",e=>{
     const nb=e.target.closest("[data-nav]");
@@ -1740,14 +1733,6 @@ async function init(){
     e.target.value="";
   });
 
-  const saveApiKeyBtn=$("saveApiKeyBtn");
-  if(saveApiKeyBtn)saveApiKeyBtn.addEventListener("click",()=>{
-    const val=$("apiKeyInput")?.value?.trim()||"";
-    if(val&&!val.startsWith("·")){localStorage.setItem(AK,val);toast("API key saved","ok")}
-    else if(!val){localStorage.removeItem(AK);toast("API key cleared")}
-    else toast("Key unchanged");
-    $("dlgSettings").close();
-  });
   document.querySelectorAll(".period-btn").forEach(b=>b.addEventListener("click",()=>{
     S.clock.periodSecs=Number(b.dataset.secs);
     document.querySelectorAll(".period-btn").forEach(x=>x.classList.toggle("active",x===b));
@@ -1805,11 +1790,15 @@ async function init(){
   });
 
   doRender();
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  }
 }
 
 window.openPricing=openPricing;
 window.openSettings=openSettings;
 window.setTier=setTier;
+window.startCheckout=startCheckout;
 
 init();
 })();
