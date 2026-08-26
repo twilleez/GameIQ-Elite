@@ -1,0 +1,42 @@
+name: Apply entitlement hardening
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/program-manager-phase1
+    paths:
+      - scripts/patch-entitlement-fail-closed.mjs
+      - .github/workflows/apply-entitlement-hardening.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/program-manager-phase1
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply entitlement hardening
+        run: node scripts/patch-entitlement-fail-closed.mjs
+      - name: Run regression tests
+        run: npm test
+      - name: Commit entitlement hardening
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No index.html changes to commit"
+            exit 0
+          fi
+          git config user.name "GameIQ PM Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git commit -m "phase 1: fail closed on unverified paid entitlement"
+          git push origin HEAD:agent/program-manager-phase1
