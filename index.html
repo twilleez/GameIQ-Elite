@@ -29,6 +29,7 @@ html,body{height:100%;overflow:hidden}
 body{font-family:"DM Sans",system-ui,sans-serif;color:var(--text);background:var(--bg);overflow:hidden;}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent2);outline-offset:3px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 .hidden{display:none!important}
 ::-webkit-scrollbar{width:4px;height:4px}
@@ -283,6 +284,9 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .score-btns{display:flex;align-items:center;gap:3px}
 .score-adj{width:24px;height:24px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--muted);font-size:15px;display:grid;place-items:center;cursor:pointer;transition:.12s;line-height:1;padding:0;min-height:unset}
 .score-adj:hover{background:rgba(77,159,255,.18);border-color:rgba(77,159,255,.35);color:var(--text)}
+.game-focus #newBtn,.game-focus .btn-gold,.game-focus #settingsBtn,.game-focus #gameOverBtn{display:none}
+.game-focus .brand-sub{opacity:.45}
+.game-focus .topbar-row1{padding-bottom:6px}
 @media(max-width:1200px){.g2,.g2r,.gcols{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:860px){
   html,body{overflow:auto}
@@ -328,14 +332,14 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   </div>
   <div class="nav-sep"></div>
   <nav style="display:grid;gap:8px;width:100%">
-    <button class="nav-btn active" data-view="dashboard">🏠<span class="nlbl">Dash</span></button>
-    <button class="nav-btn" data-view="live">🏀<span class="nlbl">Live</span></button>
-    <button class="nav-btn" data-view="coach">📊<span class="nlbl">Coach</span></button>
-    <button class="nav-btn" data-view="compare">⚖️<span class="nlbl">Compare</span></button>
-    <button class="nav-btn" data-view="teams">👥<span class="nlbl">Teams</span></button>
-    <button class="nav-btn" data-view="season">📈<span class="nlbl">Season</span></button>
+    <button class="nav-btn active" data-view="dashboard" aria-label="Dashboard">🏠<span class="nlbl">Dash</span></button>
+    <button class="nav-btn" data-view="live" aria-label="Live game">🏀<span class="nlbl">Live</span></button>
+    <button class="nav-btn" data-view="coach" aria-label="Coach analytics">📊<span class="nlbl">Coach</span></button>
+    <button class="nav-btn" data-view="compare" aria-label="Compare players">⚖️<span class="nlbl">Compare</span></button>
+    <button class="nav-btn" data-view="teams" aria-label="Teams">👥<span class="nlbl">Teams</span></button>
+    <button class="nav-btn" data-view="season" aria-label="Season trends">📈<span class="nlbl">Season</span></button>
     <div class="nav-sep"></div>
-    <button class="nav-btn" data-view="aicoach" id="aiNavBtn"><span style="font-size:16px">🤖</span><span class="nlbl">AI</span><span class="pro-dot"></span></button>
+    <button class="nav-btn" data-view="aicoach" id="aiNavBtn" aria-label="AI Coach"><span style="font-size:16px">🤖</span><span class="nlbl">AI</span><span class="pro-dot"></span></button>
   </nav>
 </aside>
 <section class="shell">
@@ -357,7 +361,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
         <button class="btn btn-good" id="saveBtn">💾 Save</button>
         <button class="btn btn-secondary" id="newBtn">New</button>
-        <button class="btn btn-secondary" id="undoBtn">↩</button>
+        <button class="btn btn-secondary" id="undoBtn" aria-label="Undo last stat change">↩</button>
         <button class="btn btn-gold" onclick="openPricing()">⭐ Upgrade</button>
         <button class="btn btn-secondary" id="settingsBtn" title="Settings" style="min-height:38px;padding:8px 11px;font-size:16px">⚙</button>
         <span class="chip" id="autosaveChip">Ready</span>
@@ -381,7 +385,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       </div>
     </div>
     <div class="clock-strip">
-      <div id="clockDisplay" class="clock-display" title="Click to start/stop">10:00</div>
+      <div id="clockDisplay" class="clock-display" title="Click to start/stop" role="button" tabindex="0" aria-label="Game clock. Activate to start or stop">10:00</div>
       <button class="btn btn-secondary" id="clockToggleBtn" style="min-height:36px;font-size:13px">▶ Start</button>
       <button class="btn btn-ghost" id="clockResetBtn" style="min-height:36px;font-size:12px">Reset</button>
       <div style="display:flex;gap:10px;align-items:center">
@@ -394,9 +398,9 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <div class="score-entry">
           <span class="score-lbl" id="scoreAwayLabel">AWAY</span>
           <div class="score-btns">
-            <button class="score-adj" id="awayScoreMinus">−</button>
+            <button class="score-adj" id="awayScoreMinus" aria-label="Decrease away score">−</button>
             <div class="score-val" id="scoreAway">0</div>
-            <button class="score-adj" id="awayScorePlus">+</button>
+            <button class="score-adj" id="awayScorePlus" aria-label="Increase away score">+</button>
           </div>
         </div>
       </div>
@@ -483,7 +487,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
                 <button class="btn btn-ghost" id="clearShotsBtn" style="min-height:30px;padding:4px 9px;font-size:11px">Clear</button>
               </div>
               <div class="court-wrap" id="courtWrap">
-                <svg id="court" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+                <svg id="court" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interactive basketball shot chart. Select a player and shot result, then tap the court location.">
                   <rect width="400" height="360" fill="#c69966"/>
                   <rect x="140" y="0" width="120" height="140" fill="#b18354" stroke="#8a6535" stroke-width="2"/>
                   <rect x="150" y="0" width="100" height="110" fill="none" stroke="#8a6535" stroke-width="2"/>
@@ -1006,8 +1010,8 @@ function renderPlayers(){
   wrap.querySelectorAll(".del-btn").forEach(b=>b.addEventListener("click",()=>removePlayer(Number(b.dataset.pid))));
   wrap.querySelectorAll("[data-toggle-court]").forEach(b=>b.addEventListener("click",()=>toggleCourt(Number(b.dataset.toggleCourt))));
 }
-function tile(id,stat,label,val){return '<div class="stat-tile"><div class="th"><div class="tn">'+label+'</div><div class="tv">'+val+'</div></div><div class="stepper"><button class="step-minus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="-1">−</button><div class="step-display">'+val+'</div><button class="step-plus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="1">+</button></div></div>'}
-function mini(id,stat,label,val){return '<div class="mini-card"><h4>'+label+'</h4><div class="stepper"><button class="step-minus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="-1">−</button><div class="step-display">'+val+'</div><button class="step-plus" data-pid="'+id+'" data-stat="'+stat+'" data-delta="1">+</button></div></div>'}
+function tile(id,stat,label,val){return '<div class="stat-tile"><div class="th"><div class="tn">'+label+'</div><div class="tv">'+val+'</div></div><div class="stepper"><button class="step-minus" aria-label="Decrease '+label+'" data-pid="'+id+'" data-stat="'+stat+'" data-delta="-1">−</button><div class="step-display" aria-live="polite">'+val+'</div><button class="step-plus" aria-label="Increase '+label+'" data-pid="'+id+'" data-stat="'+stat+'" data-delta="1">+</button></div></div>'}
+function mini(id,stat,label,val){return '<div class="mini-card"><h4>'+label+'</h4><div class="stepper"><button class="step-minus" aria-label="Decrease '+label+'" data-pid="'+id+'" data-stat="'+stat+'" data-delta="-1">−</button><div class="step-display" aria-live="polite">'+val+'</div><button class="step-plus" aria-label="Increase '+label+'" data-pid="'+id+'" data-stat="'+stat+'" data-delta="1">+</button></div></div>'}
 
 function renderShots(){
   const sl=$("shotLayer");if(!sl)return;const hl=$("heatLayer");sl.innerHTML="";
@@ -1529,6 +1533,7 @@ function showReport(){
 }
 
 function doRender(){
+  document.body.classList.toggle("game-focus",!!S.quickMode);
   renderNav();
   renderSummary();
   renderPlayers();
@@ -1611,9 +1616,10 @@ async function init(){
   });
 
   const clockDisplay=$("clockDisplay");
-  if(clockDisplay)clockDisplay.addEventListener("click",()=>{
-    S.clock.running?stopClock():startClock();
-  });
+  if(clockDisplay){
+    clockDisplay.addEventListener("click",()=>{S.clock.running?stopClock():startClock()});
+    clockDisplay.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();S.clock.running?stopClock():startClock()}});
+  }
 
   const clockResetBtn=$("clockResetBtn");
   if(clockResetBtn)clockResetBtn.addEventListener("click",resetClock);
