@@ -28,7 +28,7 @@ test('calculates eFG percent correctly',()=>{
 test('classifies representative two and three point locations',()=>{
   assert.equal(isThreePointShot(20,100),true);
   assert.equal(isThreePointShot(200,250),false);
-  assert.equal(isThreePointShot(200,10),true);
+  assert.equal(isThreePointShot(50,120),true);
 });
 
 test('sums player periods without mutating player state',()=>{
