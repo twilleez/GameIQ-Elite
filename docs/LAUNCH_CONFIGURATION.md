@@ -1,43 +1,60 @@
 # GameIQ Elite — Launch Configuration
 
-This file intentionally contains **secret names only, never secret values**. Production secrets belong in Supabase Edge Function Secrets, not GitHub or browser code.
+This file intentionally contains **secret names only, never secret values**. Production credentials belong in Supabase Edge Function Secrets or Supabase Vault, never GitHub or browser code.
 
-## 1. Supabase Edge Function secrets
+## 1. Supabase production configuration
 
-In the active GameIQ Supabase project (`vkefnajzxgdtovfjdctt`), configure these production secrets:
+Active project: `vkefnajzxgdtovfjdctt`.
+
+Already configured in **Supabase Vault**:
+
+- `gameiq_stripe_pro_price_id` — live recurring Pro Price ID.
+- `gameiq_stripe_webhook_secret` — live Stripe webhook signing secret.
+
+Still required before commercial launch:
 
 - `ANTHROPIC_API_KEY` — provider credential used only by `gameiq-ai-coach`.
-- `STRIPE_SECRET_KEY` — Stripe server credential used only by billing functions.
-- `STRIPE_PRO_PRICE_ID` — recurring Stripe Price for the launch Pro subscription shown in the application.
-- `STRIPE_WEBHOOK_SECRET` — signing secret for the Stripe webhook endpoint.
-- `GAMEIQ_APP_URL` — optional explicit value `https://twilleez.github.io/GameIQ-Elite/` for Checkout return URLs.
+- A Stripe server API credential **only if** GameIQ retains API-created Checkout instead of a no-code Payment Link flow.
+- Optional `GAMEIQ_APP_URL=https://twilleez.github.io/GameIQ-Elite/` if an explicit Checkout return URL is needed.
 
-Do not paste these values into `index.html`, GitHub issues, commits, logs, or customer support messages.
+Do not paste credential values into `index.html`, GitHub issues, commits, logs, or customer support messages.
 
-## 2. Stripe webhook
+## 2. Stripe live configuration
 
-Configure Stripe to send subscription events to:
+Created:
 
-`https://vkefnajzxgdtovfjdctt.supabase.co/functions/v1/gameiq-stripe-webhook`
+- Product: **GameIQ Elite Pro**
+- Price: **$9.99 USD / month**
+- Production webhook endpoint: `https://vkefnajzxgdtovfjdctt.supabase.co/functions/v1/gameiq-stripe-webhook`
 
-Required events for the current implementation:
+Webhook events enabled:
 
 - `checkout.session.completed`
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 
-Copy the webhook endpoint's Stripe signing secret into Supabase as `STRIPE_WEBHOOK_SECRET`.
+Remaining Stripe account actions:
 
-## 3. Launch plan scope
+1. Activate at least one eligible live payment method in Stripe payment-method settings, normally Card, **or** make a deliberate Managed Payments + product tax-code decision.
+2. Activate/configure the Stripe Customer Portal/no-code portal login so paid customers can update payment methods and cancel subscriptions.
+3. Do not enable Stripe Tax or choose a SaaS tax code until the business's registration/classification decision is confirmed.
+
+## 3. Server functions
+
+- `gameiq-stripe-webhook` is deployed and reads its webhook signing secret from Supabase Vault.
+- `gameiq-create-checkout` reads the live Pro Price from Vault and requires an authenticated user. It remains Pro-only.
+- `gameiq-ai-coach` requires an authenticated paid tier before invoking the AI provider.
+
+## 4. Launch plan scope
 
 Only **Pro** is purchasable in the current production candidate. Program/Team functionality remains gated as beta/planned until Engineering and the Program Manager verify those workflows.
 
-The UI currently displays Pro at `$9.99/month`. The Stripe Price configured as `STRIPE_PRO_PRICE_ID` must match the final approved price/currency/billing interval before PM sign-off.
+The UI displays Pro at `$9.99/month`; Stripe is configured to the same recurring amount.
 
-## 4. Acceptance tests after configuration
+## 5. Acceptance tests after remaining account configuration
 
-The Program Manager must verify all of these against a real test account before merging:
+The Program Manager must verify all of these before merging:
 
 1. Magic-link email arrives and creates/signs in the account.
 2. The `profiles` trigger creates the user's profile at tier `free`.
@@ -48,8 +65,8 @@ The Program Manager must verify all of these against a real test account before 
 7. A Pro user can receive a hosted AI Coach response.
 8. Subscription cancellation/downgrade returns the profile tier to `free`.
 9. Signing out immediately returns the browser to Free entitlement.
-10. No provider, Stripe secret, service-role key, or secret Supabase key appears in browser source.
+10. No provider credential, Stripe secret, service-role key, or secret Supabase key appears in browser source.
 
-## 5. Release rule
+## 6. Release rule
 
 Do not merge PR #1 until the configuration and end-to-end tests above pass and the remaining Design/Marketing PM gates are closed.
