@@ -673,7 +673,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       <h4>Account</h4>
       <div id="acctSignedOut">
         <div class="api-key-wrap"><input type="email" id="acctEmailInput" placeholder="you@example.com" autocomplete="email"/><button class="btn btn-primary" id="acctSendLinkBtn" style="white-space:nowrap">Send Link</button></div>
-        <p class="api-key-note">Sign in to unlock Pro/Team billing and the hosted AI Coach (no API key needed). We'll email you a one-time sign-in link — no password.</p>
+        <p class="api-key-note">Sign in to manage Pro billing and use the hosted AI Coach (no API key needed). We'll email you a one-time sign-in link — no password.</p>
       </div>
       <div id="acctSignedIn" class="hidden">
         <p class="api-key-note" style="margin-top:0"><strong id="acctEmail" style="color:var(--text)"></strong> · plan: <span id="acctTier">free</span></p>
@@ -739,19 +739,19 @@ function initAuth(){
   });
 }
 async function onAuthChange(){
-  renderAccountUI();
-  if(!authUser){return}
-  // Pull server-side tier and reconcile into local state.
-  // Phase 1: profiles.tier is always 'free' until Stripe (Phase 2) writes to it.
-  // This intentionally never *lowers* trust below what Phase 2/3 will enforce —
-  // it only ever sets S.tier from the server, never lets the client invent a tier.
+  if(!authUser){
+    S.tier="free";
+    persist();updateTierUI();renderAccountUI();
+    return;
+  }
   try{
     const {data,error}=await sb.from("profiles").select("tier,email").eq("id",authUser.id).single();
-    if(!error&&data){
-      S.tier=data.tier;
-      persist();updateTierUI();renderAccountUI();
-    }
-  }catch(e){/* offline or RLS misconfigured — fail closed, keep local tier */}
+    if(error||!data)throw error||new Error("Profile unavailable");
+    S.tier=(data.tier==="pro"||data.tier==="team")?data.tier:"free";
+  }catch(e){
+    S.tier="free";
+  }
+  persist();updateTierUI();renderAccountUI();
 }
 async function sendMagicLink(){
   if(!authEnabled()){toast("Account sign-in isn't configured yet","err");return}
@@ -767,7 +767,8 @@ async function signOut(){
   if(!sb)return;
   await sb.auth.signOut();
   authUser=null;
-  renderAccountUI();
+  S.tier="free";
+  persist();updateTierUI();renderAccountUI();
   toast("Signed out");
 }
 function renderAccountUI(){
@@ -1575,6 +1576,8 @@ function newGame(){
 async function init(){
   await openDB();
   await hydrate();
+  S.tier="free";
+  updateTierUI();
   initAuth();
   if($("gameDate")&&!$("gameDate").value)$("gameDate").value=today();
 
