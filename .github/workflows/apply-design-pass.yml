@@ -1,0 +1,42 @@
+name: Apply courtside design pass
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/program-manager-phase1
+    paths:
+      - scripts/patch-design-accessibility.mjs
+      - .github/workflows/apply-design-pass.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/program-manager-phase1
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply design/accessibility patch
+        run: node scripts/patch-design-accessibility.mjs
+      - name: Run regression tests
+        run: npm test
+      - name: Commit design pass
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No index.html changes to commit"
+            exit 0
+          fi
+          git config user.name "GameIQ PM Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git commit -m "phase 1: improve courtside focus and accessibility"
+          git push origin HEAD:agent/program-manager-phase1
