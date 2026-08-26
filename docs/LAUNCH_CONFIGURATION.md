@@ -34,6 +34,11 @@ Webhook events enabled:
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 
+Verified account state:
+
+- No active Customer Portal configuration exists yet.
+- With Managed Payments disabled, no eligible live payment method is currently enabled for the launch checkout path.
+
 Remaining Stripe account actions:
 
 1. Activate at least one eligible live payment method in Stripe payment-method settings, normally Card, **or** make a deliberate Managed Payments + product tax-code decision.
@@ -46,17 +51,21 @@ Remaining Stripe account actions:
 - `gameiq-create-checkout` reads the live Pro Price from Vault and requires an authenticated user. It remains Pro-only.
 - `gameiq-ai-coach` requires an authenticated paid tier before invoking the AI provider.
 
-## 4. Launch plan scope
+## 4. Auth verification
+
+Supabase currently contains one Auth user and one matching `profiles` row. The matching profile exists at tier `free`, with no Stripe customer and no subscription. This verifies that the new-user profile trigger has produced the expected Free account record for an existing signup. A fresh magic-link delivery/sign-in flow still needs an interactive end-to-end test before PM sign-off.
+
+## 5. Launch plan scope
 
 Only **Pro** is purchasable in the current production candidate. Program/Team functionality remains gated as beta/planned until Engineering and the Program Manager verify those workflows.
 
 The UI displays Pro at `$9.99/month`; Stripe is configured to the same recurring amount.
 
-## 5. Acceptance tests after remaining account configuration
+## 6. Acceptance tests after remaining account configuration
 
 The Program Manager must verify all of these before merging:
 
-1. Magic-link email arrives and creates/signs in the account.
+1. Fresh magic-link email arrives and creates/signs in an account.
 2. The `profiles` trigger creates the user's profile at tier `free`.
 3. A Free user cannot call hosted AI directly.
 4. Pro Checkout opens only for a signed-in user.
@@ -67,6 +76,6 @@ The Program Manager must verify all of these before merging:
 9. Signing out immediately returns the browser to Free entitlement.
 10. No provider credential, Stripe secret, service-role key, or secret Supabase key appears in browser source.
 
-## 6. Release rule
+## 7. Release rule
 
 Do not merge PR #1 until the configuration and end-to-end tests above pass and the remaining Design/Marketing PM gates are closed.
