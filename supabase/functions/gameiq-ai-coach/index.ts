@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,9 +14,35 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function getPublishableKey() {
+  const modern = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+  if (modern) {
+    try { return JSON.parse(modern)?.default || ""; } catch { /* fall through */ }
+  }
+  return Deno.env.get("SUPABASE_ANON_KEY") || "";
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  const authHeader = req.headers.get("authorization") || "";
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const publishableKey = getPublishableKey();
+  if (!authHeader || !supabaseUrl || !publishableKey) return json({ error: "Authentication unavailable" }, 401);
+
+  const userClient = createClient(supabaseUrl, publishableKey, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false },
+  });
+
+  const { data: profile, error: profileError } = await userClient
+    .from("profiles")
+    .select("tier")
+    .single();
+
+  if (profileError || !profile) return json({ error: "Unable to verify subscription" }, 403);
+  if (profile.tier !== "pro" && profile.tier !== "team") return json({ error: "Pro subscription required" }, 403);
 
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!anthropicKey) return json({ error: "AI service is not configured" }, 503);
@@ -45,15 +72,16 @@ Deno.serve(async (req: Request) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 512,
+        model: "claude-sonnet-5",
+        max_tokens: 900,
+        thinking: { type: "disabled" },
         system: context || "You are GameIQ Elite, a concise basketball coaching assistant. Give specific, actionable advice grounded only in the supplied game data.",
         messages,
       }),
     });
 
     if (!aiRes.ok) {
-      console.error("AI provider error", aiRes.status, (await aiRes.text()).slice(0, 500));
+      console.error("Anthropic error", aiRes.status, (await aiRes.text()).slice(0, 500));
       return json({ error: "AI provider request failed" }, 502);
     }
 
