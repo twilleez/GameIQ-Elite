@@ -41,17 +41,37 @@ async function unwrap(result, label) {
   return result?.data;
 }
 
+export async function resolveWorkspace(supabase, user) {
+  requireClient(supabase);
+  requireUser(user);
+
+  const owned = await unwrap(
+    await supabase.from('organizations').select('*').eq('owner_profile_id', user.id).eq('client_ref', clientRef('owner', user.id)).maybeSingle(),
+    'Load owned workspace',
+  );
+  if (owned) return owned;
+
+  const memberships = await unwrap(
+    await supabase.from('organization_members').select('organization_id,role').eq('profile_id', user.id).limit(1),
+    'Load program membership',
+  );
+  const membership = memberships?.[0];
+  if (!membership?.organization_id) return null;
+
+  return unwrap(
+    await supabase.from('organizations').select('*').eq('id', membership.organization_id).single(),
+    'Load shared workspace',
+  );
+}
+
 export async function ensureWorkspace(supabase, user, name = DEFAULT_WORKSPACE_NAME) {
   requireClient(supabase);
   requireUser(user);
-  const ref = clientRef('owner', user.id);
 
-  const existing = await unwrap(
-    await supabase.from('organizations').select('*').eq('owner_profile_id', user.id).eq('client_ref', ref).maybeSingle(),
-    'Load workspace',
-  );
+  const existing = await resolveWorkspace(supabase, user);
   if (existing) return existing;
 
+  const ref = clientRef('owner', user.id);
   const created = await unwrap(
     await supabase.from('organizations').insert({ owner_profile_id: user.id, name, client_ref: ref }).select('*').single(),
     'Create workspace',
@@ -219,5 +239,5 @@ export function shouldPushLocal(localUpdatedAt, cloudUpdatedAt) {
 }
 
 if (typeof window !== 'undefined') {
-  window.GameIQCloudSync = { clientRef, retryDelayMs, withRetry, ensureWorkspace, syncTeam, syncGameBundle, pullTeamCloudState, shouldPushLocal };
+  window.GameIQCloudSync = { clientRef, retryDelayMs, withRetry, resolveWorkspace, ensureWorkspace, syncTeam, syncGameBundle, pullTeamCloudState, shouldPushLocal };
 }
