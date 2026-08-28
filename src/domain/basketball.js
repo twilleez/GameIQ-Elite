@@ -28,9 +28,10 @@ export function effectiveFieldGoalPercent(stats={}){
 }
 
 export function isThreePointShot(x,y){
-  if(y>140) return false;
-  if(x<=28 || x>=372) return true;
-  return Math.sqrt((x-200)**2 + (y-17)**2) > 174;
+  const px=Number(x),py=Number(y);
+  if(!Number.isFinite(px)||!Number.isFinite(py)) return false;
+  if(px<=28 || px>=372) return true;
+  return Math.hypot(px-200,py-17) > 174;
 }
 
 export function sumPeriods(player={}){
