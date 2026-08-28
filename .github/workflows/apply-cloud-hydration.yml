@@ -1,5 +1,8 @@
 name: Apply cloud hydration
 on:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/apply-cloud-hydration.yml']
   workflow_dispatch:
 permissions:
   contents: write
