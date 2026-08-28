@@ -1881,7 +1881,8 @@ async function init(){
     if(el)el.addEventListener("input",()=>{renderSummary();persist()});
   });
 
-  window.addEventListener("online",()=>{retryPendingCloudSync().then(()=>pullCloudGamesToDevice())});
+  window.addEventListener("offline",()=>{setChip('Saved on device · waiting for internet')});
+  window.addEventListener("online",()=>{setChip('Syncing…','saving');retryPendingCloudSync().then(()=>pullCloudGamesToDevice())});
 
   document.addEventListener("visibilitychange",()=>{
     if(document.visibilityState==="hidden")persist();
