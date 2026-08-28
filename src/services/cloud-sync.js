@@ -6,6 +6,28 @@ export function clientRef(kind, localId) {
   return `${kind}:${String(localId)}`;
 }
 
+export function retryDelayMs(attempt, baseMs = 750, maxMs = 6000) {
+  const safeAttempt = Math.max(0, Number(attempt) || 0);
+  return Math.min(maxMs, baseMs * (2 ** safeAttempt));
+}
+
+export async function withRetry(operation, options = {}) {
+  if (typeof operation !== 'function') throw new Error('operation is required');
+  const attempts = Math.max(1, Number(options.attempts || 3));
+  const sleep = options.sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await operation(attempt);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts - 1) break;
+      await sleep(retryDelayMs(attempt, options.baseMs, options.maxMs));
+    }
+  }
+  throw lastError || new Error('Retry operation failed');
+}
+
 function requireClient(supabase) {
   if (!supabase?.from) throw new Error('A Supabase client is required');
 }
@@ -197,5 +219,5 @@ export function shouldPushLocal(localUpdatedAt, cloudUpdatedAt) {
 }
 
 if (typeof window !== 'undefined') {
-  window.GameIQCloudSync = { clientRef, ensureWorkspace, syncTeam, syncGameBundle, pullTeamCloudState, shouldPushLocal };
+  window.GameIQCloudSync = { clientRef, retryDelayMs, withRetry, ensureWorkspace, syncTeam, syncGameBundle, pullTeamCloudState, shouldPushLocal };
 }
