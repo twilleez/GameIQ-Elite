@@ -13,6 +13,7 @@ test('clientRef rejects incomplete identity', () => {
 });
 
 test('retryDelayMs backs off and caps', () => {
+  assert.equal(retryDelayMs(-1, 500, 3000), 500);
   assert.equal(retryDelayMs(0, 500, 3000), 500);
   assert.equal(retryDelayMs(1, 500, 3000), 1000);
   assert.equal(retryDelayMs(2, 500, 3000), 2000);
