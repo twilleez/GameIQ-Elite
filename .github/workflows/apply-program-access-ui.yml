@@ -1,13 +1,7 @@
 name: Apply Program Access UI
 
 on:
-  push:
-    branches: [agent/program-manager-phase1]
-    paths:
-      - 'scripts/patch-program-access-ui.mjs'
-      - 'src/services/program-access.js'
-      - 'tests/program-access.test.js'
-      - '.github/workflows/apply-program-access-ui.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
