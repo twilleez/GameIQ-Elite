@@ -25,10 +25,13 @@ test('calculates eFG percent correctly',()=>{
   assert.equal(effectiveFieldGoalPercent({p2m:4,p2a:8,p3m:2,p3a:4}),58);
 });
 
-test('classifies representative two and three point locations',()=>{
-  assert.equal(isThreePointShot(20,100),true);
-  assert.equal(isThreePointShot(200,250),false);
-  assert.equal(isThreePointShot(50,120),true);
+test('classifies shots beyond the three point boundary from every major angle',()=>{
+  assert.equal(isThreePointShot(20,100),true,'corner three');
+  assert.equal(isThreePointShot(50,120),true,'wing three');
+  assert.equal(isThreePointShot(200,192),true,'top of arc three');
+  assert.equal(isThreePointShot(200,250),true,'deep straight-on three');
+  assert.equal(isThreePointShot(200,180),false,'inside top of arc is two');
+  assert.equal(isThreePointShot(200,100),false,'paint/midrange is two');
 });
 
 test('sums player periods without mutating player state',()=>{
