@@ -110,11 +110,11 @@ function renderCompareView(){`;
 replaceOnce(renderAnchor,functions,'program access functions');
 
 const renderTeamsTail=`  if(ts){
-    ts.innerHTML=S.teams.map(t=>\`<option value="${t.id}"${t.id===S.activeTeamId?" selected":""}>${esc(t.name)}</option>\`).join("");
+    ts.innerHTML=S.teams.map(t=>\`<option value="\${t.id}"\${t.id===S.activeTeamId?" selected":""}>\${esc(t.name)}</option>\`).join("");
   }
 }`;
 const renderTeamsTailReplacement=`  if(ts){
-    ts.innerHTML=S.teams.map(t=>\`<option value="${t.id}"${t.id===S.activeTeamId?" selected":""}>${esc(t.name)}</option>\`).join("");
+    ts.innerHTML=S.teams.map(t=>\`<option value="\${t.id}"\${t.id===S.activeTeamId?" selected":""}>\${esc(t.name)}</option>\`).join("");
   }
   renderProgramAccessUI();
 }`;
