@@ -1025,8 +1025,8 @@ function renderPlayers(){
         '<div class="stat-cell"><div class="sv" style="color:'+(t.fouls>=4?"#f0be3e":"var(--dim)")+'">'+t.fouls+'</div><div class="sl">FOULS</div></div>'+
         '<div class="stat-cell"><div class="sv" style="color:'+(t.tfouls>0?"#ef4040":"var(--dim)")+'">'+t.tfouls+'</div><div class="sl">TECH</div></div>')+
       '</div>'+
-      '<div class="live-grid">'+tile(p.id,"reb","Reb",q.reb)+tile(p.id,"ast","Ast",q.ast)+tile(p.id,"tov","Tov",q.tov)+tile(p.id,"fouls","Fouls",q.fouls)+'</div>'+
-      (adv?'<div class="adv-grid">'+mini(p.id,"p2m","Made 2PT",q.p2m)+mini(p.id,"p2a","2PT Att",q.p2a)+mini(p.id,"p3m","Made 3PT",q.p3m)+mini(p.id,"p3a","3PT Att",q.p3a)+mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"fta","FT Att",q.fta)+mini(p.id,"stl","Steals",q.stl)+mini(p.id,"blk","Blocks",q.blk)+mini(p.id,"tfouls","Tech Fouls",q.tfouls||0)+'</div>':"")+
+      '<div class="live-grid">'+tile(p.id,"ftm","Made FT",q.ftm)+tile(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))+tile(p.id,"reb","Reb",q.reb)+tile(p.id,"ast","Ast",q.ast)+tile(p.id,"tov","Tov",q.tov)+tile(p.id,"fouls","Fouls",q.fouls)+'</div>'+
+      (adv?'<div class="adv-grid">'+mini(p.id,"p2m","Made 2PT",q.p2m)+mini(p.id,"p2a","2PT Att",q.p2a)+mini(p.id,"p3m","Made 3PT",q.p3m)+mini(p.id,"p3a","3PT Att",q.p3a)+mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))+mini(p.id,"stl","Steals",q.stl)+mini(p.id,"blk","Blocks",q.blk)+mini(p.id,"tfouls","Tech Fouls",q.tfouls||0)+'</div>':"")+
       '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">'+
       '<button class="btn btn-secondary copy-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">📋 Copy</button>'+
       '<button class="btn btn-secondary share-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">↗ Share</button>'+
@@ -1454,7 +1454,14 @@ function adjustStat(pid,stat,delta){
   if(!p.q)p.q={};
   if(!p.q[aq()])p.q[aq()]=eq();
   const q=p.q[aq()];
-  q[stat]=Math.max(0,(q[stat]||0)+delta);
+  if(stat==="ftm"){
+    if(delta>0){q.ftm=(q.ftm||0)+delta;q.fta=(q.fta||0)+delta}
+    else if(delta<0&&q.ftm>0){const d=Math.min(q.ftm,-delta);q.ftm-=d;q.fta=Math.max(q.ftm,(q.fta||0)-d)}
+  }else if(stat==="ftmiss"){
+    const misses=Math.max(0,(q.fta||0)-(q.ftm||0));
+    if(delta>0)q.fta=(q.fta||0)+delta;
+    else if(delta<0&&misses>0)q.fta=Math.max(q.ftm||0,(q.fta||0)-Math.min(misses,-delta));
+  }else q[stat]=Math.max(0,(q[stat]||0)+delta);
   if(stat==="fouls"){
     if(q.fouls>=5)toast(`🚨 ${p.name} — 5th foul!`,"err");
     else if(q.fouls>=3)toast(`⚠️ ${p.name} — ${q.fouls} fouls`,"");
