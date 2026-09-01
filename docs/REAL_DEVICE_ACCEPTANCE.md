@@ -17,4 +17,7 @@ A never-invited signed-in account must see and modify none of the owner's organi
 ## E. Courtside usability
 On phone and tablet verify clock controls, stat +/- controls, undo, one-handed shot entry, correct corner/wing/top/deep 3-point classification, offline save, keyboard focus, screen-reader labels and print/PDF readability.
 
+## F. Free throw tracking
+Record one made free throw and one missed free throw for the same player. Verify Made FT increases both FTM and FTA and adds exactly 1 point; Missed FT increases FTA only and adds 0 points; FT% and FTM/FTA remain correct; decrement controls never allow FTM to exceed FTA.
+
 For every test record date, device/browser, account role, game ID/opponent, pass/fail and issues. Never record passwords, access tokens, payment credentials or used invite codes.
