@@ -1,9 +1,6 @@
 name: Apply Missed FT
 on:
   workflow_dispatch:
-  push:
-    branches: [agent/program-manager-phase1]
-    paths: [.github/workflows/apply-missed-ft.yml]
 permissions:
   contents: write
 jobs:
