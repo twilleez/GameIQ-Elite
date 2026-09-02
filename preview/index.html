@@ -756,7 +756,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 (function(){
 "use strict";
 
-const SK="gameiq_v3",WK="gameiq_tutorial_v3";
+const SK="gameiq_preview_v3",WK="gameiq_preview_tutorial_v3";
 const TIER_LIMITS={free:{teams:1,players:8,games:5,insights:1},pro:{teams:999,players:999,games:9999,insights:5},team:{teams:999,players:999,games:9999,insights:5}};
 
 /* ═══════ ACCOUNT / AUTH (Phase 1) ═══════
@@ -1011,7 +1011,7 @@ function renderSummary(){
   $("scoreHome").textContent=pts(tt);$("scoreAway").textContent=S.awayScore||0;
   $("scoreHomeLabel").textContent=($("homeTeam")?.value)||"HOME";$("scoreAwayLabel").textContent=($("awayTeam")?.value)||"AWAY";
   const onboard=$("onboardGuide");
-  if(onboard&&(team().players.length>0||localStorage.getItem("gameiq_onboard_dismissed")))onboard.classList.add("hidden");
+  if(onboard&&(team().players.length>0||localStorage.getItem("gameiq_preview_onboard_dismissed")))onboard.classList.add("hidden");
 }
 
 let renderTimeout=null;
@@ -2014,7 +2014,7 @@ async function init(){
 
   const dismissOnboard=$("dismissOnboard");
   if(dismissOnboard)dismissOnboard.addEventListener("click",()=>{
-    localStorage.setItem("gameiq_onboard_dismissed","1");
+    localStorage.setItem("gameiq_preview_onboard_dismissed","1");
     const og=$("onboardGuide");if(og)og.classList.add("hidden");
   });
 
