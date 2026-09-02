@@ -1,0 +1,1 @@
+GameIQ draft preview includes the cloud sync diagnostics acceptance phase. Production root files are unchanged.
