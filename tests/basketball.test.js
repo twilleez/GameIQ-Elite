@@ -25,13 +25,17 @@ test('calculates eFG percent correctly',()=>{
   assert.equal(effectiveFieldGoalPercent({p2m:4,p2a:8,p3m:2,p3a:4}),58);
 });
 
-test('classifies shots beyond the three point boundary from every major angle',()=>{
-  assert.equal(isThreePointShot(20,100),true,'corner three');
-  assert.equal(isThreePointShot(50,120),true,'wing three');
-  assert.equal(isThreePointShot(200,192),true,'top of arc three');
-  assert.equal(isThreePointShot(200,250),true,'deep straight-on three');
-  assert.equal(isThreePointShot(200,180),false,'inside top of arc is two');
-  assert.equal(isThreePointShot(200,100),false,'paint/midrange is two');
+test('matches the three point classifier to the line drawn on the court',()=>{
+  assert.equal(isThreePointShot(20,100),true,'outside left corner line is three');
+  assert.equal(isThreePointShot(40,100),false,'inside left corner line is two');
+  assert.equal(isThreePointShot(200,250),false,'top of key inside arc is two');
+  assert.equal(isThreePointShot(200,280),false,'just inside top arc is two');
+  assert.equal(isThreePointShot(200,292),true,'just beyond top arc is three');
+  assert.equal(isThreePointShot(200,330),true,'deep straight-on shot is three');
+  assert.equal(isThreePointShot(70,215),false,'wing inside arc is two');
+  assert.equal(isThreePointShot(55,235),true,'wing beyond arc is three');
+  assert.equal(isThreePointShot(360,100),false,'inside right corner line is two');
+  assert.equal(isThreePointShot(380,100),true,'outside right corner line is three');
 });
 
 test('sums player periods without mutating player state',()=>{
