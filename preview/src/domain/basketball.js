@@ -27,11 +27,22 @@ export function effectiveFieldGoalPercent(stats={}){
   return attempts ? Math.round(((fieldGoalsMade(stats)+0.5*(stats.p3m||0))/attempts)*100) : 0;
 }
 
+// Court SVG geometry:
+// corner lines x=28 and x=372 run from the baseline through y=140.
+// The curved three-point line is an SVG arc with radius 174 joining
+// (28,140) and (372,140). Its center is (200, 113.694...).
+// A shot is worth 3 only when it is OUTSIDE the line that is actually drawn.
 export function isThreePointShot(x,y){
   const px=Number(x),py=Number(y);
   if(!Number.isFinite(px)||!Number.isFinite(py)) return false;
+
+  if(py<=140) return px<=28 || px>=372;
   if(px<=28 || px>=372) return true;
-  return Math.hypot(px-200,py-17) > 174;
+
+  const radius=174;
+  const halfChord=172;
+  const centerY=140-Math.sqrt(radius*radius-halfChord*halfChord);
+  return Math.hypot(px-200,py-centerY) > radius;
 }
 
 export function sumPeriods(player={}){
