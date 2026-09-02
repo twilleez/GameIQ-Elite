@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 
+// One-time deterministic patch for the production candidate.
 const path='index.html';
 let html=fs.readFileSync(path,'utf8');
 
