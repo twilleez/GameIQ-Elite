@@ -1,0 +1,54 @@
+name: Deploy Draft Preview
+
+on:
+  push:
+    branches: [preview-site]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+      - name: Checkout draft candidate
+        uses: actions/checkout@v4
+        with:
+          ref: agent/program-manager-phase1
+          path: draft
+      - name: Run draft regression tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Test draft
+        working-directory: draft
+        run: npm test
+      - name: Build combined Pages site
+        run: |
+          mkdir -p _site/preview
+          cp prod/index.html prod/manifest.json prod/sw.js _site/
+          [ -f prod/icon.svg ] && cp prod/icon.svg _site/ || true
+          cp draft/index.html draft/manifest.json draft/sw.js draft/icon.svg _site/preview/
+          cp -R draft/src _site/preview/src
+          printf '<!doctype html><meta charset="utf-8"><title>GameIQ Draft Preview</title><meta http-equiv="refresh" content="0;url=./preview/"><p><a href="./preview/">Open GameIQ Draft Preview</a></p>' > _site/draft.html
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
