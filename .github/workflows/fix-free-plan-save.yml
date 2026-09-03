@@ -1,0 +1,60 @@
+name: Fix Free Plan Save
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/fix-free-plan-save.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - name: Patch preview free-plan behavior
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('preview/index.html')
+          s=p.read_text()
+          old='''        <button class="btn btn-secondary" style="width:100%" disabled>Free plan</button>'''
+          new='''        <button class="btn btn-secondary" id="continueFreePlanBtn" style="width:100%">Continue with Free</button>'''
+          assert old in s
+          s=s.replace(old,new,1)
+          old2='''function saveGame(){\n  const lim=tierLimit().games;\n  if(S.games.length>=lim&&!isPro()){\n    toast(`Free plan: max ${lim} saved games. Upgrade for unlimited.`,"err");\n    openPricing();return;\n  }'''
+          new2='''function freeGameSlotsUsed(){\n  // Free-plan quota applies to games created by this device/account after this build.\n  // Cloud history remains visible and does not block recording a new game.\n  return (S.games||[]).filter(g=>g&&g.countsTowardFreeLimit===true).length;\n}\nfunction saveGame(){\n  const lim=tierLimit().games;\n  const used=freeGameSlotsUsed();\n  if(used>=lim&&!isPro()){\n    toast(`Free plan: ${used}/${lim} saved games used. Delete a Free game or upgrade for unlimited.`,"err");\n    openPricing();return false;\n  }'''
+          assert old2 in s
+          s=s.replace(old2,new2,1)
+          old3='''    id:Date.now(),\n    teamId:S.activeTeamId,'''
+          new3='''    id:Date.now(),\n    countsTowardFreeLimit:!isPro(),\n    teamId:S.activeTeamId,'''
+          assert old3 in s
+          s=s.replace(old3,new3,1)
+          old4='''  vibe(50);\n}\n\nfunction showGameOver()'''
+          new4='''  vibe(50);\n  return true;\n}\n\nfunction showGameOver()'''
+          assert old4 in s
+          s=s.replace(old4,new4,1)
+          old5='''  const proCheckout=$("startProCheckoutBtn");\n  if(proCheckout)proCheckout.addEventListener("click",()=>startCheckout("pro"));'''
+          new5='''  const proCheckout=$("startProCheckoutBtn");\n  if(proCheckout)proCheckout.addEventListener("click",()=>startCheckout("pro"));\n  const continueFreePlanBtn=$("continueFreePlanBtn");\n  if(continueFreePlanBtn)continueFreePlanBtn.addEventListener("click",()=>{S.tier="free";persist();updateTierUI();$("dlgPricing")?.close();toast(`Free plan active · ${freeGameSlotsUsed()}/${tierLimit().games} game slots used`,"ok")});'''
+          assert old5 in s
+          s=s.replace(old5,new5,1)
+          old6='''  if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{saveGame();$("gameOverScreen").classList.add("hidden")});'''
+          new6='''  if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{if(saveGame())$("gameOverScreen").classList.add("hidden")});'''
+          assert old6 in s
+          s=s.replace(old6,new6,1)
+          p.write_text(s)
+          PY
+      - name: Verify patch
+        run: |
+          grep -q 'id="continueFreePlanBtn"' preview/index.html
+          grep -q 'function freeGameSlotsUsed' preview/index.html
+          grep -q 'countsTowardFreeLimit:!isPro()' preview/index.html
+          grep -q 'if(saveGame())' preview/index.html
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add preview/index.html
+          git commit -m 'fix: allow free users to save new games in preview'
+          git push
