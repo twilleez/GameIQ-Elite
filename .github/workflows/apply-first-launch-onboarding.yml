@@ -28,8 +28,9 @@ jobs:
         run: |
           grep -q 'id="dlgWelcome"' index.html
           grep -q 'id="dlgFirstSetup"' index.html
+          grep -q 'welcomeSignInBtn' index.html
           grep -q 'welcomeStartFreeBtn' index.html
-          grep -q 'Made FT or Miss FT' index.html
+          grep -q 'firstStartGameBtn' index.html
       - name: Commit onboarding
         run: |
           if git diff --quiet -- index.html; then
