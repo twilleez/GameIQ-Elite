@@ -18,9 +18,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('index.html'); s=p.read_text()
-          # Correct stale dashboard instruction.
           s=s.replace('Pick Made / Miss / FT, then tap the court','Pick Made or Miss, then tap the court. For FT, choose Made FT or Miss FT')
-          # Add welcome dialog before settings dialog.
           marker='<dialog id="dlgSettings">'
           welcome='''<dialog id="dlgWelcome" style="max-width:560px;width:calc(100% - 28px)">
   <div class="dlg-head"><div><b>Welcome to GameIQ Elite</b><div class="muted" style="font-size:12px">Track the game. Understand your players. Make better coaching decisions.</div></div></div>
@@ -41,7 +39,6 @@ jobs:
 </dialog>
 '''
           assert marker in s; s=s.replace(marker,welcome+marker,1)
-          # Add first-launch helpers before openSettings.
           marker2='function openSettings(){'
           helpers='''const FIRST_LAUNCH_KEY="gameiq_first_launch_v1";
 function finishFirstLaunch(){localStorage.setItem(FIRST_LAUNCH_KEY,"1");}
@@ -50,7 +47,6 @@ function openFirstSetup(){$("dlgWelcome")?.close();$("firstSetupStep1")?.classLi
 function firstSetupStep(n){for(let i=1;i<=3;i++)$("firstSetupStep"+i)?.classList.toggle("hidden",i!==n);if($("firstSetupStepLabel"))$("firstSetupStepLabel").textContent=`Step ${n} of 3`;}
 '''
           assert marker2 in s; s=s.replace(marker2,helpers+marker2,1)
-          # Bind controls near account bindings.
           marker3='''  const accountBtn=$("accountBtn");'''
           bindings='''  const welcomeSignInBtn=$("welcomeSignInBtn");
   if(welcomeSignInBtn)welcomeSignInBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
@@ -59,16 +55,15 @@ function firstSetupStep(n){for(let i=1;i<=3;i++)$("firstSetupStep"+i)?.classList
   const welcomeDemoBtn=$("welcomeDemoBtn");
   if(welcomeDemoBtn)welcomeDemoBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();finishFirstLaunch();toast("Demo mode: explore GameIQ with the current sample workspace","ok")});
   const firstTeamNextBtn=$("firstTeamNextBtn");
-  if(firstTeamNextBtn)firstTeamNextBtn.addEventListener("click",()=>{const name=$("firstTeamName")?.value?.trim();if(!name){toast("Enter a team name","err");return;}const t=activeTeam();if(t)t.name=name;persist();renderAll();firstSetupStep(2)});
+  if(firstTeamNextBtn)firstTeamNextBtn.addEventListener("click",()=>{const name=$("firstTeamName")?.value?.trim();if(!name){toast("Enter a team name","err");return;}const t=team();if(t)t.name=name;persist();renderAll();firstSetupStep(2)});
   const firstAddPlayersBtn=$("firstAddPlayersBtn");
   if(firstAddPlayersBtn)firstAddPlayersBtn.addEventListener("click",()=>{firstSetupStep(3);$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("teams");toast("Add players, then start your first game","ok")});
   const firstSkipPlayersBtn=$("firstSkipPlayersBtn");
   if(firstSkipPlayersBtn)firstSkipPlayersBtn.addEventListener("click",()=>firstSetupStep(3));
   const firstStartGameBtn=$("firstStartGameBtn");
-  if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("game");toast("Ready for your first game","ok")});
+  if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("live");toast("Ready for your first game","ok")});
 '''
           assert marker3 in s; s=s.replace(marker3,bindings+marker3,1)
-          # Trigger after initial render/account init; append safe DOM ready fallback.
           s=s.replace('</script>','''\nwindow.addEventListener("load",showWelcomeIfNeeded,{once:true});\n</script>''',1)
           p.write_text(s)
           PY
@@ -86,3 +81,4 @@ function firstSetupStep(n){for(let i=1;i<=3;i++)$("firstSetupStep"+i)?.classList
           git add index.html
           git commit -m 'feat: add first-launch welcome and team setup'
           git push
+# trigger: 2026-09-03 onboarding apply pass
