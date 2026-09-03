@@ -667,7 +667,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
       <div class="price-card">
         <div class="price-name">Free</div><div class="price-amt">$0</div><div class="price-period">forever</div>
         <ul class="price-features"><li>1 team, up to 8 players</li><li>5 saved games</li><li>Live stat tracking</li><li>Shot chart</li><li>1 AI insight per game</li><li class="locked-feat">Advanced analytics</li><li class="locked-feat">AI Coach chat</li><li class="locked-feat">Player dev arcs</li><li class="locked-feat">PDF reports</li></ul>
-        <button class="btn btn-secondary" style="width:100%" disabled>Free plan</button>
+        <button class="btn btn-secondary" id="continueFreePlanBtn" style="width:100%">Continue with Free</button>
       </div>
       <div class="price-card featured popular-tag">
         <div class="price-name" style="color:var(--gold)">Pro ⭐</div><div class="price-amt" style="color:var(--gold)">$9.99</div><div class="price-period">/month</div>
@@ -1634,16 +1634,21 @@ async function pullCloudGamesToDevice(){
   }
 }
 
+function freeGameSlotsUsed(){
+  return (S.games||[]).filter(g=>g&&g.countsTowardFreeLimit===true).length;
+}
 function saveGame(){
   const lim=tierLimit().games;
-  if(S.games.length>=lim&&!isPro()){
-    toast(`Free plan: max ${lim} saved games. Upgrade for unlimited.`,"err");
-    openPricing();return;
+  const used=freeGameSlotsUsed();
+  if(used>=lim&&!isPro()){
+    toast(`Free plan: ${used}/${lim} saved games used. Delete a Free game or upgrade for unlimited.`,"err");
+    openPricing();return false;
   }
   const tt=totTeam();
   const ldr=leader();
   const game={
     id:Date.now(),
+    countsTowardFreeLimit:!isPro(),
     teamId:S.activeTeamId,
     localUpdatedAt:new Date().toISOString(),
     date:$("gameDate")?.value||today(),
@@ -1666,6 +1671,7 @@ function saveGame(){
   renderSummary();
   toast("Game saved ✓","ok");
   vibe(50);
+  return true;
 }
 
 function showGameOver(){
@@ -1798,6 +1804,8 @@ async function init(){
   });
   const proCheckout=$("startProCheckoutBtn");
   if(proCheckout)proCheckout.addEventListener("click",()=>startCheckout("pro"));
+  const continueFreePlanBtn=$("continueFreePlanBtn");
+  if(continueFreePlanBtn)continueFreePlanBtn.addEventListener("click",()=>{S.tier="free";persist();updateTierUI();$("dlgPricing")?.close();toast(`Free plan active · ${freeGameSlotsUsed()}/${tierLimit().games} game slots used`,"ok")});
   const createProgramInviteBtn=$("createProgramInviteBtn");
   if(createProgramInviteBtn)createProgramInviteBtn.addEventListener("click",createProgramInviteFromUI);
   const acceptProgramInviteBtn=$("acceptProgramInviteBtn");
@@ -1873,7 +1881,7 @@ async function init(){
   if(gob)gob.addEventListener("click",showGameOver);
 
   const goSaveBtn=$("goSaveBtn");
-  if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{saveGame();$("gameOverScreen").classList.add("hidden")});
+  if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{if(saveGame())$("gameOverScreen").classList.add("hidden")});
   const goShareBtn=$("goShareBtn");
   if(goShareBtn)goShareBtn.addEventListener("click",()=>{
     const tt=totTeam();
