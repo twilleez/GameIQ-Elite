@@ -363,6 +363,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <button class="btn btn-secondary" id="newBtn">New</button>
         <button class="btn btn-secondary" id="undoBtn" aria-label="Undo last stat change">↩</button>
         <button class="btn btn-gold" onclick="openPricing()">⭐ Upgrade</button>
+        <button class="btn btn-secondary" id="accountBtn" title="Sign in or manage account" style="min-height:38px;padding:8px 11px">👤 <span id="accountBtnText">Sign in</span></button>
         <button class="btn btn-secondary" id="settingsBtn" title="Settings" style="min-height:38px;padding:8px 11px;font-size:16px">⚙</button>
         <span class="chip" id="autosaveChip">Ready</span>
       </div>
@@ -816,6 +817,8 @@ async function signOut(){
 }
 function renderAccountUI(){
   const out=$("acctSignedOut"),inEl=$("acctSignedIn");
+  const accountBtnText=$("accountBtnText");
+  if(accountBtnText)accountBtnText.textContent=authUser?"Account":"Sign in";
   if(!out||!inEl)return;
   if(authUser){
     out.classList.add("hidden");inEl.classList.remove("hidden");
@@ -1791,6 +1794,8 @@ async function init(){
   window.addEventListener('offline',renderSyncDiagnostics);
   if($("gameDate")&&!$("gameDate").value)$("gameDate").value=today();
 
+  const accountBtn=$("accountBtn");
+  if(accountBtn)accountBtn.addEventListener("click",()=>{openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
   const acctSendLinkBtn=$("acctSendLinkBtn");
   if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);
   const acctSignOutBtn=$("acctSignOutBtn");
