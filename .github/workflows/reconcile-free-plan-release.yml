@@ -1,6 +1,9 @@
 name: Reconcile verified Free-plan behavior
 on:
   workflow_dispatch:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/reconcile-free-plan-release.yml']
 permissions:
   contents: write
 jobs:
@@ -16,25 +19,22 @@ jobs:
           s=p.read_text()
           old='''function saveGame(){\n  const lim=tierLimit().games;\n  if(S.games.length>=lim&&!isPro()){\n    toast(`Free plan: max ${lim} saved games. Upgrade for unlimited.`,"err");\n    openPricing();return;\n  }'''
           new='''function freeGameSlotsUsed(){\n  return (S.games||[]).filter(g=>g&&g.countsTowardFreeLimit===true).length;\n}\nfunction saveGame(){\n  const lim=tierLimit().games;\n  const used=freeGameSlotsUsed();\n  if(used>=lim&&!isPro()){\n    toast(`Free plan: ${used}/${lim} saved games used. Delete a Free game or upgrade for unlimited.`,"err");\n    openPricing();return false;\n  }'''
-          assert old in s, 'saveGame quota block not found'
+          assert old in s
           s=s.replace(old,new,1)
           old='''    id:Date.now(),\n    teamId:S.activeTeamId,'''
           new='''    id:Date.now(),\n    countsTowardFreeLimit:!isPro(),\n    teamId:S.activeTeamId,'''
-          assert old in s, 'game id block not found'
+          assert old in s
           s=s.replace(old,new,1)
           old='''  toast("Game saved ✓","ok");\n  vibe(50);\n}\n\nfunction showGameOver()'''
           new='''  toast("Game saved ✓","ok");\n  vibe(50);\n  return true;\n}\n\nfunction showGameOver()'''
-          assert old in s, 'save return block not found'
+          assert old in s
           s=s.replace(old,new,1)
           old='''        <button class="btn btn-secondary" style="width:100%" disabled>Free plan</button>'''
-          if old in s:
-            s=s.replace(old,'''        <button class="btn btn-secondary" id="continueFreePlanBtn" style="width:100%">Continue with Free</button>''',1)
+          if old in s:s=s.replace(old,'''        <button class="btn btn-secondary" id="continueFreePlanBtn" style="width:100%">Continue with Free</button>''',1)
           old='''  const proCheckout=$("startProCheckoutBtn");\n  if(proCheckout)proCheckout.addEventListener("click",()=>startCheckout("pro"));'''
-          if old in s and 'continueFreePlanBtn.addEventListener' not in s:
-            s=s.replace(old,old+'''\n  const continueFreePlanBtn=$("continueFreePlanBtn");\n  if(continueFreePlanBtn)continueFreePlanBtn.addEventListener("click",()=>{S.tier="free";persist();updateTierUI();$("dlgPricing")?.close();toast(`Free plan active · ${freeGameSlotsUsed()}/${tierLimit().games} game slots used`,"ok")});''',1)
+          if old in s and 'continueFreePlanBtn.addEventListener' not in s:s=s.replace(old,old+'''\n  const continueFreePlanBtn=$("continueFreePlanBtn");\n  if(continueFreePlanBtn)continueFreePlanBtn.addEventListener("click",()=>{S.tier="free";persist();updateTierUI();$("dlgPricing")?.close();toast(`Free plan active · ${freeGameSlotsUsed()}/${tierLimit().games} game slots used`,"ok")});''',1)
           old='''if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{saveGame();$("gameOverScreen").classList.add("hidden")});'''
-          if old in s:
-            s=s.replace(old,'''if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{if(saveGame())$("gameOverScreen").classList.add("hidden")});''',1)
+          if old in s:s=s.replace(old,'''if(goSaveBtn)goSaveBtn.addEventListener("click",()=>{if(saveGame())$("gameOverScreen").classList.add("hidden")});''',1)
           p.write_text(s)
           PY
       - name: Regression tests
