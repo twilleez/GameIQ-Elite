@@ -1,0 +1,47 @@
+name: Publish Candidate Preview
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-candidate-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Pull latest production candidate
+        run: git fetch origin agent/program-manager-phase1
+      - name: Replace hosted preview with candidate
+        run: |
+          mkdir -p preview
+          git show origin/agent/program-manager-phase1:index.html > preview/index.html
+          git show origin/agent/program-manager-phase1:manifest.json > preview/manifest.json
+          git show origin/agent/program-manager-phase1:sw.js > preview/sw.js
+          git show origin/agent/program-manager-phase1:icon.svg > preview/icon.svg
+          rm -rf preview/src
+          mkdir -p preview/src
+          git archive origin/agent/program-manager-phase1 src | tar -x -C preview
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('preview/index.html')
+          s=p.read_text()
+          s=s.replace('const SK="gameiq_v3"','const SK="gameiq_preview_v3"',1)
+          p.write_text(s)
+          PY
+      - name: Verify hosted preview candidate
+        run: |
+          grep -q 'id="dlgWelcome"' preview/index.html
+          grep -q 'welcomeStartFreeBtn' preview/index.html
+          grep -q 'accountBtnText' preview/index.html
+          grep -q 'gameiq_preview_v3' preview/index.html
+      - name: Commit preview refresh
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add preview
+          git commit -m 'preview: publish onboarding and account-access candidate'
+          git push
