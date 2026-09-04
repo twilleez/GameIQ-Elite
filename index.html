@@ -854,7 +854,7 @@ async function signOut(){
 function renderAccountUI(){
   const out=$("acctSignedOut"),inEl=$("acctSignedIn");
   const accountBtnText=$("accountBtnText");
-  if(accountBtnText)accountBtnText.textContent=authUser?"Account":"Sign in";
+  if(accountBtnText)accountBtnText.textContent=authUser?"Sign out":"Sign in";
   if(!out||!inEl)return;
   if(authUser){
     out.classList.add("hidden");inEl.classList.remove("hidden");
@@ -1857,7 +1857,7 @@ async function init(){
   const firstStartGameBtn=$("firstStartGameBtn");
   if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("live");toast("Ready for your first game","ok")});
   const accountBtn=$("accountBtn");
-  if(accountBtn)accountBtn.addEventListener("click",()=>{openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
+  if(accountBtn)accountBtn.addEventListener("click",()=>{if(authUser){signOut();return;}openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
   const acctSendLinkBtn=$("acctSendLinkBtn");
   if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);
   const acctSignOutBtn=$("acctSignOutBtn");
