@@ -11,7 +11,9 @@
 <link rel="manifest" href="manifest.json"/>
 <title>GameIQ Elite — AI Basketball Coaching</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+window.addEventListener("load",showWelcomeIfNeeded,{once:true});
+</script>
 <style>
 :root{
   --bg:#07101e;--bg2:#0a1628;--panel:#0d1d33;--panel2:#11243d;--panel3:#162c49;
@@ -363,6 +365,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <button class="btn btn-secondary" id="newBtn">New</button>
         <button class="btn btn-secondary" id="undoBtn" aria-label="Undo last stat change">↩</button>
         <button class="btn btn-gold" onclick="openPricing()">⭐ Upgrade</button>
+        <button class="btn btn-secondary" id="accountBtn" title="Sign in or manage account" style="min-height:38px;padding:8px 11px">👤 <span id="accountBtnText">Sign in</span></button>
         <button class="btn btn-secondary" id="settingsBtn" title="Settings" style="min-height:38px;padding:8px 11px;font-size:16px">⚙</button>
         <span class="chip" id="autosaveChip">Ready</span>
       </div>
@@ -697,6 +700,40 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   </div>
 </dialog>
 
+<dialog id="dlgWelcome" style="max-width:560px;width:calc(100% - 28px)">
+  <div class="modal">
+    <h3>Welcome to GameIQ Elite</h3>
+    <p>Track the game. Understand your players. Make better coaching decisions.</p>
+    <div style="display:grid;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" id="welcomeSignInBtn">👤 Sign In</button>
+      <button class="btn btn-gold" id="welcomeStartFreeBtn">🏀 Start Free</button>
+      <button class="btn btn-secondary" id="welcomeDemoBtn">See how it works</button>
+    </div>
+    <p class="api-key-note" style="text-align:center;margin-top:12px">Start Free requires no credit card. Sign in later to sync across devices.</p>
+  </div>
+</dialog>
+<dialog id="dlgFirstSetup" style="max-width:560px;width:calc(100% - 28px)">
+  <div class="modal">
+    <h3>Set up your team</h3>
+    <p id="firstSetupStepLabel">Step 1 of 3</p>
+    <div id="firstSetupStep1">
+      <label>Team name</label>
+      <input id="firstTeamName" placeholder="e.g. Trailblazers" style="width:100%;margin:8px 0 14px">
+      <button class="btn btn-primary" id="firstTeamNextBtn" style="width:100%">Continue</button>
+    </div>
+    <div id="firstSetupStep2" class="hidden">
+      <h4>Add players</h4>
+      <p>Add your roster now, or skip and add players from Teams later.</p>
+      <button class="btn btn-primary" id="firstAddPlayersBtn" style="width:100%;margin-bottom:8px">Add players</button>
+      <button class="btn btn-secondary" id="firstSkipPlayersBtn" style="width:100%">Skip for now</button>
+    </div>
+    <div id="firstSetupStep3" class="hidden">
+      <h4>You're ready</h4>
+      <p>Your team is set up. Start your first game when you're ready.</p>
+      <button class="btn btn-gold" id="firstStartGameBtn" style="width:100%">Start first game</button>
+    </div>
+  </div>
+</dialog>
 <dialog id="dlgSettings">
   <div class="modal" style="max-width:480px">
     <h3>⚙ Settings</h3>
@@ -756,7 +793,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 (function(){
 "use strict";
 
-const SK="gameiq_preview_v3",WK="gameiq_preview_tutorial_v3";
+const SK="gameiq_preview_v3",WK="gameiq_tutorial_v3";
 const TIER_LIMITS={free:{teams:1,players:8,games:5,insights:1},pro:{teams:999,players:999,games:9999,insights:5},team:{teams:999,players:999,games:9999,insights:5}};
 
 /* ═══════ ACCOUNT / AUTH (Phase 1) ═══════
@@ -816,6 +853,8 @@ async function signOut(){
 }
 function renderAccountUI(){
   const out=$("acctSignedOut"),inEl=$("acctSignedIn");
+  const accountBtnText=$("accountBtnText");
+  if(accountBtnText)accountBtnText.textContent=authUser?"Sign out":"Sign in";
   if(!out||!inEl)return;
   if(authUser){
     out.classList.add("hidden");inEl.classList.remove("hidden");
@@ -964,6 +1003,18 @@ function renderSyncDiagnostics(){
   set('syncDiagError',failed[0]?.cloudSyncError||'None');
   const btn=$('retryCloudSyncBtn');if(btn)btn.disabled=!navigator.onLine||!authUser||pending.length===0;
 }
+const FIRST_LAUNCH_KEY="gameiq_first_launch_v1";
+function finishFirstLaunch(){try{localStorage.setItem(FIRST_LAUNCH_KEY,"1")}catch(e){}}
+function showWelcomeIfNeeded(){if(!localStorage.getItem(FIRST_LAUNCH_KEY)&&!authUser)setTimeout(()=>$("dlgWelcome")?.showModal(),180)}
+function openFirstSetup(){
+  $("dlgWelcome")?.close();
+  firstSetupStep(1);
+  $("dlgFirstSetup")?.showModal();
+}
+function firstSetupStep(n){
+  for(let i=1;i<=3;i++)$("firstSetupStep"+i)?.classList.toggle("hidden",i!==n);
+  if($("firstSetupStepLabel"))$("firstSetupStepLabel").textContent=`Step ${n} of 3`;
+}
 function openSettings(){
   const dlg=$("dlgSettings");if(!dlg)return;
   const secs=S.clock.periodSecs||600;
@@ -1011,7 +1062,7 @@ function renderSummary(){
   $("scoreHome").textContent=pts(tt);$("scoreAway").textContent=S.awayScore||0;
   $("scoreHomeLabel").textContent=($("homeTeam")?.value)||"HOME";$("scoreAwayLabel").textContent=($("awayTeam")?.value)||"AWAY";
   const onboard=$("onboardGuide");
-  if(onboard&&(team().players.length>0||localStorage.getItem("gameiq_preview_onboard_dismissed")))onboard.classList.add("hidden");
+  if(onboard&&(team().players.length>0||localStorage.getItem("gameiq_onboard_dismissed")))onboard.classList.add("hidden");
 }
 
 let renderTimeout=null;
@@ -1635,8 +1686,6 @@ async function pullCloudGamesToDevice(){
 }
 
 function freeGameSlotsUsed(){
-  // Free-plan quota applies to games created by this device/account after this build.
-  // Cloud history remains visible and does not block recording a new game.
   return (S.games||[]).filter(g=>g&&g.countsTowardFreeLimit===true).length;
 }
 function saveGame(){
@@ -1793,6 +1842,22 @@ async function init(){
   window.addEventListener('offline',renderSyncDiagnostics);
   if($("gameDate")&&!$("gameDate").value)$("gameDate").value=today();
 
+  const welcomeSignInBtn=$("welcomeSignInBtn");
+  if(welcomeSignInBtn)welcomeSignInBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
+  const welcomeStartFreeBtn=$("welcomeStartFreeBtn");
+  if(welcomeStartFreeBtn)welcomeStartFreeBtn.addEventListener("click",openFirstSetup);
+  const welcomeDemoBtn=$("welcomeDemoBtn");
+  if(welcomeDemoBtn)welcomeDemoBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();finishFirstLaunch();toast("Explore GameIQ, then add your own team when ready","ok")});
+  const firstTeamNextBtn=$("firstTeamNextBtn");
+  if(firstTeamNextBtn)firstTeamNextBtn.addEventListener("click",()=>{const name=$("firstTeamName")?.value?.trim();if(!name){toast("Enter a team name","err");return;}const t=team();if(t)t.name=name;persist();renderAll();firstSetupStep(2)});
+  const firstAddPlayersBtn=$("firstAddPlayersBtn");
+  if(firstAddPlayersBtn)firstAddPlayersBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("teams");toast("Add players, then start your first game","ok")});
+  const firstSkipPlayersBtn=$("firstSkipPlayersBtn");
+  if(firstSkipPlayersBtn)firstSkipPlayersBtn.addEventListener("click",()=>firstSetupStep(3));
+  const firstStartGameBtn=$("firstStartGameBtn");
+  if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("live");toast("Ready for your first game","ok")});
+  const accountBtn=$("accountBtn");
+  if(accountBtn)accountBtn.addEventListener("click",()=>{if(authUser){signOut();return;}openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
   const acctSendLinkBtn=$("acctSendLinkBtn");
   if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);
   const acctSignOutBtn=$("acctSignOutBtn");
@@ -2024,7 +2089,7 @@ async function init(){
 
   const dismissOnboard=$("dismissOnboard");
   if(dismissOnboard)dismissOnboard.addEventListener("click",()=>{
-    localStorage.setItem("gameiq_preview_onboard_dismissed","1");
+    localStorage.setItem("gameiq_onboard_dismissed","1");
     const og=$("onboardGuide");if(og)og.classList.add("hidden");
   });
 
