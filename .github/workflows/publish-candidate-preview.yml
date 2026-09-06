@@ -37,11 +37,14 @@ jobs:
           grep -q 'id="dlgWelcome"' preview/index.html
           grep -q 'welcomeStartFreeBtn' preview/index.html
           grep -q 'accountBtnText' preview/index.html
+          grep -q 'id="acctPasswordInput"' preview/index.html
+          grep -q 'signInWithPassword' preview/index.html
+          if grep -q 'signInWithOtp' preview/index.html; then echo 'Magic-link login still present' && exit 1; fi
           grep -q 'gameiq_preview_v3' preview/index.html
       - name: Commit preview refresh
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add preview
-          git commit -m 'preview: publish onboarding and account-access candidate'
+          git commit -m 'preview: publish password-auth candidate'
           git push
