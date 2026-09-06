@@ -740,8 +740,15 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     <div class="settings-section">
       <h4>Account</h4>
       <div id="acctSignedOut">
-        <div class="api-key-wrap"><input type="email" id="acctEmailInput" placeholder="you@example.com" autocomplete="email"/><button class="btn btn-primary" id="acctSendLinkBtn" style="white-space:nowrap">Send Link</button></div>
-        <p class="api-key-note">Sign in to manage Pro billing and use the hosted AI Coach (no API key needed). We'll email you a one-time sign-in link — no password.</p>
+        <div style="display:grid;gap:8px">
+          <input type="email" id="acctEmailInput" placeholder="Email" autocomplete="email"/>
+          <input type="password" id="acctPasswordInput" placeholder="Password" autocomplete="current-password" minlength="8"/>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="acctSignInBtn" style="flex:1;min-width:120px">Sign In</button>
+            <button class="btn btn-secondary" id="acctCreateBtn" style="flex:1;min-width:140px">Create Account</button>
+          </div>
+        </div>
+        <p class="api-key-note">Sign in with your saved email and password. Routine sign-in does not send an email link. Passwords are handled by Supabase Auth and are not stored in GameIQ local storage.</p>
       </div>
       <div id="acctSignedIn" class="hidden">
         <p class="api-key-note" style="margin-top:0"><strong id="acctEmail" style="color:var(--text)"></strong> · plan: <span id="acctTier">free</span></p>
@@ -833,15 +840,41 @@ async function onAuthChange(){
   persist();updateTierUI();renderAccountUI();
   retryPendingCloudSync().then(()=>pullCloudGamesToDevice());
 }
-async function sendMagicLink(){
-  if(!authEnabled()){toast("Account sign-in isn't configured yet","err");return}
+async function signInWithPassword(){
+  if(!authEnabled()){toast("Account sign-in isn't configured yet","err");return false}
   const email=($("acctEmailInput")?.value||"").trim();
-  if(!email){toast("Enter an email","err");return}
-  const btn=$("acctSendLinkBtn");if(btn)btn.disabled=true;
-  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}});
+  const password=$("acctPasswordInput")?.value||"";
+  if(!email){toast("Enter your email","err");return false}
+  if(!password){toast("Enter your password","err");return false}
+  const btn=$("acctSignInBtn");if(btn)btn.disabled=true;
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
   if(btn)btn.disabled=false;
-  if(error){toast("Couldn't send link: "+error.message,"err");return}
-  toast("Check your email for a sign-in link","ok");
+  if(error){toast("Sign in failed: "+error.message,"err");return false}
+  authUser=data?.user?{id:data.user.id,email:data.user.email}:null;
+  await refreshAccountTier();
+  renderAccountUI();
+  retryPendingCloudSync().then(()=>pullCloudGamesToDevice());
+  toast("Signed in","ok");
+  return true;
+}
+async function createPasswordAccount(){
+  if(!authEnabled()){toast("Account sign-up isn't configured yet","err");return false}
+  const email=($("acctEmailInput")?.value||"").trim();
+  const password=$("acctPasswordInput")?.value||"";
+  if(!email){toast("Enter your email","err");return false}
+  if(password.length<8){toast("Use a password with at least 8 characters","err");return false}
+  const btn=$("acctCreateBtn");if(btn)btn.disabled=true;
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(btn)btn.disabled=false;
+  if(error){toast("Couldn't create account: "+error.message,"err");return false}
+  if(data?.session&&data?.user){
+    authUser={id:data.user.id,email:data.user.email};
+    await refreshAccountTier();renderAccountUI();
+    toast("Account created and signed in","ok");
+  }else{
+    toast("Account created. Check your email only if confirmation is required.","ok");
+  }
+  return true;
 }
 async function signOut(){
   if(!sb)return;
@@ -1858,8 +1891,12 @@ async function init(){
   if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("live");toast("Ready for your first game","ok")});
   const accountBtn=$("accountBtn");
   if(accountBtn)accountBtn.addEventListener("click",()=>{if(authUser){signOut();return;}openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
-  const acctSendLinkBtn=$("acctSendLinkBtn");
-  if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);
+  const acctSignInBtn=$("acctSignInBtn");
+  if(acctSignInBtn)acctSignInBtn.addEventListener("click",signInWithPassword);
+  const acctCreateBtn=$("acctCreateBtn");
+  if(acctCreateBtn)acctCreateBtn.addEventListener("click",createPasswordAccount);
+  const acctPasswordInput=$("acctPasswordInput");
+  if(acctPasswordInput)acctPasswordInput.addEventListener("keydown",e=>{if(e.key==="Enter")signInWithPassword()});
   const acctSignOutBtn=$("acctSignOutBtn");
   if(acctSignOutBtn)acctSignOutBtn.addEventListener("click",signOut);
   const retryCloudSyncBtn=$("retryCloudSyncBtn");
