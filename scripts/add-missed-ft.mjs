@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+const path='index.html';
+let s=fs.readFileSync(path,'utf8');
+const oldGrid=`'<div class="live-grid">'+tile(p.id,"reb","Reb",q.reb)+tile(p.id,"ast","Ast",q.ast)+tile(p.id,"tov","Tov",q.tov)+tile(p.id,"fouls","Fouls",q.fouls)+'</div>'+`;
+const newGrid=`'<div class="live-grid">'+tile(p.id,"ftm","Made FT",q.ftm)+tile(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))+tile(p.id,"reb","Reb",q.reb)+tile(p.id,"ast","Ast",q.ast)+tile(p.id,"tov","Tov",q.tov)+tile(p.id,"fouls","Fouls",q.fouls)+'</div>'+`;
+if(!s.includes(oldGrid)) throw new Error('live-grid pattern not found');
+s=s.replace(oldGrid,newGrid);
+const oldAdv=`mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"fta","FT Att",q.fta)`;
+const newAdv=`mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))`;
+if(!s.includes(oldAdv)) throw new Error('advanced FT pattern not found');
+s=s.replace(oldAdv,newAdv);
+const oldAdjust=`  const q=p.q[aq()];\n  q[stat]=Math.max(0,(q[stat]||0)+delta);`;
+const newAdjust=`  const q=p.q[aq()];\n  if(stat==="ftm"){\n    if(delta>0){q.ftm=(q.ftm||0)+delta;q.fta=(q.fta||0)+delta}\n    else if(delta<0&&q.ftm>0){const d=Math.min(q.ftm,-delta);q.ftm-=d;q.fta=Math.max(q.ftm,(q.fta||0)-d)}\n  }else if(stat==="ftmiss"){\n    const misses=Math.max(0,(q.fta||0)-(q.ftm||0));\n    if(delta>0)q.fta=(q.fta||0)+delta;\n    else if(delta<0&&misses>0)q.fta=Math.max(q.ftm||0,(q.fta||0)-Math.min(misses,-delta));\n  }else q[stat]=Math.max(0,(q[stat]||0)+delta);`;
+if(!s.includes(oldAdjust)) throw new Error('adjustStat pattern not found');
+s=s.replace(oldAdjust,newAdjust);
+fs.writeFileSync(path,s);

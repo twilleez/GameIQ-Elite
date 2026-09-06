@@ -1,0 +1,47 @@
+name: Apply Visible Login
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/apply-visible-login.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - name: Add visible account entry point
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='''        <button class="btn btn-gold" onclick="openPricing()">⭐ Upgrade</button>\n        <button class="btn btn-secondary" id="settingsBtn" title="Settings" style="min-height:38px;padding:8px 11px;font-size:16px">⚙</button>'''
+          new='''        <button class="btn btn-gold" onclick="openPricing()">⭐ Upgrade</button>\n        <button class="btn btn-secondary" id="accountBtn" title="Sign in or manage account" style="min-height:38px;padding:8px 11px">👤 <span id="accountBtnText">Sign in</span></button>\n        <button class="btn btn-secondary" id="settingsBtn" title="Settings" style="min-height:38px;padding:8px 11px;font-size:16px">⚙</button>'''
+          assert old in s
+          s=s.replace(old,new,1)
+          old2='''function renderAccountUI(){\n  const out=$("acctSignedOut"),inEl=$("acctSignedIn");\n  if(!out||!inEl)return;'''
+          new2='''function renderAccountUI(){\n  const out=$("acctSignedOut"),inEl=$("acctSignedIn");\n  const accountBtnText=$("accountBtnText");\n  if(accountBtnText)accountBtnText.textContent=authUser?"Account":"Sign in";\n  if(!out||!inEl)return;'''
+          assert old2 in s
+          s=s.replace(old2,new2,1)
+          old3='''  const acctSendLinkBtn=$("acctSendLinkBtn");\n  if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);'''
+          new3='''  const accountBtn=$("accountBtn");\n  if(accountBtn)accountBtn.addEventListener("click",()=>{openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});\n  const acctSendLinkBtn=$("acctSendLinkBtn");\n  if(acctSendLinkBtn)acctSendLinkBtn.addEventListener("click",sendMagicLink);'''
+          assert old3 in s
+          s=s.replace(old3,new3,1)
+          p.write_text(s)
+          PY
+      - name: Verify and test
+        run: |
+          grep -q 'id="accountBtn"' index.html
+          grep -q 'id="accountBtnText"' index.html
+          npm test
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m 'feat: expose sign-in from primary app header'
+          git push

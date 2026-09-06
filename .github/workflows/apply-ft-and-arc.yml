@@ -1,0 +1,34 @@
+name: Apply FT and Arc Fix
+
+on:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths:
+      - .github/workflows/apply-ft-and-arc.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/program-manager-phase1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply deterministic UI patch
+        run: node scripts/patch-ft-and-arc.mjs
+      - name: Run regression tests
+        run: npm test
+      - name: Commit patched application
+        run: |
+          git config user.name "twilleez"
+          git config user.email "wjhill@gmail.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "phase 6: explicit FT made/miss controls and exact arc scoring"
+          git push origin HEAD:agent/program-manager-phase1

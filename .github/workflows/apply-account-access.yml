@@ -1,0 +1,44 @@
+name: Apply Account Access
+on:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/apply-account-access.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - name: Patch account button behavior
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html'); s=p.read_text()
+          old='''  const accountBtnText=$("accountBtnText");\n  if(accountBtnText)accountBtnText.textContent=authUser?"Account":"Sign in";'''
+          new='''  const accountBtnText=$("accountBtnText");\n  if(accountBtnText)accountBtnText.textContent=authUser?"Sign out":"Sign in";'''
+          if old not in s:
+            raise SystemExit('account label pattern not found')
+          s=s.replace(old,new,1)
+          old2='''  const accountBtn=$("accountBtn");\n  if(accountBtn)accountBtn.addEventListener("click",()=>{openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});'''
+          new2='''  const accountBtn=$("accountBtn");\n  if(accountBtn)accountBtn.addEventListener("click",()=>{if(authUser){signOut();return;}openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});'''
+          if old2 not in s:
+            raise SystemExit('account click pattern not found')
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+          PY
+      - name: Verify and test
+        run: |
+          grep -q 'authUser?"Sign out":"Sign in"' index.html
+          grep -q 'if(authUser){signOut();return;}' index.html
+          npm test
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m 'feat: make account header sign in and sign out explicit'
+          git push

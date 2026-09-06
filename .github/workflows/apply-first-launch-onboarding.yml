@@ -1,0 +1,44 @@
+name: Apply First Launch Onboarding
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/program-manager-phase1
+    paths:
+      - scripts/patch-first-launch-onboarding.mjs
+      - .github/workflows/apply-first-launch-onboarding.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply onboarding
+        run: node scripts/patch-first-launch-onboarding.mjs
+      - name: Run regression tests
+        run: npm test
+      - name: Verify onboarding is present
+        run: |
+          grep -q 'id="dlgWelcome"' index.html
+          grep -q 'id="dlgFirstSetup"' index.html
+          grep -q 'welcomeSignInBtn' index.html
+          grep -q 'welcomeStartFreeBtn' index.html
+          grep -q 'firstStartGameBtn' index.html
+      - name: Commit onboarding
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No onboarding changes to commit"
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m 'feat: add first-launch welcome and team setup'
+          git push
