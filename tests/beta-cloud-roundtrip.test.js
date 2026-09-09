@@ -41,7 +41,7 @@ class MemorySupabase {
 
 test('offline/reconnect gate is wired in the production candidate', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /if\(!game\|\|game\.cloudSyncedAt\|\|!sb\|\|!authUser\|\|!navigator\.onLine\)return false/);
+  assert.match(html, /if\(!game\|\|game\.cloudSyncedAt(?:\|\|game\.cloudSyncInFlight)?\|\|!sb\|\|!authUser\|\|!navigator\.onLine\)return false/);
   assert.match(html, /window\.addEventListener\('online',async\(\)=>\{await retryPendingCloudSync\(\)/);
   assert.match(html, /const pending=\(S\.games\|\|\[\]\)\.filter\(g=>!g\.cloudSyncedAt\)/);
   assert.match(html, /game\.cloudSyncedAt=new Date\(\)\.toISOString\(\)/);
