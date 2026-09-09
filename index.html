@@ -1688,7 +1688,8 @@ function localTeamForSavedGame(game){
   return {id:game.teamId||S.activeTeamId,name:game.teamName||'My Team',players:game.players||[]};
 }
 async function syncSavedGameToCloud(game,localTeam){
-  if(!game||game.cloudSyncedAt||!sb||!authUser||!navigator.onLine)return false;
+  if(!game||game.cloudSyncedAt||game.cloudSyncInFlight||!sb||!authUser||!navigator.onLine)return false;
+  game.cloudSyncInFlight=true;
   game.cloudSyncAttempts=Number(game.cloudSyncAttempts||0)+1;
   game.lastCloudSyncAttemptAt=new Date().toISOString();
   await persist();
@@ -1723,6 +1724,8 @@ async function syncSavedGameToCloud(game,localTeam){
     await persist();
     console.warn('GameIQ cloud sync deferred',e);
     return false;
+  }finally{
+    game.cloudSyncInFlight=false;
   }
 }
 function queueCloudSync(game,localTeam){
