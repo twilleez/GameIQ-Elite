@@ -1,0 +1,31 @@
+name: Draft Preview
+
+on:
+  push:
+    branches: [agent/program-manager-phase1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run quality gate
+        run: npm test
+      - name: Build preview package
+        run: |
+          mkdir -p preview
+          cp index.html manifest.json sw.js icon.svg preview/
+          if [ -d src ]; then cp -R src preview/src; fi
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameiq-draft-preview
+          path: preview
+          retention-days: 14

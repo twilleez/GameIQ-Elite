@@ -1,0 +1,76 @@
+name: Apply Account Recovery
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/apply-account-recovery.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - name: Add password recovery flow
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+
+          # Signed-out recovery action.
+          anchor='''        <p class="api-key-note">Sign in with your saved email and password. Routine sign-in does not send an email link. Passwords are handled by Supabase Auth and are not stored in GameIQ local storage.</p>'''
+          replacement='''        <button class="btn btn-ghost" id="acctForgotPasswordBtn" style="font-size:12px;min-height:34px;padding-left:0">Forgot password or need to set one?</button>\n        <p class="api-key-note">Sign in with your saved email and password. Routine sign-in does not send an email link. Passwords are handled by Supabase Auth and are not stored in GameIQ local storage.</p>'''
+          assert anchor in s, 'account recovery UI anchor missing'
+          s=s.replace(anchor,replacement,1)
+
+          # Recovery dialog.
+          dialog='''\n<dialog id="dlgPasswordRecovery" style="max-width:480px;width:calc(100% - 28px)">\n  <div class="modal">\n    <h3>Set a new password</h3>\n    <p>Enter a new password for your GameIQ account.</p>\n    <input type="password" id="recoveryPasswordInput" placeholder="New password" autocomplete="new-password" minlength="8" style="width:100%;margin:8px 0 12px"/>\n    <div class="modal-actions">\n      <button class="btn btn-secondary" id="recoveryCancelBtn">Cancel</button>\n      <button class="btn btn-primary" id="recoverySavePasswordBtn">Save new password</button>\n    </div>\n  </div>\n</dialog>\n'''
+          toast_anchor='<div class="toast" id="toast" role="alert" aria-live="assertive"></div>'
+          assert toast_anchor in s, 'toast anchor missing'
+          s=s.replace(toast_anchor,dialog+'\n'+toast_anchor,1)
+
+          # Detect password-recovery auth events.
+          auth_old='''  sb.auth.onAuthStateChange((_event,session)=>{\n    authUser=session?.user?{id:session.user.id,email:session.user.email}:null;\n    onAuthChange();\n  });'''
+          auth_new='''  sb.auth.onAuthStateChange((event,session)=>{\n    authUser=session?.user?{id:session.user.id,email:session.user.email}:null;\n    onAuthChange();\n    if(event==="PASSWORD_RECOVERY"){\n      $("dlgSettings")?.close();\n      $("dlgPasswordRecovery")?.showModal();\n      setTimeout(()=>$("recoveryPasswordInput")?.focus(),50);\n    }\n  });'''
+          assert auth_old in s, 'auth state listener anchor missing'
+          s=s.replace(auth_old,auth_new,1)
+
+          # Make signup confirmation return to the active GameIQ path.
+          signup='''  const {data,error}=await sb.auth.signUp({email,password});'''
+          signup_new='''  const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname}});'''
+          assert signup in s, 'signup call missing'
+          s=s.replace(signup,signup_new,1)
+
+          # Recovery request and password update functions.
+          signout_anchor='''async function signOut(){'''
+          funcs='''async function requestPasswordReset(){\n  if(!authEnabled()){toast("Account recovery isn't configured yet","err");return false}\n  const email=($("acctEmailInput")?.value||"").trim();\n  if(!email){toast("Enter your email first","err");return false}\n  const btn=$("acctForgotPasswordBtn");if(btn)btn.disabled=true;\n  const redirectTo=window.location.origin+window.location.pathname;\n  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});\n  if(btn)btn.disabled=false;\n  if(error){toast("Couldn't start password reset: "+error.message,"err");return false}\n  toast("Password reset email sent. Open it once to choose a new password.","ok");\n  return true;\n}\nasync function saveRecoveredPassword(){\n  const password=$("recoveryPasswordInput")?.value||"";\n  if(password.length<8){toast("Use a password with at least 8 characters","err");return false}\n  const btn=$("recoverySavePasswordBtn");if(btn)btn.disabled=true;\n  const {error}=await sb.auth.updateUser({password});\n  if(btn)btn.disabled=false;\n  if(error){toast("Couldn't update password: "+error.message,"err");return false}\n  if($("recoveryPasswordInput"))$("recoveryPasswordInput").value="";\n  $("dlgPasswordRecovery")?.close();\n  toast("Password updated. Future sign-ins use email and password.","ok");\n  return true;\n}\n'''
+          assert signout_anchor in s, 'signOut function missing'
+          s=s.replace(signout_anchor,funcs+signout_anchor,1)
+
+          # Wire recovery UI.
+          bind_anchor='''  const acctSignOutBtn=$("acctSignOutBtn");\n  if(acctSignOutBtn)acctSignOutBtn.addEventListener("click",signOut);'''
+          bind_new='''  const acctForgotPasswordBtn=$("acctForgotPasswordBtn");\n  if(acctForgotPasswordBtn)acctForgotPasswordBtn.addEventListener("click",requestPasswordReset);\n  const recoverySavePasswordBtn=$("recoverySavePasswordBtn");\n  if(recoverySavePasswordBtn)recoverySavePasswordBtn.addEventListener("click",saveRecoveredPassword);\n  const recoveryPasswordInput=$("recoveryPasswordInput");\n  if(recoveryPasswordInput)recoveryPasswordInput.addEventListener("keydown",e=>{if(e.key==="Enter")saveRecoveredPassword()});\n  const recoveryCancelBtn=$("recoveryCancelBtn");\n  if(recoveryCancelBtn)recoveryCancelBtn.addEventListener("click",()=>$("dlgPasswordRecovery")?.close());\n  const acctSignOutBtn=$("acctSignOutBtn");\n  if(acctSignOutBtn)acctSignOutBtn.addEventListener("click",signOut);'''
+          assert bind_anchor in s, 'account binding anchor missing'
+          s=s.replace(bind_anchor,bind_new,1)
+
+          p.write_text(s)
+          PY
+      - name: Verify and test
+        run: |
+          grep -q 'id="acctForgotPasswordBtn"' index.html
+          grep -q 'id="dlgPasswordRecovery"' index.html
+          grep -q 'resetPasswordForEmail' index.html
+          grep -q 'PASSWORD_RECOVERY' index.html
+          grep -q 'updateUser({password})' index.html
+          if grep -q 'signInWithOtp' index.html; then echo 'Magic-link routine sign-in returned' && exit 1; fi
+          npm test
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m 'feat: add password recovery for beta users'
+          git push

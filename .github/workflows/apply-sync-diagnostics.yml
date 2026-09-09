@@ -1,0 +1,35 @@
+name: Apply Sync Diagnostics
+
+on:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths:
+      - scripts/patch-sync-diagnostics.mjs
+      - tests/sync-diagnostics.test.js
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/program-manager-phase1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply diagnostics patch
+        run: node scripts/patch-sync-diagnostics.mjs
+      - name: Run regression tests
+        run: npm test
+      - name: Commit patched app
+        run: |
+          git config user.name "twilleez"
+          git config user.email "wjhill@gmail.com"
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "feat: add visible cloud sync diagnostics"
+          git push

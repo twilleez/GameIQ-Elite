@@ -1,0 +1,33 @@
+name: Apply Auth Feedback
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/program-manager-phase1
+    paths:
+      - .github/workflows/apply-auth-feedback.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply patch
+        run: python3 scripts/patch-auth-feedback.py
+      - name: Verify and test
+        run: |
+          grep -q 'id="acctAuthStatus"' index.html
+          grep -q 'function friendlyAuthError' index.html
+          grep -q 'Email or password is incorrect, or no account exists for this email.' index.html
+          npm test
+      - name: Commit auth fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'fix: show persistent sign-in and account errors'
+          git push

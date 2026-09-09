@@ -1,0 +1,46 @@
+name: Apply cloud sync and three point fix
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/program-manager-phase1
+    paths:
+      - scripts/patch-cloud-sync-and-three-point.mjs
+      - .github/workflows/apply-cloud-sync-three-point.yml
+      - src/domain/basketball.js
+      - src/services/cloud-sync.js
+      - tests/basketball.test.js
+      - tests/cloud-sync.test.js
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/program-manager-phase1
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply production patch
+        run: node scripts/patch-cloud-sync-and-three-point.mjs
+      - name: Run regression tests
+        run: npm test
+      - name: Commit production wiring
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No index.html changes to commit"
+            exit 0
+          fi
+          git config user.name "GameIQ PM Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git commit -m "phase 2: wire offline cloud sync and fix three point arc"
+          git push origin HEAD:agent/program-manager-phase1
