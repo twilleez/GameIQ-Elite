@@ -1,0 +1,137 @@
+name: Apply Auth Feedback
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/apply-auth-feedback.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - name: Add persistent authentication feedback
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+
+          old='''          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="acctSignInBtn" style="flex:1;min-width:120px">Sign In</button>
+            <button class="btn btn-secondary" id="acctCreateBtn" style="flex:1;min-width:140px">Create Account</button>
+          </div>
+        </div>'''
+          new='''          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="acctSignInBtn" style="flex:1;min-width:120px">Sign In</button>
+            <button class="btn btn-secondary" id="acctCreateBtn" style="flex:1;min-width:140px">Create Account</button>
+          </div>
+          <div id="acctAuthStatus" role="status" aria-live="polite" class="hidden" style="padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.45"></div>
+        </div>'''
+          assert old in s, 'account form insertion point not found'
+          s=s.replace(old,new,1)
+
+          start=s.index('async function signInWithPassword(){')
+          end=s.index('async function requestPasswordReset(){', start)
+          replacement=r'''function setAuthStatus(message,type=""){
+  const el=$("acctAuthStatus");if(!el)return;
+  if(!message){el.textContent="";el.classList.add("hidden");return}
+  el.textContent=message;el.classList.remove("hidden");
+  const isErr=type==="err";
+  el.style.background=isErr?"rgba(239,64,64,.12)":"rgba(33,197,93,.12)";
+  el.style.border="1px solid "+(isErr?"rgba(239,64,64,.35)":"rgba(33,197,93,.35)");
+  el.style.color=isErr?"#ff9b9b":"#8be8ad";
+}
+function friendlyAuthError(error,action="signin"){
+  const raw=String(error?.message||error||"").toLowerCase();
+  if(raw.includes("invalid login credentials")||raw.includes("invalid credentials"))return "Email or password is incorrect, or no account exists for this email.";
+  if(raw.includes("email not confirmed"))return "Your email has not been confirmed yet. Check your inbox, then try again.";
+  if(raw.includes("user already registered")||raw.includes("already registered")||raw.includes("already exists"))return "An account already exists for this email. Choose Sign In or Forgot password.";
+  if(raw.includes("password")&&raw.includes("weak"))return "That password is too weak. Use at least 8 characters and try again.";
+  if(raw.includes("rate limit")||raw.includes("too many"))return "Too many attempts. Wait a moment, then try again.";
+  if(raw.includes("failed to fetch")||raw.includes("network")||raw.includes("fetch"))return "GameIQ could not reach account services. Check your internet connection and try again.";
+  return action==="signup"?"We couldn't create the account. Please check the email and password, then try again.":"We couldn't sign you in. Please check your email and password, then try again.";
+}
+async function signInWithPassword(){
+  setAuthStatus("");
+  if(!authEnabled()||!sb){const m="Account sign-in is temporarily unavailable.";setAuthStatus(m,"err");toast(m,"err");return false}
+  const email=($("acctEmailInput")?.value||"").trim();
+  const password=$("acctPasswordInput")?.value||"";
+  if(!email){setAuthStatus("Enter your email address.","err");return false}
+  if(!password){setAuthStatus("Enter your password.","err");return false}
+  const btn=$("acctSignInBtn");if(btn){btn.disabled=true;btn.textContent="Signing in…"}
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    if(!data?.user)throw new Error("Invalid login credentials");
+    authUser={id:data.user.id,email:data.user.email};
+    await refreshAccountTier();
+    renderAccountUI();
+    retryPendingCloudSync().then(()=>pullCloudGamesToDevice());
+    setAuthStatus("Signed in successfully.");
+    toast("Signed in","ok");
+    return true;
+  }catch(error){
+    const message=friendlyAuthError(error,"signin");
+    setAuthStatus(message,"err");
+    toast(message,"err");
+    return false;
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="Sign In"}
+  }
+}
+async function createPasswordAccount(){
+  setAuthStatus("");
+  if(!authEnabled()||!sb){const m="Account creation is temporarily unavailable.";setAuthStatus(m,"err");toast(m,"err");return false}
+  const email=($("acctEmailInput")?.value||"").trim();
+  const password=$("acctPasswordInput")?.value||"";
+  if(!email){setAuthStatus("Enter your email address.","err");return false}
+  if(password.length<8){setAuthStatus("Use a password with at least 8 characters.","err");return false}
+  const btn=$("acctCreateBtn");if(btn){btn.disabled=true;btn.textContent="Creating…"}
+  try{
+    const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
+    if(error)throw error;
+    if(data?.session&&data?.user){
+      authUser={id:data.user.id,email:data.user.email};
+      await refreshAccountTier();renderAccountUI();
+      setAuthStatus("Account created. You're signed in.");
+      toast("Account created and signed in","ok");
+    }else if(data?.user?.identities&&data.user.identities.length===0){
+      const m="An account may already exist for this email. Choose Sign In or Forgot password.";
+      setAuthStatus(m,"err");toast(m,"err");return false;
+    }else{
+      const m="Account created. Check your email for a confirmation message, then return here to sign in.";
+      setAuthStatus(m);toast("Account created — check your email","ok");
+    }
+    return true;
+  }catch(error){
+    const message=friendlyAuthError(error,"signup");
+    setAuthStatus(message,"err");
+    toast(message,"err");
+    return false;
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="Create Account"}
+  }
+}
+'''
+          s=s[:start]+replacement+s[end:]
+          p.write_text(s)
+          PY
+      - name: Verify and test
+        run: |
+          grep -q 'id="acctAuthStatus"' index.html
+          grep -q 'function friendlyAuthError' index.html
+          grep -q 'Email or password is incorrect, or no account exists for this email.' index.html
+          grep -q 'Signing in…' index.html
+          grep -q 'Creating…' index.html
+          npm test
+      - name: Commit auth fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m 'fix: show persistent sign-in and account errors'
+          git push
