@@ -1,0 +1,43 @@
+name: Apply Cloud Sync Inflight Lock
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/program-manager-phase1]
+    paths: ['.github/workflows/apply-cloud-inflight-lock.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - name: Prevent overlapping reconnect syncs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old="""async function syncSavedGameToCloud(game,localTeam){\n  if(!game||game.cloudSyncedAt||!sb||!authUser||!navigator.onLine)return false;\n  game.cloudSyncAttempts=Number(game.cloudSyncAttempts||0)+1;"""
+          new="""async function syncSavedGameToCloud(game,localTeam){\n  if(!game||game.cloudSyncedAt||game.cloudSyncInFlight||!sb||!authUser||!navigator.onLine)return false;\n  game.cloudSyncInFlight=true;\n  game.cloudSyncAttempts=Number(game.cloudSyncAttempts||0)+1;"""
+          assert old in s, 'cloud sync function start not found'
+          s=s.replace(old,new,1)
+          old_tail="""  }catch(e){\n    game.cloudSyncError=String(e?.message||e||'Cloud sync deferred');\n    await persist();\n    console.warn('GameIQ cloud sync deferred',e);\n    return false;\n  }\n}"""
+          new_tail="""  }catch(e){\n    game.cloudSyncError=String(e?.message||e||'Cloud sync deferred');\n    await persist();\n    console.warn('GameIQ cloud sync deferred',e);\n    return false;\n  }finally{\n    game.cloudSyncInFlight=false;\n  }\n}"""
+          assert old_tail in s, 'cloud sync function tail not found'
+          s=s.replace(old_tail,new_tail,1)
+          p.write_text(s)
+          PY
+      - name: Verify and test
+        run: |
+          grep -q 'game.cloudSyncInFlight' index.html
+          grep -q 'finally{' index.html
+          npm test
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m 'fix: prevent overlapping reconnect cloud syncs'
+          git push
