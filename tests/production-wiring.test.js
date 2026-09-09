@@ -60,3 +60,25 @@ test('critical courtside controls expose keyboard focus and labels',()=>{
   assert.match(html,/aria-label="Interactive basketball shot chart/);
   assert.match(html,/document\.body\.classList\.toggle\("game-focus"/);
 });
+
+test('first launch onboarding provides sign-in, free setup, and first-game path',()=>{
+  assert.match(html,/id="dlgWelcome"/);
+  assert.match(html,/id="welcomeSignInBtn"/);
+  assert.match(html,/id="welcomeStartFreeBtn"/);
+  assert.match(html,/id="dlgFirstSetup"/);
+  assert.match(html,/Step 1 of 3/);
+  assert.match(html,/id="firstStartGameBtn"/);
+  assert.match(html,/gameiq_first_launch_v1/);
+});
+
+test('beta account flow supports password sign-in, signup, recovery and password update',()=>{
+  assert.match(html,/id="acctPasswordInput"/);
+  assert.match(html,/signInWithPassword\(\{email,password\}\)/);
+  assert.match(html,/auth\.signUp\(\{email,password,options:\{emailRedirectTo:/);
+  assert.match(html,/id="acctForgotPasswordBtn"/);
+  assert.match(html,/resetPasswordForEmail\(email,\{redirectTo\}\)/);
+  assert.match(html,/event==="PASSWORD_RECOVERY"/);
+  assert.match(html,/id="dlgPasswordRecovery"/);
+  assert.match(html,/updateUser\(\{password\}\)/);
+  assert.doesNotMatch(html,/signInWithOtp/);
+});
