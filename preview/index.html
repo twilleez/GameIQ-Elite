@@ -748,6 +748,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
             <button class="btn btn-secondary" id="acctCreateBtn" style="flex:1;min-width:140px">Create Account</button>
           </div>
         </div>
+        <button class="btn btn-ghost" id="acctForgotPasswordBtn" style="font-size:12px;min-height:34px;padding-left:0">Forgot password or need to set one?</button>
         <p class="api-key-note">Sign in with your saved email and password. Routine sign-in does not send an email link. Passwords are handled by Supabase Auth and are not stored in GameIQ local storage.</p>
       </div>
       <div id="acctSignedIn" class="hidden">
@@ -794,6 +795,19 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   </div>
 </dialog>
 
+
+<dialog id="dlgPasswordRecovery" style="max-width:480px;width:calc(100% - 28px)">
+  <div class="modal">
+    <h3>Set a new password</h3>
+    <p>Enter a new password for your GameIQ account.</p>
+    <input type="password" id="recoveryPasswordInput" placeholder="New password" autocomplete="new-password" minlength="8" style="width:100%;margin:8px 0 12px"/>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="recoveryCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="recoverySavePasswordBtn">Save new password</button>
+    </div>
+  </div>
+</dialog>
+
 <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
 
 <script>
@@ -815,9 +829,14 @@ function authEnabled(){return !!(SUPABASE_URL&&SUPABASE_ANON_KEY)}
 function initAuth(){
   if(!authEnabled())return;
   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-  sb.auth.onAuthStateChange((_event,session)=>{
+  sb.auth.onAuthStateChange((event,session)=>{
     authUser=session?.user?{id:session.user.id,email:session.user.email}:null;
     onAuthChange();
+    if(event==="PASSWORD_RECOVERY"){
+      $("dlgSettings")?.close();
+      $("dlgPasswordRecovery")?.showModal();
+      setTimeout(()=>$("recoveryPasswordInput")?.focus(),50);
+    }
   });
   sb.auth.getSession().then(({data})=>{
     authUser=data?.session?.user?{id:data.session.user.id,email:data.session.user.email}:null;
@@ -864,7 +883,7 @@ async function createPasswordAccount(){
   if(!email){toast("Enter your email","err");return false}
   if(password.length<8){toast("Use a password with at least 8 characters","err");return false}
   const btn=$("acctCreateBtn");if(btn)btn.disabled=true;
-  const {data,error}=await sb.auth.signUp({email,password});
+  const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
   if(btn)btn.disabled=false;
   if(error){toast("Couldn't create account: "+error.message,"err");return false}
   if(data?.session&&data?.user){
@@ -874,6 +893,30 @@ async function createPasswordAccount(){
   }else{
     toast("Account created. Check your email only if confirmation is required.","ok");
   }
+  return true;
+}
+async function requestPasswordReset(){
+  if(!authEnabled()){toast("Account recovery isn't configured yet","err");return false}
+  const email=($("acctEmailInput")?.value||"").trim();
+  if(!email){toast("Enter your email first","err");return false}
+  const btn=$("acctForgotPasswordBtn");if(btn)btn.disabled=true;
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+  if(btn)btn.disabled=false;
+  if(error){toast("Couldn't start password reset: "+error.message,"err");return false}
+  toast("Password reset email sent. Open it once to choose a new password.","ok");
+  return true;
+}
+async function saveRecoveredPassword(){
+  const password=$("recoveryPasswordInput")?.value||"";
+  if(password.length<8){toast("Use a password with at least 8 characters","err");return false}
+  const btn=$("recoverySavePasswordBtn");if(btn)btn.disabled=true;
+  const {error}=await sb.auth.updateUser({password});
+  if(btn)btn.disabled=false;
+  if(error){toast("Couldn't update password: "+error.message,"err");return false}
+  if($("recoveryPasswordInput"))$("recoveryPasswordInput").value="";
+  $("dlgPasswordRecovery")?.close();
+  toast("Password updated. Future sign-ins use email and password.","ok");
   return true;
 }
 async function signOut(){
@@ -1897,6 +1940,14 @@ async function init(){
   if(acctCreateBtn)acctCreateBtn.addEventListener("click",createPasswordAccount);
   const acctPasswordInput=$("acctPasswordInput");
   if(acctPasswordInput)acctPasswordInput.addEventListener("keydown",e=>{if(e.key==="Enter")signInWithPassword()});
+  const acctForgotPasswordBtn=$("acctForgotPasswordBtn");
+  if(acctForgotPasswordBtn)acctForgotPasswordBtn.addEventListener("click",requestPasswordReset);
+  const recoverySavePasswordBtn=$("recoverySavePasswordBtn");
+  if(recoverySavePasswordBtn)recoverySavePasswordBtn.addEventListener("click",saveRecoveredPassword);
+  const recoveryPasswordInput=$("recoveryPasswordInput");
+  if(recoveryPasswordInput)recoveryPasswordInput.addEventListener("keydown",e=>{if(e.key==="Enter")saveRecoveredPassword()});
+  const recoveryCancelBtn=$("recoveryCancelBtn");
+  if(recoveryCancelBtn)recoveryCancelBtn.addEventListener("click",()=>$("dlgPasswordRecovery")?.close());
   const acctSignOutBtn=$("acctSignOutBtn");
   if(acctSignOutBtn)acctSignOutBtn.addEventListener("click",signOut);
   const retryCloudSyncBtn=$("retryCloudSyncBtn");
