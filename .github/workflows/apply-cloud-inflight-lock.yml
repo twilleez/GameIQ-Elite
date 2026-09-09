@@ -1,3 +1,4 @@
+# Beta cloud reconnect hardening pass
 name: Apply Cloud Sync Inflight Lock
 on:
   workflow_dispatch:
