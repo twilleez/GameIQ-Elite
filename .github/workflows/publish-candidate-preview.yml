@@ -39,6 +39,9 @@ jobs:
           grep -q 'accountBtnText' preview/index.html
           grep -q 'id="acctPasswordInput"' preview/index.html
           grep -q 'signInWithPassword' preview/index.html
+          grep -q 'id="acctAuthStatus"' preview/index.html
+          grep -q 'function friendlyAuthError' preview/index.html
+          grep -q 'Email or password is incorrect, or no account exists for this email.' preview/index.html
           grep -q 'id="acctForgotPasswordBtn"' preview/index.html
           grep -q 'id="dlgPasswordRecovery"' preview/index.html
           grep -q 'resetPasswordForEmail' preview/index.html
@@ -53,5 +56,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add preview
-          git commit -m 'preview: publish hardened cloud beta candidate'
+          git commit -m 'preview: publish auth feedback beta candidate'
           git push
