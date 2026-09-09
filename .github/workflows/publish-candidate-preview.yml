@@ -39,12 +39,17 @@ jobs:
           grep -q 'accountBtnText' preview/index.html
           grep -q 'id="acctPasswordInput"' preview/index.html
           grep -q 'signInWithPassword' preview/index.html
-          if grep -q 'signInWithOtp' preview/index.html; then echo 'Magic-link login still present' && exit 1; fi
+          grep -q 'id="acctForgotPasswordBtn"' preview/index.html
+          grep -q 'id="dlgPasswordRecovery"' preview/index.html
+          grep -q 'resetPasswordForEmail' preview/index.html
+          grep -q 'PASSWORD_RECOVERY' preview/index.html
+          grep -q 'updateUser({password})' preview/index.html
+          if grep -q 'signInWithOtp' preview/index.html; then echo 'Magic-link routine sign-in still present' && exit 1; fi
           grep -q 'gameiq_preview_v3' preview/index.html
       - name: Commit preview refresh
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add preview
-          git commit -m 'preview: publish password-auth candidate'
+          git commit -m 'preview: publish beta recovery candidate'
           git push
