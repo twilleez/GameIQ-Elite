@@ -1,5 +1,15 @@
-const CACHE = "gameiq-elite-v4";
-const APP_SHELL = ["./", "./index.html", "./manifest.json"];
+const CACHE = "gameiq-elite-v5";
+// Everything the courtside app needs locally to start and save a game.
+// Supabase is deliberately not required for core offline use.
+const APP_SHELL = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icon.svg",
+  "./src/services/cloud-sync.js",
+  "./src/services/cloud-hydration.js",
+  "./src/services/program-access.js"
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(
