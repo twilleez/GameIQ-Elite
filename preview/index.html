@@ -11,9 +11,7 @@
 <link rel="manifest" href="manifest.json"/>
 <title>GameIQ Elite — AI Basketball Coaching</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
-window.addEventListener("load",showWelcomeIfNeeded,{once:true});
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --bg:#07101e;--bg2:#0a1628;--panel:#0d1d33;--panel2:#11243d;--panel3:#162c49;
@@ -111,8 +109,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .kpi .lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted)}
 .kpi .val{font-family:"Barlow Condensed",sans-serif;font-size:28px;line-height:1;margin-top:5px}
 .kpi .sub{font-size:10px;color:var(--dim);margin-top:3px}
-.players-list{display:grid;gap:10px}
-.pcard{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.028);transition:border-color .14s}
+.players-list{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.pcard{min-width:0;border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.028);transition:border-color .14s}
 .pcard.warn{border-color:rgba(240,190,62,.35)}
 .pcard.danger{border-color:rgba(239,64,64,.35);background:rgba(239,64,64,.04)}
 .pcard.benched{opacity:.5;border-style:dashed}
@@ -289,7 +287,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .game-focus #newBtn,.game-focus .btn-gold,.game-focus #settingsBtn,.game-focus #gameOverBtn{display:none}
 .game-focus .brand-sub{opacity:.45}
 .game-focus .topbar-row1{padding-bottom:6px}
-@media(max-width:1200px){.g2,.g2r,.gcols{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:1200px){.g2,.g2r,.gcols{grid-template-columns:minmax(0,1fr)}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:860px){
   html,body{overflow:auto}
   .app{grid-template-columns:1fr;height:auto;min-height:100vh;overflow:visible}
@@ -298,8 +296,8 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   .views{overflow:visible}
   .view{padding:14px 14px 100px}
   .kpi-row,.analytics-row{grid-template-columns:1fr 1fr}
-  .live-grid{grid-template-columns:1fr 1fr}
-  .adv-grid{grid-template-columns:1fr 1fr}
+  .live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .adv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ss-row{grid-template-columns:repeat(3,1fr)}
   .add-grid{grid-template-columns:70px 1fr;gap:8px}
   .add-grid .btn-primary{grid-column:1/-1}
@@ -1059,9 +1057,15 @@ async function hydrate(){
   if(!Array.isArray(S.games))S.games=[];S.nextId=Number(S.nextId||1);
 }
 
-function snap(){const c={...S};delete c.histStack;delete c.clock;return JSON.parse(JSON.stringify(c))}
+const UNDO_KEYS=["teams","activeTeamId","shots","awayScore","pmData","quarter","nextId","timeouts","currentGameId"];
+function snap(){const c={};UNDO_KEYS.forEach(k=>{if(S[k]!==undefined)c[k]=S[k]});return JSON.parse(JSON.stringify(c))}
 function pushH(){const s=snap();S.histStack.push(s);if(S.histStack.length>40)S.histStack.shift()}
-function undo(){const p=S.histStack.pop();if(!p)return false;const st=S.histStack;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,p);S.histStack=st;return true}
+function undo(){
+  const p=S.histStack.pop();if(!p)return false;
+  UNDO_KEYS.forEach(k=>{if(k in p)S[k]=p[k];else if(k==="currentGameId")S[k]=null});
+  if(!S.teams.find(t=>t.id===S.activeTeamId))S.activeTeamId=S.teams[0].id;
+  return true;
+}
 
 let clockInterval=null;
 function clockTick(){if(!S.clock.running)return;if(S.clock.secs>0){S.clock.secs--;renderClock()}else{stopClock();toast("⏱ Period ended")}}
@@ -1126,7 +1130,17 @@ function renderSyncDiagnostics(){
 }
 const FIRST_LAUNCH_KEY="gameiq_first_launch_v1";
 function finishFirstLaunch(){try{localStorage.setItem(FIRST_LAUNCH_KEY,"1")}catch(e){}}
-function showWelcomeIfNeeded(){if(!localStorage.getItem(FIRST_LAUNCH_KEY)&&!authUser)setTimeout(()=>$("dlgWelcome")?.showModal(),180)}
+function hasLocalData(){try{return (S.teams||[]).some(t=>(t.players||[]).length>0)||(S.games||[]).length>0}catch(e){return false}}
+function showWelcomeIfNeeded(){
+  let seen=false;try{seen=!!localStorage.getItem(FIRST_LAUNCH_KEY)}catch(e){}
+  if(seen)return;
+  // Coaches who already have a roster or saved games are not first-time users.
+  if(hasLocalData()){finishFirstLaunch();return}
+  setTimeout(()=>{
+    if(authUser||hasLocalData()){finishFirstLaunch();return}
+    const d=$("dlgWelcome");if(d&&!d.open&&!document.querySelector("dialog[open]"))d.showModal();
+  },400);
+}
 function openFirstSetup(){
   $("dlgWelcome")?.close();
   firstSetupStep(1);
@@ -1812,18 +1826,23 @@ async function pullCloudGamesToDevice(){
 function freeGameSlotsUsed(){
   return (S.games||[]).filter(g=>g&&g.countsTowardFreeLimit===true).length;
 }
+function currentSavedGame(){
+  if(S.currentGameId==null)return null;
+  return (S.games||[]).find(g=>g&&g.id===S.currentGameId&&g.teamId===S.activeTeamId)||null;
+}
 function saveGame(){
+  const existing=currentSavedGame();
   const lim=tierLimit().games;
   const used=freeGameSlotsUsed();
-  if(used>=lim&&!isPro()){
+  if(!existing&&used>=lim&&!isPro()){
     toast(`Free plan: ${used}/${lim} saved games used. Delete a Free game or upgrade for unlimited.`,"err");
     openPricing();return false;
   }
   const tt=totTeam();
   const ldr=leader();
   const game={
-    id:Date.now(),
-    countsTowardFreeLimit:!isPro(),
+    id:existing?existing.id:Date.now(),
+    countsTowardFreeLimit:existing?existing.countsTowardFreeLimit===true:!isPro(),
     teamId:S.activeTeamId,
     localUpdatedAt:new Date().toISOString(),
     date:$("gameDate")?.value||today(),
@@ -1839,12 +1858,18 @@ function saveGame(){
     players:JSON.parse(JSON.stringify(team().players)),
     shots:JSON.parse(JSON.stringify(S.shots))
   };
-  S.games.push(game);
+  if(existing){
+    // Same game saved again (halftime, then final): replace it in place and re-sync.
+    S.games[S.games.indexOf(existing)]=game;
+  }else{
+    S.games.push(game);
+  }
+  S.currentGameId=game.id;
   persist();
   queueCloudSync(game,localTeamForSavedGame(game));
   renderSeasonView();
   renderSummary();
-  toast("Game saved ✓","ok");
+  toast(existing?"Game updated ✓":"Game saved ✓","ok");
   vibe(50);
   return true;
 }
@@ -1949,7 +1974,7 @@ function newGame(){
   if(!confirm("Start a new game? Current unsaved stats will be lost."))return;
   pushH();
   team().players.forEach(p=>{p.q={};p.onCourt=true;p.courtEnteredAt=null});
-  S.shots=[];S.awayScore=0;S.quarter=1;S.pmData={};
+  S.shots=[];S.awayScore=0;S.quarter=1;S.pmData={};S.currentGameId=null;
   stopClock();S.clock.secs=S.clock.periodSecs;
   if($("gameDate"))$("gameDate").value=today();
   persist();doRender();
@@ -1961,25 +1986,25 @@ async function init(){
   await hydrate();
   S.tier="free";
   updateTierUI();
-  initAuth();
+  try{initAuth()}catch(e){console.warn("GameIQ: auth init failed",e);sb=null}
   window.addEventListener('online',async()=>{await retryPendingCloudSync();renderSyncDiagnostics()});
   window.addEventListener('offline',renderSyncDiagnostics);
   if($("gameDate")&&!$("gameDate").value)$("gameDate").value=today();
 
   const welcomeSignInBtn=$("welcomeSignInBtn");
-  if(welcomeSignInBtn)welcomeSignInBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
+  if(welcomeSignInBtn)welcomeSignInBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();finishFirstLaunch();openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
   const welcomeStartFreeBtn=$("welcomeStartFreeBtn");
   if(welcomeStartFreeBtn)welcomeStartFreeBtn.addEventListener("click",openFirstSetup);
   const welcomeDemoBtn=$("welcomeDemoBtn");
   if(welcomeDemoBtn)welcomeDemoBtn.addEventListener("click",()=>{$("dlgWelcome")?.close();finishFirstLaunch();toast("Explore GameIQ, then add your own team when ready","ok")});
   const firstTeamNextBtn=$("firstTeamNextBtn");
-  if(firstTeamNextBtn)firstTeamNextBtn.addEventListener("click",()=>{const name=$("firstTeamName")?.value?.trim();if(!name){toast("Enter a team name","err");return;}const t=team();if(t)t.name=name;persist();renderAll();firstSetupStep(2)});
+  if(firstTeamNextBtn)firstTeamNextBtn.addEventListener("click",()=>{const name=$("firstTeamName")?.value?.trim();if(!name){toast("Enter a team name","err");return;}const t=team();if(t)t.name=name;persist();doRender();firstSetupStep(2)});
   const firstAddPlayersBtn=$("firstAddPlayersBtn");
-  if(firstAddPlayersBtn)firstAddPlayersBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("teams");toast("Add players, then start your first game","ok")});
+  if(firstAddPlayersBtn)firstAddPlayersBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();navigate("live");setTimeout(()=>{const n=$("addNum");if(n){n.scrollIntoView({block:"center"});n.focus()}},80);toast("Add jersey # and name, then tap + Add","ok")});
   const firstSkipPlayersBtn=$("firstSkipPlayersBtn");
   if(firstSkipPlayersBtn)firstSkipPlayersBtn.addEventListener("click",()=>firstSetupStep(3));
   const firstStartGameBtn=$("firstStartGameBtn");
-  if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();switchView("live");toast("Ready for your first game","ok")});
+  if(firstStartGameBtn)firstStartGameBtn.addEventListener("click",()=>{$("dlgFirstSetup")?.close();finishFirstLaunch();navigate("live");toast("Ready for your first game","ok")});
   const accountBtn=$("accountBtn");
   if(accountBtn)accountBtn.addEventListener("click",()=>{if(authUser){signOut();return;}openSettings();setTimeout(()=>$("acctEmailInput")?.focus(),50)});
   const acctSignInBtn=$("acctSignInBtn");
@@ -2015,6 +2040,7 @@ async function init(){
   if(acceptProgramInviteBtn)acceptProgramInviteBtn.addEventListener("click",acceptProgramInviteFromUI);
   const programInviteInput=$("programInviteInput");
   if(programInviteInput)programInviteInput.addEventListener("keydown",e=>{if(e.key==="Enter")acceptProgramInviteFromUI()});
+  showWelcomeIfNeeded();
   const billingState=new URLSearchParams(location.search).get("billing");
   if(billingState==="success")toast("Subscription checkout completed. Updating your plan…","ok");
   if(billingState==="cancelled")toast("Checkout cancelled");
