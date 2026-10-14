@@ -1,0 +1,54 @@
+name: Final Product Smoke
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.json'
+      - 'icon.svg'
+      - 'src/**'
+      - 'tests/courtside-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/final-product-smoke.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.json'
+      - 'icon.svg'
+      - 'src/**'
+      - 'tests/courtside-smoke.mjs'
+      - 'package.json'
+      - '.github/workflows/final-product-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  final-product:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependency
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/gameiq-http.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:8765/index.html >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/gameiq-http.log
+          exit 1
+      - name: Run final product smoke
+        run: npm run test:production
