@@ -107,10 +107,27 @@ const score = page => page.locator('#scoreHome').innerText();
       const x = b.getBoundingClientRect();
       return x.width < 44 || x.height < 44;
     }).length;
-    return { vw, cardRight: Math.round(r.right), off, small, pageWide: document.documentElement.scrollWidth > vw };
+    const liveGrid = card.querySelector('.live-grid');
+    const players = document.querySelector('#playersList');
+    const cardBody = players?.closest('.card-body');
+    const outerCard = players?.closest('.card');
+    const g2 = players?.closest('.g2');
+    return {
+      vw,
+      cardRight: Math.round(r.right),
+      cardWidth: Math.round(r.width),
+      playersWidth: Math.round(players?.getBoundingClientRect().width || 0),
+      cardBodyWidth: Math.round(cardBody?.getBoundingClientRect().width || 0),
+      outerCardWidth: Math.round(outerCard?.getBoundingClientRect().width || 0),
+      g2Width: Math.round(g2?.getBoundingClientRect().width || 0),
+      grid: liveGrid ? getComputedStyle(liveGrid).gridTemplateColumns : '',
+      off,
+      small,
+      pageWide: document.documentElement.scrollWidth > vw
+    };
   });
   check('player card fits phone screen', layout.cardRight <= layout.vw && !layout.pageWide,
-    `card right edge ${layout.cardRight}px of ${layout.vw}px`);
+    `card right ${layout.cardRight}px / viewport ${layout.vw}px; card ${layout.cardWidth}px; players ${layout.playersWidth}px; body ${layout.cardBodyWidth}px; outer ${layout.outerCardWidth}px; g2 ${layout.g2Width}px; grid ${layout.grid}`);
   check('every stat button is on screen', layout.off === 0, `${layout.off} off screen`);
   check('stat buttons are at least 44px', layout.small === 0, `${layout.small} too small`);
 
