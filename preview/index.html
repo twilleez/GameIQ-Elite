@@ -109,8 +109,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .kpi .lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted)}
 .kpi .val{font-family:"Barlow Condensed",sans-serif;font-size:28px;line-height:1;margin-top:5px}
 .kpi .sub{font-size:10px;color:var(--dim);margin-top:3px}
-.players-list{display:grid;gap:10px}
-.pcard{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.028);transition:border-color .14s}
+.players-list{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.pcard{min-width:0;border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.028);transition:border-color .14s}
 .pcard.warn{border-color:rgba(240,190,62,.35)}
 .pcard.danger{border-color:rgba(239,64,64,.35);background:rgba(239,64,64,.04)}
 .pcard.benched{opacity:.5;border-style:dashed}
