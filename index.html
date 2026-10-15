@@ -287,25 +287,133 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .game-focus #newBtn,.game-focus .btn-gold,.game-focus #settingsBtn,.game-focus #gameOverBtn{display:none}
 .game-focus .brand-sub{opacity:.45}
 .game-focus .topbar-row1{padding-bottom:6px}
-@media(max-width:1200px){.g2,.g2r,.gcols{grid-template-columns:minmax(0,1fr)}.g3{grid-template-columns:1fr 1fr}}
-@media(max-width:860px){
-  html,body{overflow:auto}
-  .app{grid-template-columns:1fr;height:auto;min-height:100vh;overflow:visible}
+/* ── Mobile + tablet courtside layout ───────────────────────── */
+@media(max-width:1180px){
+  html,body{overflow:auto;overflow-x:hidden;max-width:100%}
+  body{-webkit-text-size-adjust:100%;overscroll-behavior-y:contain}
+  .app{grid-template-columns:1fr;height:auto;min-height:100vh;overflow:visible;width:100%;max-width:100%}
   .sidebar{display:none}
-  .shell{grid-template-rows:auto 1fr;overflow:visible}
-  .views{overflow:visible}
-  .view{padding:14px 14px 100px}
-  .kpi-row,.analytics-row{grid-template-columns:1fr 1fr}
-  .live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .adv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ss-row{grid-template-columns:repeat(3,1fr)}
-  .add-grid{grid-template-columns:70px 1fr;gap:8px}
-  .add-grid .btn-primary{grid-column:1/-1}
+  .shell{grid-template-rows:auto 1fr;overflow:visible;min-width:0;width:100%;max-width:100%}
+  .topbar{position:sticky;top:0;z-index:40;width:100%;max-width:100%;box-sizing:border-box}
+  .topbar-row1,.topbar-row2,.clock-strip{width:100%;max-width:100%;box-sizing:border-box}
+  .topbar-row1>*,.topbar-row2>*,.clock-strip>*{min-width:0}
+  .views{overflow:visible;overflow-x:hidden;min-width:0;width:100%;max-width:100%}
+  .view{padding:16px 18px calc(92px + var(--safe-b));min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+  .g2,.g2r,.gcols{grid-template-columns:minmax(0,1fr);width:100%;min-width:0;max-width:100%}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card,.card-body,.gstack,.players-list,.pcard{min-width:0}
+  .footernav{
+    display:flex;position:fixed;left:0;right:0;bottom:0;
+    padding:8px 10px calc(8px + var(--safe-b));gap:6px;
+    box-shadow:0 -10px 28px rgba(0,0,0,.28)
+  }
+  .footernav .btn{
+    min-width:0;min-height:52px;padding:6px 4px;
+    font-size:11px;line-height:1.1;white-space:normal
+  }
+  .btn,.seg,.qbtn,.pill{min-height:44px}
+  .score-adj{width:44px;height:44px;min-height:44px}
+  .to-dot{width:18px;height:18px}
+  dialog{width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px)}
+  .modal{padding:20px}
+}
+
+/* Tablet landscape: keep roster + shot chart visible together. */
+@media(min-width:900px) and (max-width:1180px) and (orientation:landscape){
+  #view-live>.g2{grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr);align-items:start}
+  #view-live>.g2>.gstack{position:sticky;top:196px}
+  .live-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .adv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .add-grid{grid-template-columns:72px 1fr 1fr auto}
+  .meta-fields{display:flex}
+  .topbar-row1{padding:8px 14px}
+  .topbar-row2,.clock-strip{padding-left:14px;padding-right:14px}
+  .footernav{max-width:760px;left:50%;right:auto;transform:translateX(-50%);border:1px solid var(--line);border-bottom:none;border-radius:18px 18px 0 0}
+}
+
+/* Tablet portrait / small landscape. */
+@media(min-width:601px) and (max-width:899px){
+  .view{padding:14px 16px calc(94px + var(--safe-b))}
+  .kpi-row,.analytics-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .live-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .adv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .ss-row{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .add-grid{grid-template-columns:72px 1fr 1fr auto}
+  .meta-fields{display:flex;width:100%;order:3}
+  .meta-fields .field{flex:1;min-width:150px}
+  .topbar-row1{padding:9px 14px}
+  .topbar-row2,.clock-strip{padding-left:14px;padding-right:14px}
+}
+
+/* Phones: prioritize game controls and thumb reach. */
+@media(max-width:600px){
+  .topbar{position:relative}
+  .topbar-row1{padding:8px 10px;gap:8px}
+  .topbar-row1>div:first-child{min-width:0}
+  .brand-text{font-size:24px}
+  .brand-sub{display:none}
+  .tier-badge{font-size:9px;padding:3px 7px;margin-left:4px}
   .meta-fields{display:none}
-  .gameover-stats{grid-template-columns:repeat(2,1fr)}
-  .pricing-grid{grid-template-columns:1fr}
-  .footernav{display:flex}
+  .topbar-row1>div:nth-child(3){width:100%;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px!important}
+  .topbar-row1>div:nth-child(3) .btn{padding:7px 6px;min-width:0}
+  .topbar-row1>div:nth-child(3) .btn-gold{display:none}
+  #accountBtnText,.topbar-row1 #autosaveChip{display:none}
+  #accountBtn,#settingsBtn{font-size:16px!important}
+  .topbar-row2{
+    display:grid;grid-template-columns:auto 1fr;gap:7px;
+    padding:0 10px 8px
+  }
+  .topbar-row2>.segs{align-self:center}
+  .topbar-row2>div:nth-child(2){display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px!important}
+  .topbar-row2>div:nth-child(3){grid-column:1/-1;display:grid!important;grid-template-columns:1fr 1fr;gap:6px!important}
+  .seg,.qbtn{padding:6px 8px;min-width:0}
+  .clock-strip{display:grid;grid-template-columns:1fr auto auto;gap:7px;padding:0 10px 8px}
+  .clock-display{font-size:32px;min-width:0;padding:3px 10px}
+  #clockToggleBtn,#clockResetBtn{padding:7px 10px}
+  .clock-strip>div:nth-of-type(1){grid-column:1/-1;justify-content:space-between}
+  .clock-strip>div:nth-of-type(2){grid-column:1/-1;display:flex!important;flex-wrap:wrap;justify-content:space-between;gap:8px;min-width:0}
+  .clock-strip>div:last-child{display:none}
   .score-vs{display:none}
+  .view{padding:12px 10px calc(96px + var(--safe-b));overflow-x:hidden}
+  #view-live>.g2,#view-live>.g2>*{min-width:0;max-width:100%}
+  #view-live .card,#view-live .card-body,#view-live .players-list{max-width:100%;box-sizing:border-box}
+  .card{border-radius:16px}
+  .card-head{padding:12px;align-items:flex-start;flex-wrap:wrap}
+  .card-head>div:last-child{width:100%}
+  .card-head>div:last-child .btn{flex:1}
+  .card-body{padding:12px}
+  .kpi-row,.analytics-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .kpi{padding:9px 10px;border-radius:13px}
+  .kpi .val{font-size:24px}
+  .g3{grid-template-columns:minmax(0,1fr)}
+  .live-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .adv-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .stat-tile,.mini-card{padding:8px}
+  .stepper{grid-template-columns:48px minmax(34px,1fr) 48px;gap:4px}
+  .stepper button{height:52px;min-height:52px}
+  .ss-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .add-grid{grid-template-columns:64px minmax(0,1fr);gap:7px}
+  .add-grid #addPhone{grid-column:1/-1}
+  .add-grid .btn-primary{grid-column:1/-1;min-height:50px}
+  .shot-controls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .shot-controls select{grid-column:1/-1;min-height:46px}
+  .shot-controls .pill{width:100%}
+  .court-wrap{border-radius:12px}
+  .pricing-grid{grid-template-columns:1fr}
+  .gameover-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .modal{padding:16px}
+  .modal-actions .btn{flex:1 1 140px}
+  .footernav{padding-left:6px;padding-right:6px;gap:4px;width:100%;max-width:100%;box-sizing:border-box}
+  .footernav .btn{font-size:10px;min-height:54px;border-radius:10px}
+}
+
+@media(max-width:380px){
+  .topbar-row1>div:nth-child(3){grid-template-columns:repeat(3,minmax(0,1fr))}
+  #newBtn{display:none}
+  .clock-strip{grid-template-columns:1fr auto}
+  #clockResetBtn{display:none}
+  .live-grid,.adv-grid{grid-template-columns:minmax(0,1fr)}
+  .footernav .btn{font-size:9px}
 }
 @media print{
   body{background:white;color:#111;overflow:auto}
@@ -622,12 +730,12 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     </div>
   </div>
 
-  <nav class="footernav">
-    <button class="btn fav" data-nav="live">🏀 Live</button>
-    <button class="btn btn-secondary" data-nav="dashboard">🏠</button>
-    <button class="btn btn-secondary" data-nav="coach">📊</button>
-    <button class="btn btn-secondary" data-nav="season">📈</button>
-    <button class="btn btn-secondary" data-nav="aicoach">🤖</button>
+  <nav class="footernav" aria-label="Courtside navigation">
+    <button class="btn fav" data-nav="live" aria-label="Live game">🏀<br>Live</button>
+    <button class="btn btn-secondary" data-nav="dashboard" aria-label="Dashboard">🏠<br>Home</button>
+    <button class="btn btn-secondary" data-nav="coach" aria-label="Coach analytics">📊<br>Coach</button>
+    <button class="btn btn-secondary" data-nav="season" aria-label="Season">📈<br>Season</button>
+    <button class="btn btn-secondary" data-nav="aicoach" aria-label="AI Coach">🤖<br>AI</button>
   </nav>
 </section>
 </div>

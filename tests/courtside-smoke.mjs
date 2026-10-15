@@ -9,11 +9,11 @@ const check = (name, ok, detail = '') => {
 };
 
 const browser = await chromium.launch();
-async function open({ blockAccountLibrary = false, sw = 'block' } = {}) {
+async function open({ blockAccountLibrary = false, sw = 'block', viewport = { width: 390, height: 844 }, isMobile = true } = {}) {
   const ctx = await browser.newContext({
-    viewport: { width: 390, height: 844 },
+    viewport,
     hasTouch: true,
-    isMobile: true,
+    isMobile,
     serviceWorkers: sw
   });
   if (blockAccountLibrary) {
@@ -184,7 +184,61 @@ const score = page => page.locator('#scoreHome').innerText();
   await ctx.close();
 }
 
-// 4. Installed PWA, then no connection.
+// 4. Tablet portrait and landscape are first-class courtside layouts.
+{
+  const portrait = await open({ viewport: { width: 768, height: 1024 }, isMobile: false });
+  await closeDialogs(portrait.page);
+  await go(portrait.page, 'live');
+  await addPlayers(portrait.page, ['Ace', 'Bo', 'Cy']);
+  const p = await portrait.page.evaluate(() => {
+    const footer = document.querySelector('.footernav');
+    const sidebar = document.querySelector('.sidebar');
+    const buttons = [...document.querySelectorAll('.footernav .btn,.pcard .stepper button')].filter(el => el.offsetParent);
+    return {
+      overflow: document.documentElement.scrollWidth > innerWidth,
+      footerVisible: !!footer && getComputedStyle(footer).display !== 'none',
+      footerFixed: !!footer && getComputedStyle(footer).position === 'fixed',
+      sidebarHidden: !!sidebar && getComputedStyle(sidebar).display === 'none',
+      smallTargets: buttons.filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.width < 44 || r.height < 44;
+      }).length,
+      liveColumns: getComputedStyle(document.querySelector('#view-live>.g2')).gridTemplateColumns
+    };
+  });
+  check('tablet portrait has no horizontal overflow', !p.overflow);
+  check('tablet portrait uses fixed courtside bottom nav', p.footerVisible && p.footerFixed);
+  check('tablet portrait hides desktop sidebar', p.sidebarHidden);
+  check('tablet portrait touch targets are at least 44px', p.smallTargets === 0, `${p.smallTargets} too small`);
+  check('tablet portrait stacks live roster and shot chart', !String(p.liveColumns).includes(' '), p.liveColumns);
+  await portrait.ctx.close();
+
+  const landscape = await open({ viewport: { width: 1024, height: 768 }, isMobile: false });
+  await closeDialogs(landscape.page);
+  await go(landscape.page, 'live');
+  await addPlayers(landscape.page, ['Ace', 'Bo', 'Cy']);
+  const l = await landscape.page.evaluate(() => {
+    const grid = document.querySelector('#view-live>.g2');
+    const roster = document.querySelector('#playersList')?.closest('.card');
+    const shot = document.querySelector('#court')?.closest('.card');
+    const footer = document.querySelector('.footernav');
+    const gr = grid.getBoundingClientRect(), rr = roster.getBoundingClientRect(), sr = shot.getBoundingClientRect();
+    return {
+      overflow: document.documentElement.scrollWidth > innerWidth,
+      columns: getComputedStyle(grid).gridTemplateColumns,
+      sideBySide: getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length === 2,
+      footerVisible: !!footer && getComputedStyle(footer).display !== 'none',
+      footerFixed: !!footer && getComputedStyle(footer).position === 'fixed',
+      gridWidth: Math.round(gr.width)
+    };
+  });
+  check('tablet landscape has no horizontal overflow', !l.overflow);
+  check('tablet landscape keeps roster and shot chart side by side', l.sideBySide, l.columns);
+  check('tablet landscape keeps bottom navigation reachable', l.footerVisible && l.footerFixed);
+  await landscape.ctx.close();
+}
+
+// 5. Installed PWA, then no connection.
 {
   const { ctx, page, errors } = await open({ sw: 'allow' });
   await closeDialogs(page);
