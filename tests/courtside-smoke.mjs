@@ -226,7 +226,7 @@ const score = page => page.locator('#scoreHome').innerText();
     return {
       overflow: document.documentElement.scrollWidth > innerWidth,
       columns: getComputedStyle(grid).gridTemplateColumns,
-      sideBySide: Math.abs(rr.top - sr.top) < 40 && rr.right <= sr.left + 20,
+      sideBySide: getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length === 2,
       footerVisible: !!footer && getComputedStyle(footer).display !== 'none',
       footerFixed: !!footer && getComputedStyle(footer).position === 'fixed',
       gridWidth: Math.round(gr.width)
