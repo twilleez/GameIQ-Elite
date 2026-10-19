@@ -19,6 +19,8 @@ function fakeSupabase() {
     let conflictKeys = null;
     let wantSingle = false;
     let limitN = null;
+    let rangeFrom = null;
+    let rangeTo = null;
     const inFilters = [];
     const run = () => {
       const rows = rowsOf(table);
@@ -40,6 +42,8 @@ function fakeSupabase() {
       }
       let out = rows.filter((r) => filters.every(([k, v]) => r[k] === v));
       if (limitN != null) out = out.slice(0, limitN);
+      // Mimic Supabase's default max-rows cap of 1000 per request.
+      if (op === 'select' && !wantSingle) out = out.slice(rangeFrom ?? 0, Math.min((rangeTo ?? Infinity) + 1, (rangeFrom ?? 0) + 1000));
       if (wantSingle === 'maybe') return out[0] || null;
       if (wantSingle) return out[0];
       return out;
@@ -49,6 +53,7 @@ function fakeSupabase() {
       eq(k, v) { filters.push([k, v]); return api; },
       gt() { return api; },
       order() { return api; },
+      range(a, b) { rangeFrom = a; rangeTo = b; return api; },
       limit(n) { limitN = n; return api; },
       in(k, vs) { inFilters.push([k, vs]); return api; },
       delete() { op = 'delete'; return api; },
@@ -212,4 +217,142 @@ test('QA P2: an older copy of a game cannot overwrite or prune a newer cloud sav
   const result = await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(older, team.playerMap));
   assert.equal(result.skippedAsOlder, true);
   assert.equal(sb.tables.shots.length, newer.shots.length);
+});
+
+// ---------- Step 2, issue #16: ledger events sync and hydrate ----------
+import * as L from '../src/services/event-ledger.js';
+
+function ledgerGame() {
+  const gk = '1761000000000';
+  let seq = 0;
+  const ev = (type, fields = {}) => L.makeEvent({ gameKey: gk, deviceId: 'dA', seq: ++seq, type, period: 1, ...fields });
+  const events = [
+    ev('sub', { pid: 1, payload: { dir: 'in', home: 0, away: 0 } }),
+    ev('shot', { pid: 1, payload: { made: true, pts: 3, x: 20, y: 100, src: 'chart' } }),
+    ev('shot', { pid: 2, payload: { made: false, pts: 2, x: 210, y: 80, src: 'chart' } }),
+    ev('ft', { pid: 2, payload: { made: true, src: 'stepper' } }),
+    ev('reb', { pid: 2, payload: { kind: 'unk' } }),
+    ev('opp_pts', { value: 2 }),
+    ev('period', { payload: { from: 1, to: 2 }, period: 2 }),
+    ev('shot', { pid: 2, period: 2, payload: { made: true, pts: 2, x: 200, y: 90, src: 'chart' } }),
+    ev('foul', { pid: 1, period: 2, payload: { kind: 'personal' } }),
+    ev('sub', { pid: 1, period: 2, payload: { dir: 'out', home: 6, away: 2 } }),
+  ];
+  // a mistake corrected with a void
+  const wrong = ev('ast', { pid: 2, period: 2 });
+  events.push(wrong, L.makeVoid({ gameKey: gk, deviceId: 'dA', seq: ++seq, targets: [wrong.ref], reason: 'undo', period: 2 }));
+  const rebuilt = L.rebuildBox(events);
+  const players = [{ id: 1, num: '3', name: 'Ava', pos: 'G' }, { id: 2, num: '24', name: 'Bea', pos: 'F' }].map((p) => {
+    const q = {};
+    for (const [per, c] of Object.entries(rebuilt.box[String(p.id)] || {})) q[/^\d+$/.test(per) ? Number(per) : per] = { ...c };
+    return { ...p, q };
+  });
+  return {
+    id: Number(gk), teamId: 'td', teamName: 'Wildcats', date: '2026-10-19', away: 'Tigers', quarter: 2,
+    teamPts: 6, awayScore: 2, localUpdatedAt: '2026-10-19T20:00:00.000Z',
+    players, shots: rebuilt.shots, events, ledgerKey: gk, ledgerVersion: 1, expected: rebuilt,
+  };
+}
+
+async function syncLedgerGame(sb, user, game) {
+  const ws = await sync.ensureWorkspace(sb, user);
+  const team = await sync.syncTeam(sb, user, ws.id, { id: game.teamId, name: game.teamName, players: game.players });
+  await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(game, team.playerMap, { isThree: isThreePointShot }));
+  return team;
+}
+
+test('#16 criterion 8: a ledger game restores on a clean device with identical box, chart, plus/minus and event order', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = ledgerGame();
+  const team = await syncLedgerGame(sb, user, game);
+  const restored = cloudStateToLocal(await sync.pullTeamCloudState(sb, team.team.id), team.team, 'td').games[0];
+
+  for (const original of game.players) {
+    const back = restored.players.find((p) => String(p.id) === String(original.id));
+    assert.ok(back, `${original.name} restored`);
+    for (const [period, counters] of Object.entries(original.q)) {
+      for (const key of L.STAT_KEYS) assert.equal(back.q[period]?.[key] ?? 0, counters[key], `${original.name} Q${period} ${key}`);
+    }
+  }
+  const dot = (s) => `${s.pid}|${s.x}|${s.y}|${s.type}|${s.det}|${s.q}`;
+  assert.deepEqual(restored.shots.map(dot).sort(), game.shots.map(dot).sort());
+  assert.deepEqual(restored.pmData, game.expected.pm);
+  assert.deepEqual(restored.events.map((e) => e.ref), game.events.map((e) => e.ref), 'same events in the same order, voids included');
+  assert.equal(restored.events.filter((e) => e.type === 'void').length, 1);
+  assert.deepEqual(L.rebuildBox(restored.events).box, game.expected.box, 'restored ledger rebuilds to the same box');
+});
+
+test('#16: re-saving a ledger game twice creates no duplicate event rows', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = ledgerGame();
+  const team = await syncLedgerGame(sb, user, game);
+  const rowsAfterFirst = sb.tables.game_events.length;
+  game.localUpdatedAt = '2026-10-19T20:05:00.000Z';
+  await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(game, team.playerMap, { isThree: isThreePointShot }));
+  assert.equal(sb.tables.game_events.length, rowsAfterFirst);
+  assert.equal(sb.tables.game_events.filter((r) => r.event_type !== 'box_line').length, game.events.length);
+});
+
+test('#16: an old cloud game with only box_line rows still restores', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = sampleGame(); // pre-ledger game, no events
+  const ws = await sync.ensureWorkspace(sb, user);
+  const team = await sync.syncTeam(sb, user, ws.id, { id: game.teamId, name: game.teamName, players: game.players });
+  await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(game, team.playerMap));
+  const restored = cloudStateToLocal(await sync.pullTeamCloudState(sb, team.team.id), team.team, 'td').games[0];
+  assert.equal(restored.events, undefined);
+  assert.equal(restored.players.find((p) => p.name === 'Ava').q[1].p3m, 1);
+});
+
+test('QA #16 P1: a newer save without ledger events wins over older ledger rows', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = ledgerGame();
+  const team = await syncLedgerGame(sb, user, game);
+  // Same game saved later without events (ledger off on this device), with different stats.
+  const later = { ...game, events: undefined, localUpdatedAt: '2026-10-19T21:00:00.000Z' };
+  later.players = later.players.map((p) => (p.id === 2 ? { ...p, q: { 1: { ...p.q[1], p2m: 9, p2a: 9 } } } : p));
+  await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(later, team.playerMap));
+  const restored = cloudStateToLocal(await sync.pullTeamCloudState(sb, team.team.id), team.team, 'td').games[0];
+  assert.equal(restored.players.find((p) => p.id === 2).q[1].p2m, 9);
+  assert.equal(restored.events, undefined);
+});
+
+test('QA #16 P1 (old-build device): box_line rows newer than the ledger are used', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = ledgerGame();
+  const team = await syncLedgerGame(sb, user, game);
+  // Simulate an old build: it updates box_line rows but never touches ledger rows.
+  for (const row of sb.tables.game_events) if (row.event_type === 'box_line') { row.local_updated_at = '2026-10-19T22:00:00.000Z'; if (row.player_id === team.playerMap.get('player:2') && row.period === '1') row.payload = { ...row.payload, p2m: 7, p2a: 7 }; }
+  const restored = cloudStateToLocal(await sync.pullTeamCloudState(sb, team.team.id), team.team, 'td').games[0];
+  assert.equal(restored.events, undefined);
+  assert.equal(restored.players.find((p) => p.name === 'Bea').q[1].p2m, 7);
+});
+
+test('QA #16 P1: pulls read every page, so games past 1000 event rows restore in full', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const ws = await sync.ensureWorkspace(sb, user);
+  let team;
+  const games = [];
+  for (let g = 0; g < 4; g++) {
+    const game = ledgerGame();
+    game.id += g; game.ledgerKey = String(game.id);
+    // pad each game with 300 rebounds so the team has >1000 event rows
+    let seq = 1000;
+    for (let i = 0; i < 300; i++) game.events.push(L.makeEvent({ gameKey: String(game.id), deviceId: 'dA', seq: ++seq, type: 'reb', pid: 1, period: 1, payload: { kind: 'unk' } }));
+    games.push(game);
+    team = await sync.syncTeam(sb, user, ws.id, { id: game.teamId, name: game.teamName, players: game.players });
+    await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(game, team.playerMap));
+  }
+  assert.ok(sb.tables.game_events.length > 1000);
+  const restored = cloudStateToLocal(await sync.pullTeamCloudState(sb, team.team.id), team.team, 'td').games;
+  for (const game of games) {
+    const back = restored.find((g) => g.id === game.id);
+    assert.equal(back.events.length, game.events.length, `game ${game.id} restored all events`);
+  }
 });
