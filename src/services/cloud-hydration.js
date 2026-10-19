@@ -1,3 +1,5 @@
+import { rebuildBox, LEDGER_VERSION } from './event-ledger.js';
+
 function localIdFromClientRef(ref, kind) {
   const prefix = `${kind}:`;
   if (!ref || !String(ref).startsWith(prefix)) return String(ref || '');
@@ -88,6 +90,49 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
     cloudSyncedAt: row.updated_at || new Date().toISOString(),
     cloudId: row.id,
   }));
+  // Ledger games: rebuild from the uploaded events and ignore box_line rows.
+  const ledgerByGame = new Map();
+  for (const row of cloudState?.events || []) {
+    if (!row.event_type || row.event_type === 'box_line') continue;
+    if (!ledgerByGame.has(row.game_id)) ledgerByGame.set(row.game_id, []);
+    const { seq, synthetic, pid: localPid, ...payload } = row.payload || {};
+    const pid = row.player_id ? (playerByCloudId.get(row.player_id) ?? localPid ?? null) : (localPid ?? null);
+    ledgerByGame.get(row.game_id).push({
+      ref: String(row.client_ref || '').replace(/^event:/, ''),
+      gameKey: null,
+      seq: Number(seq ?? 0),
+      type: row.event_type,
+      pid,
+      period: /^\d+$/.test(String(row.period)) ? Number(row.period) : row.period,
+      clock: row.clock_seconds ?? null,
+      value: row.value ?? null,
+      payload,
+      at: row.occurred_at,
+      synthetic: Boolean(synthetic),
+    });
+  }
+  for (const game of games) {
+    const events = ledgerByGame.get(game.cloudId);
+    if (!events?.length) continue;
+    events.forEach((event) => { event.gameKey = String(game.id); });
+    events.sort((a, b) => (a.seq - b.seq) || a.ref.localeCompare(b.ref));
+    const rebuilt = rebuildBox(events);
+    const rosterById = new Map(players.map((player) => [String(player.id), player]));
+    const pids = new Set([...Object.keys(rebuilt.box).filter((k) => k !== 'team'), ...game.players.map((p) => String(p.id))]);
+    game.players = Array.from(pids).map((pid) => {
+      const roster = rosterById.get(pid) || game.players.find((p) => String(p.id) === pid) || { id: /^\d+$/.test(pid) ? Number(pid) : pid, num: '', name: 'Player', pos: '' };
+      const q = {};
+      for (const [period, counters] of Object.entries(rebuilt.box[pid] || {})) {
+        q[/^\d+$/.test(period) ? Number(period) : period] = { ...counters, onCourt: true, minsOn: 0, courtEnteredAt: null };
+      }
+      return { ...roster, onCourt: true, q };
+    }).filter((player) => Object.keys(player.q).length);
+    game.shots = rebuilt.shots;
+    game.pmData = rebuilt.pm;
+    game.events = events;
+    game.ledgerKey = String(game.id);
+    game.ledgerVersion = LEDGER_VERSION;
+  }
   for (const game of games) Object.assign(game, summarizeRestoredGame(game, cloudTeam));
   return {
     team: { id: fallbackTeamId, name: cloudTeam?.name || 'My Team', players },

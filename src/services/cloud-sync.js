@@ -284,6 +284,24 @@ export function buildGameBundle(game, playerMap, options = {}) {
     }
   }
 
+  // Ledger games (step 2): upload every event, voids included, so another
+  // device can rebuild the exact box score, shot chart, plus/minus and order.
+  // box_line rows above stay as a derived copy for one release.
+  for (const event of game.events || []) {
+    if (!event?.ref || event.type === BOX_LINE_EVENT) continue;
+    events.push({
+      id: event.ref,
+      type: event.type,
+      playerId: cloudPlayerId(event.pid),
+      period: event.period,
+      clockSeconds: event.clock ?? null,
+      value: event.value ?? null,
+      payload: { ...(event.payload || {}), seq: event.seq, synthetic: Boolean(event.synthetic), pid: event.pid ?? null },
+      occurredAt: event.at,
+      localUpdatedAt: game.localUpdatedAt,
+    });
+  }
+
   return {
     id: game.id,
     date: game.date,
