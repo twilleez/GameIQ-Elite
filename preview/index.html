@@ -798,8 +798,8 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     <h3>Terms &amp; Privacy</h3>
     <p style="font-size:11px;color:var(--dim)">Last updated August 26, 2026 · Local-first game data with optional account services.</p>
     <div style="font-size:12px;color:var(--muted);line-height:1.8;max-height:320px;overflow-y:auto;background:rgba(0,0,0,.2);border-radius:12px;padding:14px;margin-bottom:12px">
-      <strong style="color:var(--text)">Terms of Service</strong><br><br>GameIQ Elite provides basketball coaching and statistical tools. Game statistics are stored locally in the browser in this release unless a feature explicitly states that it syncs to the cloud. Paid features are controlled by the signed-in account and server-side subscription status.<br><br>
-      <strong style="color:var(--text)">Privacy</strong><br><br>If you sign in, GameIQ uses Supabase to process account identifiers such as your email address and subscription tier. If you purchase a paid plan, billing is processed by Stripe. If you use hosted AI Coach, the question and relevant game context are sent through a protected GameIQ server function to the AI provider to generate a response. GameIQ does not require customers to provide an AI-provider API key.<br><br>
+      <strong style="color:var(--text)">Terms of Service</strong><br><br>GameIQ Elite provides basketball coaching and statistical tools. Games save on this device first. When you are signed in and online, they also sync to your GameIQ cloud account. Paid features are controlled by the signed-in account and server-side subscription status.<br><br>
+      <strong style="color:var(--text)">Privacy</strong><br><br>If you sign in, GameIQ uses Supabase to store your account (email address and subscription tier) and your team data: roster (player name, jersey number, position), game results, shot locations, and each player&#39;s box score by quarter. This data is visible only to members of your organization. Do not enter information beyond what is needed to track the game, such as birthdates or contact details. If you purchase a paid plan, billing is processed by Stripe. If you use hosted AI Coach, the question and relevant game context are sent through a protected GameIQ server function to the AI provider to generate a response. GameIQ does not require customers to provide an AI-provider API key.<br><br>
       <strong style="color:var(--text)">Youth data</strong><br><br>Do not enter information that is unnecessary for basketball tracking. For minors, use jersey numbers or limited identifiers where practical and obtain any consent required by your organization and applicable law.
     </div>
     <div class="modal-actions"><button class="btn btn-primary" onclick="document.getElementById('dlgLegal').close()">Got it</button></div>
@@ -872,7 +872,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
         <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--muted)">Last error</span><strong id="syncDiagError" style="text-align:right;max-width:250px">None</strong></div>
       </div>
       <button class="btn btn-secondary" id="retryCloudSyncBtn" style="font-size:12px;min-height:34px;margin-top:10px">↻ Retry cloud sync</button>
-      <p class="api-key-note">Games always save on this device first. Cloud sync runs only when signed in and online.</p>
+      <p class="api-key-note">Games always save on this device first. Cloud sync runs only when signed in and online. Synced data includes your roster, scores, shot charts and player box scores.</p>
     </div>
     <div class="settings-section">
       <h4>Hosted AI Coach</h4>
@@ -896,7 +896,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     </div>
     <div class="settings-section" style="margin-bottom:0">
       <h4>About</h4>
-      <p class="api-key-note">GameIQ Elite v1.1 · Offline-first PWA · AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
+      <p class="api-key-note">GameIQ Elite v1.2.0 · build 2026-10-19 · Offline-first PWA · AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
     </div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById('dlgSettings').close()">Close</button></div>
   </div>
@@ -1865,21 +1865,8 @@ async function syncSavedGameToCloud(game,localTeam){
     await sync.withRetry(async()=>{
       const workspace=await sync.ensureWorkspace(sb,authUser);
       const syncedTeam=await sync.syncTeam(sb,authUser,workspace.id,localTeam);
-      const shots=(game.shots||[]).map((shot,index)=>({
-        id:shot.id??(game.id+'-'+index),
-        playerId:shot.pid==null?null:(syncedTeam.playerMap.get(sync.clientRef('player',shot.pid))||null),
-        made:Boolean(shot.made),
-        points:is3pt(shot.x,shot.y)?3:2,
-        x:shot.x??null,y:shot.y??null,
-        period:shot.q??shot.period??game.quarter??1,
-        clockSeconds:shot.clockSeconds??null,
-        localUpdatedAt:game.localUpdatedAt
-      }));
-      await sync.syncGameBundle(sb,authUser,syncedTeam.team.id,{
-        id:game.id,date:game.date,awayName:game.away,quarter:game.quarter,
-        teamScore:game.teamPts,awayScore:game.awayScore,periodSeconds:S.clock?.periodSecs||600,
-        status:'final',localUpdatedAt:game.localUpdatedAt,shots
-      });
+      const bundle=sync.buildGameBundle(game,syncedTeam.playerMap,{isThree:is3pt,periodSeconds:S.clock?.periodSecs||600});
+      await sync.syncGameBundle(sb,authUser,syncedTeam.team.id,bundle);
     },{attempts:3,baseMs:750,maxMs:3000});
     game.cloudSyncedAt=new Date().toISOString();
     game.cloudSyncError=null;
@@ -1919,7 +1906,7 @@ async function pullCloudGamesToDevice(){
     const cloudState=await sync.pullTeamCloudState(sb,cloudTeam.id);
     const localTeam=S.teams.find(t=>t.id===S.activeTeamId)||S.teams[0];
     const hydrated=hydrate.cloudStateToLocal(cloudState,cloudTeam,localTeam?.id||'td');
-    if(localTeam&&hydrated.team.players.length&&!localTeam.players.length)localTeam.players=hydrated.team.players.map(p=>({...p,stats:eq()}));
+    if(localTeam&&hydrated.team.players.length&&!localTeam.players.length){localTeam.players=hydrated.team.players.map(p=>({...p,stats:eq()}));const maxId=Math.max(0,...localTeam.players.map(p=>Number(p.id)).filter(Number.isFinite));S.nextId=Math.max(Number(S.nextId||1),maxId+1)}
     S.games=hydrate.mergeCloudGames(S.games||[],hydrated.games||[]);
     await persist();
     setChip('Cloud up to date ✓','saving');

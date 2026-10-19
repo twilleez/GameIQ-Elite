@@ -132,6 +132,17 @@ export async function syncGameBundle(supabase, user, cloudTeamId, bundle) {
   if (!cloudTeamId) throw new Error('cloudTeamId is required');
   if (!bundle?.id) throw new Error('bundle.id is required');
 
+  // Never let an older copy of a game (e.g. from a second device) overwrite or
+  // prune a newer save that is already in the cloud.
+  const cloudCopy = await unwrap(
+    await supabase.from('games').select('*').eq('team_id', cloudTeamId).eq('client_ref', clientRef('game', bundle.id)).maybeSingle(),
+    'Check cloud game',
+  );
+  if (cloudCopy && bundle.localUpdatedAt && cloudCopy.local_updated_at
+    && new Date(cloudCopy.local_updated_at).getTime() > new Date(bundle.localUpdatedAt).getTime()) {
+    return { ...cloudCopy, skippedAsOlder: true };
+  }
+
   const game = await unwrap(
     await supabase.from('games').upsert({
       team_id: cloudTeamId,
@@ -188,6 +199,13 @@ export async function syncGameBundle(supabase, user, cloudTeamId, bundle) {
     await unwrap(await supabase.from('shots').upsert(rows, { onConflict: 'game_id,client_ref' }), 'Sync shots');
   }
 
+  // Remove cloud rows this save no longer contains (a cleared shot, a removed
+  // player), so a re-saved game restores exactly as it was saved.
+  if (bundle.prune !== false) {
+    await pruneStaleRows(supabase, 'shots', game.id, (bundle.shots || []).map((shot, index) => clientRef('shot', shot.id ?? `${bundle.id}-${index}`)));
+    await pruneStaleRows(supabase, 'game_events', game.id, (bundle.events || []).filter((event) => (event.type || 'stat') === BOX_LINE_EVENT).map((event, index) => clientRef('event', event.id ?? `${bundle.id}-${index}`)), BOX_LINE_EVENT);
+  }
+
   if (bundle.lineupStints?.length) {
     const rows = bundle.lineupStints.map((stint, index) => ({
       game_id: game.id,
@@ -206,6 +224,90 @@ export async function syncGameBundle(supabase, user, cloudTeamId, bundle) {
   }
 
   return game;
+}
+
+const BOX_STAT_KEYS = ['p2m', 'p2a', 'p3m', 'p3a', 'ftm', 'fta', 'reb', 'ast', 'tov', 'stl', 'blk', 'fouls', 'tfouls'];
+export const BOX_LINE_EVENT = 'box_line';
+
+// A local shot is "made" when the app recorded it with type "made".
+// Older or hydrated shots may carry a boolean `made` instead.
+export function isMadeShot(shot = {}) {
+  return shot.type === 'made' || shot.made === true;
+}
+
+// Shot value: trust the classification saved at record time (det), then an
+// explicit points value, then fall back to the supplied geometry check.
+export function shotPoints(shot = {}, isThree = () => false) {
+  if (shot.det === '3pt') return 3;
+  if (shot.det === '2pt') return 2;
+  if (Number(shot.points) === 3) return 3;
+  if (Number(shot.points) === 2) return 2;
+  return isThree(shot.x, shot.y) ? 3 : 2;
+}
+
+// Turns a locally saved game into the rows syncGameBundle expects:
+// every shot (with its real made/missed result) plus one "box_line" event per
+// player per period, so the full box score can be rebuilt on another device.
+export function buildGameBundle(game, playerMap, options = {}) {
+  if (!game?.id) throw new Error('game.id is required');
+  const map = playerMap instanceof Map ? playerMap : new Map();
+  const isThree = options.isThree || (() => false);
+  const cloudPlayerId = (pid) => (pid == null ? null : (map.get(clientRef('player', pid)) || null));
+
+  const shots = (game.shots || []).map((shot, index) => ({
+    id: shot.id ?? `${game.id}-${index}`,
+    playerId: cloudPlayerId(shot.pid),
+    made: isMadeShot(shot),
+    points: shotPoints(shot, isThree),
+    x: shot.x ?? null,
+    y: shot.y ?? null,
+    period: shot.q ?? shot.period ?? game.quarter ?? 1,
+    clockSeconds: shot.clockSeconds ?? null,
+    localUpdatedAt: game.localUpdatedAt,
+  }));
+
+  const events = [];
+  for (const player of game.players || []) {
+    const playerId = cloudPlayerId(player.id);
+    if (!playerId) continue;
+    for (const [period, stats] of Object.entries(player.q || {})) {
+      const payload = {};
+      for (const key of BOX_STAT_KEYS) payload[key] = Number(stats?.[key] || 0);
+      events.push({
+        id: `${game.id}-box-${player.id}-${period}`,
+        type: BOX_LINE_EVENT,
+        playerId,
+        period,
+        payload,
+        localUpdatedAt: game.localUpdatedAt,
+      });
+    }
+  }
+
+  return {
+    id: game.id,
+    date: game.date,
+    awayName: game.away,
+    quarter: game.quarter,
+    teamScore: game.teamPts,
+    awayScore: game.awayScore,
+    periodSeconds: options.periodSeconds || 600,
+    status: 'final',
+    localUpdatedAt: game.localUpdatedAt,
+    shots,
+    events,
+  };
+}
+
+async function pruneStaleRows(supabase, table, gameId, keepRefs, eventType = null) {
+  let query = supabase.from(table).select('client_ref').eq('game_id', gameId);
+  if (eventType) query = query.eq('event_type', eventType);
+  const existing = await unwrap(await query, `Load ${table} for cleanup`);
+  const keep = new Set(keepRefs);
+  const stale = (existing || []).map((row) => row.client_ref).filter((ref) => !keep.has(ref));
+  if (!stale.length) return 0;
+  await unwrap(await supabase.from(table).delete().eq('game_id', gameId).in('client_ref', stale), `Remove stale ${table}`);
+  return stale.length;
 }
 
 export async function pullTeamCloudState(supabase, cloudTeamId, since = null) {
@@ -239,5 +341,5 @@ export function shouldPushLocal(localUpdatedAt, cloudUpdatedAt) {
 }
 
 if (typeof window !== 'undefined') {
-  window.GameIQCloudSync = { clientRef, retryDelayMs, withRetry, resolveWorkspace, ensureWorkspace, syncTeam, syncGameBundle, pullTeamCloudState, shouldPushLocal };
+  window.GameIQCloudSync = { clientRef, isMadeShot, shotPoints, buildGameBundle, retryDelayMs, withRetry, resolveWorkspace, ensureWorkspace, syncTeam, syncGameBundle, pullTeamCloudState, shouldPushLocal };
 }
