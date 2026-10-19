@@ -10,6 +10,8 @@ on:
       - 'icon.svg'
       - 'src/**'
       - 'tests/courtside-smoke.mjs'
+      - 'tests/ledger-courtside.mjs'
+      - 'tests/*.test.mjs'
       - 'package.json'
       - '.github/workflows/final-product-smoke.yml'
   push:
@@ -21,6 +23,8 @@ on:
       - 'icon.svg'
       - 'src/**'
       - 'tests/courtside-smoke.mjs'
+      - 'tests/ledger-courtside.mjs'
+      - 'tests/*.test.mjs'
       - 'package.json'
       - '.github/workflows/final-product-smoke.yml'
   workflow_dispatch:
@@ -52,3 +56,7 @@ jobs:
           exit 1
       - name: Run final product smoke
         run: npm run test:production
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Run ledger courtside test (production)
+        run: npm run test:ledger:production

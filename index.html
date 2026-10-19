@@ -256,6 +256,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:rgba(33,197,93,.3);color:#86efac}
 .toast.err{border-color:rgba(239,64,64,.3);color:#fca5a5}
+.toast-undo{pointer-events:auto;margin-left:12px;min-height:44px;min-width:64px;padding:0 14px;border-radius:10px;border:1px solid var(--line2);background:rgba(255,255,255,.08);color:var(--text);font-weight:800;font-size:13px;cursor:pointer}
 .empty-state{padding:24px;text-align:center;border:1px dashed rgba(255,255,255,.1);border-radius:18px}
 .empty-state .ei{font-size:36px;margin-bottom:10px;display:block;opacity:.5}
 .empty-state strong{display:block;font-size:15px;margin-bottom:6px}
@@ -1135,6 +1136,121 @@ function leader(){return team().players.map(p=>({p,t:totPlayer(p)})).sort((a,b)=
 function is3pt(x,y){const px=Number(x),py=Number(y);if(!Number.isFinite(px)||!Number.isFinite(py))return false;if(py<=140)return px<=28||px>=372;if(px<=28||px>=372)return true;const r=174,half=172,cy=140-Math.sqrt(r*r-half*half);return Math.hypot(px-200,py-cy)>r}
 function aq(){return S.quarter}
 
+// ---------- Event ledger (step 2, issue #15) ----------
+// Every stat tap appends an event; player.q, S.shots, S.pmData and S.awayScore
+// are a cache rebuilt from the active events. If the ledger module can't load,
+// or a game's counters can't be migrated losslessly, the legacy counter code
+// paths below still run unchanged.
+let LEDGER=null;            // src/services/event-ledger.js, loaded in init()
+let LG={};                  // per team: { gameKey, seq, events, legacyPm, error }
+const LEDGER_SK=()=>SK+":ledger";
+function deviceId(){
+  try{let id=localStorage.getItem("gameiq_device_id");if(!id){id=Math.random().toString(36).slice(2,10);localStorage.setItem("gameiq_device_id",id)}return id}catch(e){return "local"}
+}
+function curLedger(){return LG[S.activeTeamId]||null}
+function ledgerReady(){return !!LEDGER}
+function saveLedger(){if(S.isDemo)return;dbSet(LEDGER_SK(),LG)}
+function rosterIds(){return new Set(team().players.map(p=>String(p.id)))}
+function teamShots(){const ids=rosterIds();return (S.shots||[]).filter(s=>s.pid==null||ids.has(String(s.pid)))}
+// Returns the active team's ledger, creating it (and migrating the in-progress
+// game's counters) on first use. Null means "use the legacy path".
+function ensureLedger(){
+  if(!LEDGER)return null;
+  let lg=LG[S.activeTeamId];
+  if(lg)return lg.error?null:lg;
+  const gameKey=String(S.currentGameId!=null?S.currentGameId:Date.now());
+  lg={gameKey,seq:0,events:[],legacyPm:null,error:null};
+  const players=team().players;
+  const hasStats=players.some(p=>Object.values(p.q||{}).some(c=>LEDGER.STAT_KEYS.some(k=>Number(c?.[k]||0)>0)))||teamShots().length||Number(S.awayScore||0)>0;
+  if(hasStats){
+    const r=LEDGER.migrateGame({id:gameKey,players,shots:teamShots(),awayScore:S.awayScore,quarter:S.quarter,pmData:S.pmData,localUpdatedAt:new Date().toISOString()},{gameKey});
+    if(r.ok){lg.events=r.events;lg.legacyPm=r.legacyPm||null;if(r.fixedAttempts)console.info("GameIQ ledger: repaired",r.fixedAttempts,"missing attempts")}
+    else{lg.error="migration";console.warn("GameIQ ledger: keeping counters for this game",r.mismatches)}
+  }
+  // Carry the current bench/on-court state over as context events.
+  if(!lg.error){let s=-1000;players.forEach(p=>{
+    if(p.onCourt===false)lg.events.push(LEDGER.makeEvent({gameKey,seq:s++,type:"sub",pid:p.id,period:aq(),payload:{dir:"out",home:0,away:0},synthetic:true,ref:`ev:${gameKey}:mig:${p.id}:court`}));
+    else if(p.courtEnteredAt)lg.events.push(LEDGER.makeEvent({gameKey,seq:s++,type:"sub",pid:p.id,period:aq(),payload:{dir:"in",home:p.courtEnteredAt.home||0,away:p.courtEnteredAt.away||0},synthetic:true,ref:`ev:${gameKey}:mig:${p.id}:court`}));
+  })}
+  LG[S.activeTeamId]=lg;saveLedger();
+  return lg.error?null:lg;
+}
+function startNewLedger(){if(LEDGER){LG[S.activeTeamId]={gameKey:String(Date.now()),seq:0,events:[],legacyPm:null,error:null};saveLedger()}}
+// Rebuilds the derived cache for the active team from its ledger.
+function applyLedger(){
+  const lg=curLedger();if(!LEDGER||!lg||lg.error)return;
+  const r=LEDGER.rebuildBox(lg.events);
+  const ids=rosterIds();
+  const lastSub={};
+  LEDGER.activeEvents(lg.events).forEach(e=>{if(e.type==="sub")lastSub[String(e.pid)]=e});
+  team().players.forEach(p=>{
+    const box=r.box[String(p.id)]||{};p.q={};
+    Object.entries(box).forEach(([per,c])=>{p.q[/^\d+$/.test(per)?Number(per):per]={...eq(),...c}});
+    const sub=lastSub[String(p.id)];
+    if(!sub){p.onCourt=true;p.courtEnteredAt=null}
+    else if(sub.payload.dir==="out"){p.onCourt=false;p.courtEnteredAt=null}
+    else{p.onCourt=true;p.courtEnteredAt={home:Number(sub.payload.home||0),away:Number(sub.payload.away||0)}}
+    S.pmData[p.id]=Number(lg.legacyPm?.[p.id]||0)+Number(r.pm[String(p.id)]||0);
+  });
+  S.shots=(S.shots||[]).filter(s=>s.pid!=null&&!ids.has(String(s.pid))).concat(r.shots.filter(s=>s.pid==null||ids.has(String(s.pid))));
+  S.awayScore=Math.max(0,r.oppPts);
+}
+function appendEvent(type,{pid=null,payload={},value}={}){
+  const lg=ensureLedger();if(!lg)return null;
+  const e=LEDGER.makeEvent({gameKey:lg.gameKey,deviceId:deviceId(),seq:++lg.seq,type,pid,period:aq(),clock:S.clock?.secs??null,value,payload});
+  lg.events.push(e);applyLedger();saveLedger();
+  return e;
+}
+function voidEvents(targets,reason){
+  const lg=ensureLedger();if(!lg||!targets.length)return null;
+  const v=LEDGER.makeVoid({gameKey:lg.gameKey,deviceId:deviceId(),seq:++lg.seq,targets,reason,period:aq()});
+  lg.events.push(v);applyLedger();saveLedger();
+  return v;
+}
+function describeEvent(e){
+  if(!e)return "";
+  const p=team().players.find(x=>String(x.id)===String(e.pid));const who=p?`#${p.num} `:"";
+  const pl=e.payload||{};
+  switch(e.type){
+    case "shot":return `${who}${pl.made?"Made":"Missed"} ${pl.pts}PT`;
+    case "ft":return `${who}${pl.made?"Made":"Missed"} FT`;
+    case "reb":return `${who}Rebound`;case "ast":return `${who}Assist`;case "tov":return `${who}Turnover`;
+    case "stl":return `${who}Steal`;case "blk":return `${who}Block`;
+    case "foul":return `${who}${pl.kind==="technical"?"Tech foul":"Foul"}`;
+    case "sub":return `${who}${pl.dir==="in"?"On court":"To bench"}`;
+    case "opp_pts":return `Opponent ${Number(e.value)>0?"+":""}${e.value}`;
+    case "void":return pl.reason==="clear"?"Clear shots":"Correction";
+    default:return e.type;
+  }
+}
+// Toast with an Undo button that voids exactly this event.
+function toastWithUndo(msg,ev,type="ok"){
+  const el=$("toast");if(!el)return;
+  el.innerHTML="";const span=document.createElement("span");span.textContent=msg;el.appendChild(span);
+  if(ev){const b=document.createElement("button");b.type="button";b.className="toast-undo";b.textContent="Undo";
+    b.addEventListener("click",()=>{voidEvents([ev.ref],"undo");persist();doRender();toast("Undid: "+describeEvent(ev),"ok")});el.appendChild(b)}
+  el.className="toast show"+(type?" "+type:"");
+  clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),3500);
+}
+const STEPPER_EVENTS={
+  p2m:{type:"shot",payload:{made:true,pts:2,x:null,y:null,src:"stepper"},match:{made:true,pts:2}},
+  p2a:{type:"shot",payload:{made:false,pts:2,x:null,y:null,src:"stepper"},match:{made:false,pts:2}},
+  p3m:{type:"shot",payload:{made:true,pts:3,x:null,y:null,src:"stepper"},match:{made:true,pts:3}},
+  p3a:{type:"shot",payload:{made:false,pts:3,x:null,y:null,src:"stepper"},match:{made:false,pts:3}},
+  ftm:{type:"ft",payload:{made:true,src:"stepper"},match:{made:true}},
+  ftmiss:{type:"ft",payload:{made:false,src:"stepper"},match:{made:false}},
+  reb:{type:"reb",payload:{kind:"unk"},match:{}},
+  ast:{type:"ast",payload:{},match:{}},tov:{type:"tov",payload:{},match:{}},
+  stl:{type:"stl",payload:{},match:{}},blk:{type:"blk",payload:{},match:{}},
+  fouls:{type:"foul",payload:{kind:"personal"},match:{kind:"personal"}},
+  tfouls:{type:"foul",payload:{kind:"technical"},match:{kind:"technical"}}
+};
+async function loadLedger(){
+  try{LEDGER=await import("./src/services/event-ledger.js")}catch(e){console.warn("GameIQ: ledger unavailable, using counters",e);LEDGER=null;return}
+  try{const saved=await dbGet(LEDGER_SK());LG=saved&&typeof saved==="object"?saved:{}}catch(e){LG={}}
+  applyLedger();
+}
+
 let db=null;
 function openDB(){return new Promise(res=>{try{const req=indexedDB.open("gameiq_db",1);req.onupgradeneeded=e=>{e.target.result.createObjectStore("kv")};req.onsuccess=e=>{db=e.target.result;res(true)};req.onerror=()=>res(false)}catch(e){res(false)}})}
 async function dbSet(key,val){
@@ -1348,7 +1464,7 @@ function renderPlayers(){
         '<div class="stat-cell"><div class="sv" style="color:'+(t.tfouls>0?"#ef4040":"var(--dim)")+'">'+t.tfouls+'</div><div class="sl">TECH</div></div>')+
       '</div>'+
       '<div class="live-grid">'+tile(p.id,"ftm","Made FT",q.ftm)+tile(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))+tile(p.id,"reb","Reb",q.reb)+tile(p.id,"ast","Ast",q.ast)+tile(p.id,"tov","Tov",q.tov)+tile(p.id,"fouls","Fouls",q.fouls)+'</div>'+
-      (adv?'<div class="adv-grid">'+mini(p.id,"p2m","Made 2PT",q.p2m)+mini(p.id,"p2a","2PT Att",q.p2a)+mini(p.id,"p3m","Made 3PT",q.p3m)+mini(p.id,"p3a","3PT Att",q.p3a)+mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))+mini(p.id,"stl","Steals",q.stl)+mini(p.id,"blk","Blocks",q.blk)+mini(p.id,"tfouls","Tech Fouls",q.tfouls||0)+'</div>':"")+
+      (adv?'<div class="adv-grid">'+mini(p.id,"p2m","Made 2PT",q.p2m)+mini(p.id,"p2a","Missed 2PT",Math.max(0,q.p2a-q.p2m))+mini(p.id,"p3m","Made 3PT",q.p3m)+mini(p.id,"p3a","Missed 3PT",Math.max(0,q.p3a-q.p3m))+mini(p.id,"ftm","Made FT",q.ftm)+mini(p.id,"ftmiss","Missed FT",Math.max(0,q.fta-q.ftm))+mini(p.id,"stl","Steals",q.stl)+mini(p.id,"blk","Blocks",q.blk)+mini(p.id,"tfouls","Tech Fouls",q.tfouls||0)+'</div>':"")+
       '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">'+
       '<button class="btn btn-secondary copy-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">📋 Copy</button>'+
       '<button class="btn btn-secondary share-btn" data-pid="'+p.id+'" style="min-height:32px;font-size:11px">↗ Share</button>'+
@@ -1402,6 +1518,11 @@ function renderShotStats(){
 function recordFreeThrow(made){
   const pid=Number($("shotPlayerSel")?.value||0);if(!pid){toast("Pick a player first","err");return}
   const player=team().players.find(p=>p.id===pid);if(!player)return;
+  if(ensureLedger()){
+    const ev=appendEvent("ft",{pid,payload:{made,src:"chart"}});
+    persist();vibe(12);scheduleRender();
+    toastWithUndo(describeEvent(ev)+(made?" ✓":" ✗"),ev,made?"ok":"");return;
+  }
   pushH();if(!player.q)player.q={};if(!player.q[aq()])player.q[aq()]=eq();
   const q=player.q[aq()];q.fta=(q.fta||0)+1;if(made)q.ftm=(q.ftm||0)+1;
   persist();vibe(12);scheduleRender();
@@ -1415,6 +1536,11 @@ function onCourtTap(evt){
   const cur=pt.matrixTransform(svg.getScreenCTM().inverse());
   const x=Math.max(4,Math.min(396,cur.x)),y=Math.max(4,Math.min(356,cur.y));
   const player=team().players.find(p=>p.id===pid);if(!player)return;
+  if(ensureLedger()){
+    const ev=appendEvent("shot",{pid,payload:{made:S.shotMode==="made",pts:is3pt(x,y)?3:2,x,y,src:"chart"}});
+    persist();vibe([10,5,10]);scheduleRender();
+    toastWithUndo(describeEvent(ev),ev,S.shotMode==="made"?"ok":"");return;
+  }
   pushH();if(!player.q)player.q={};if(!player.q[aq()])player.q[aq()]=eq();
   const q=player.q[aq()];let det="2pt";
   if(S.shotMode==="made"){if(is3pt(x,y)){q.p3m++;q.p3a++;det="3pt"}else{q.p2m++;q.p2a++}}
@@ -1424,6 +1550,11 @@ function onCourtTap(evt){
 
 function toggleCourt(pid){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
+  if(ensureLedger()){
+    const wasOn=p.onCourt!==false,tt=totTeam();
+    const ev=appendEvent("sub",{pid,payload:{dir:wasOn?"out":"in",home:pts(tt),away:S.awayScore||0}});
+    persist();scheduleRender();toastWithUndo(p.name+" — "+(wasOn?"BENCH":"ON COURT"),ev,"");return;
+  }
   const wasOn=p.onCourt!==false;p.onCourt=!wasOn;
   const tt=totTeam();
   if(!wasOn){
@@ -1782,6 +1913,18 @@ function populateShotSel(){
 
 function adjustStat(pid,stat,delta){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
+  const spec=STEPPER_EVENTS[stat];
+  if(spec&&ensureLedger()){
+    if(delta>0){appendEvent(spec.type,{pid,payload:spec.payload})}
+    else{const t=LEDGER.minusTarget(curLedger().events,{pid,type:spec.type,period:aq(),...spec.match});if(t)voidEvents([t.ref],"minus")}
+    persist();
+    const q=p.q?.[aq()]||eq();
+    if(stat==="fouls"&&delta>0){
+      if(q.fouls>=5)toast(`🚨 ${p.name} — 5th foul!`,"err");
+      else if(q.fouls>=3)toast(`⚠️ ${p.name} — ${q.fouls} fouls`,"");
+    }
+    scheduleRender();return;
+  }
   pushH();
   if(!p.q)p.q={};
   if(!p.q[aq()])p.q[aq()]=eq();
@@ -1935,8 +2078,9 @@ function saveGame(){
   }
   const tt=totTeam();
   const ldr=leader();
+  const lgSave=ensureLedger();
   const game={
-    id:existing?existing.id:Date.now(),
+    id:existing?existing.id:(lgSave&&/^\d+$/.test(lgSave.gameKey)?Number(lgSave.gameKey):Date.now()),
     countsTowardFreeLimit:existing?existing.countsTowardFreeLimit===true:!isPro(),
     teamId:S.activeTeamId,
     localUpdatedAt:new Date().toISOString(),
@@ -1951,7 +2095,8 @@ function saveGame(){
     awayScore:S.awayScore,
     mvp:ldr?{name:ldr.p.name,pts:pts(ldr.t)}:null,
     players:JSON.parse(JSON.stringify(team().players)),
-    shots:JSON.parse(JSON.stringify(S.shots))
+    shots:JSON.parse(JSON.stringify(teamShots())),
+    ...(lgSave?{ledgerKey:lgSave.gameKey,ledgerVersion:LEDGER.LEDGER_VERSION,events:JSON.parse(JSON.stringify(lgSave.events))}:{})
   };
   if(existing){
     // Same game saved again (halftime, then final): replace it in place and re-sync.
@@ -2070,6 +2215,7 @@ function newGame(){
   pushH();
   team().players.forEach(p=>{p.q={};p.onCourt=true;p.courtEnteredAt=null});
   S.shots=[];S.awayScore=0;S.quarter=1;S.pmData={};S.currentGameId=null;
+  startNewLedger();
   stopClock();S.clock.secs=S.clock.periodSecs;
   if($("gameDate"))$("gameDate").value=today();
   persist();doRender();
@@ -2079,6 +2225,7 @@ function newGame(){
 async function init(){
   await openDB();
   await hydrate();
+  await loadLedger();
   S.tier="free";
   updateTierUI();
   try{initAuth()}catch(e){console.warn("GameIQ: auth init failed",e);sb=null}
@@ -2155,7 +2302,10 @@ async function init(){
 
   const undoBtn=$("undoBtn");
   if(undoBtn)undoBtn.addEventListener("click",()=>{
-    if(undo()){persist();doRender();toast("Undone","ok")}
+    const lg=ensureLedger();
+    const target=lg?LEDGER.undoTarget(lg.events):null;
+    if(target){voidEvents([target.ref],"undo");persist();doRender();toast("Undid: "+describeEvent(target),"ok");return}
+    if(undo()){applyLedger();persist();doRender();toast("Undone","ok")}
     else toast("Nothing to undo","");
   });
 
@@ -2177,7 +2327,9 @@ async function init(){
   if(clockResetBtn)clockResetBtn.addEventListener("click",resetClock);
 
   document.querySelectorAll(".qbtn").forEach(b=>b.addEventListener("click",()=>{
+    const prevQ=S.quarter;
     S.quarter=isNaN(Number(b.dataset.q))?b.dataset.q:Number(b.dataset.q);
+    if(String(prevQ)!==String(S.quarter)&&ensureLedger())appendEvent("period",{payload:{from:prevQ,to:S.quarter}});
     document.querySelectorAll(".qbtn").forEach(x=>x.classList.toggle("active",x.dataset.q===b.dataset.q));
     doRender();
   }));
@@ -2189,9 +2341,9 @@ async function init(){
   }));
 
   const awayPlus=$("awayScorePlus");
-  if(awayPlus)awayPlus.addEventListener("click",()=>{S.awayScore=(S.awayScore||0)+1;renderSummary();persist()});
+  if(awayPlus)awayPlus.addEventListener("click",()=>{if(ensureLedger())appendEvent("opp_pts",{value:1});else S.awayScore=(S.awayScore||0)+1;renderSummary();persist()});
   const awayMinus=$("awayScoreMinus");
-  if(awayMinus)awayMinus.addEventListener("click",()=>{S.awayScore=Math.max(0,(S.awayScore||0)-1);renderSummary();persist()});
+  if(awayMinus)awayMinus.addEventListener("click",()=>{if(!(S.awayScore>0))return;if(ensureLedger())appendEvent("opp_pts",{value:-1});else S.awayScore=Math.max(0,(S.awayScore||0)-1);renderSummary();persist()});
 
   const qmb=$("quickModeBtn");
   if(qmb)qmb.addEventListener("click",()=>{
@@ -2260,6 +2412,14 @@ async function init(){
   });
   const clearShotsBtn=$("clearShotsBtn");
   if(clearShotsBtn)clearShotsBtn.addEventListener("click",()=>{
+    const lg=ensureLedger();
+    if(lg){
+      if(!confirm("Clear all charted shots? They will also be removed from the box score. You can undo this."))return;
+      const ids=rosterIds();
+      const targets=LEDGER.activeEvents(lg.events).filter(e=>e.type==="shot"&&e.payload?.x!=null&&(e.pid==null||ids.has(String(e.pid)))).map(e=>e.ref);
+      if(!targets.length){toast("No charted shots to clear");return}
+      const v=voidEvents(targets,"clear");persist();doRender();toastWithUndo("Shots cleared",v,"");return;
+    }
     if(!confirm("Clear all shot data?"))return;
     pushH();S.shots=[];persist();renderShots();renderShotStats();toast("Shots cleared");
   });
@@ -2295,6 +2455,7 @@ async function init(){
         const d=JSON.parse(ev.target.result);
         if(!d.teams)throw new Error("Invalid backup");
         Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,d);S.histStack=[];
+        LG={};saveLedger();
         persist();doRender();toast("Backup imported","ok");
       }catch(err){toast("Invalid backup file","err")}
     };
