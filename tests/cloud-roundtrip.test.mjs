@@ -19,8 +19,14 @@ function fakeSupabase() {
     let conflictKeys = null;
     let wantSingle = false;
     let limitN = null;
+    const inFilters = [];
     const run = () => {
       const rows = rowsOf(table);
+      if (op === 'delete') {
+        const doomed = rows.filter((r) => filters.every(([k, v]) => r[k] === v) && inFilters.every(([k, vs]) => vs.includes(r[k])));
+        tables[table] = rows.filter((r) => !doomed.includes(r));
+        return doomed;
+      }
       if (op === 'insert' || op === 'upsert') {
         const list = Array.isArray(payload) ? payload : [payload];
         const out = list.map((row) => {
@@ -44,6 +50,8 @@ function fakeSupabase() {
       gt() { return api; },
       order() { return api; },
       limit(n) { limitN = n; return api; },
+      in(k, vs) { inFilters.push([k, vs]); return api; },
+      delete() { op = 'delete'; return api; },
       insert(p) { op = 'insert'; payload = p; return api; },
       upsert(p, opts = {}) { op = 'upsert'; payload = p; conflictKeys = (opts.onConflict || '').split(',').filter(Boolean); return api; },
       single() { wantSingle = true; return api; },
@@ -146,4 +154,46 @@ test('re-saving an edited game updates rows instead of duplicating them', async 
   assert.equal(sb.tables.game_events.length, 5);
   const line = sb.tables.game_events.find((e) => e.client_ref.endsWith('-box-2-2'));
   assert.equal(line.payload.reb, 4);
+});
+
+async function syncAndRestore(sb, user, game) {
+  const ws = await sync.ensureWorkspace(sb, user);
+  const team = await sync.syncTeam(sb, user, ws.id, { id: game.teamId, name: game.teamName, players: game.players });
+  await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(game, team.playerMap, { isThree: isThreePointShot }));
+  const state = await sync.pullTeamCloudState(sb, team.team.id);
+  return cloudStateToLocal(state, team.team, 'td').games[0];
+}
+
+test('QA bug A: a removed player and their shots do not come back after re-save', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = sampleGame();
+  await syncAndRestore(sb, user, game);
+  game.players = game.players.filter((p) => p.id !== 2);
+  game.shots = game.shots.filter((s) => s.pid !== 2);
+  const restored = await syncAndRestore(sb, user, game);
+  assert.equal(restored.shots.length, game.shots.length);
+  assert.deepEqual(restored.players.map((p) => p.name), ['Ava']);
+});
+
+test('QA bug A: clearing all shots and re-saving clears them in the cloud', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const game = sampleGame();
+  await syncAndRestore(sb, user, game);
+  game.shots = [];
+  const restored = await syncAndRestore(sb, user, game);
+  assert.equal(restored.shots.length, 0);
+});
+
+test('QA bugs B and C: overtime and history-card summary survive restore', async () => {
+  const restored = await syncAndRestore(fakeSupabase(), { id: 'user-1' }, sampleGame());
+  assert.equal(restored.quarter, 'OT');
+  assert.equal(restored.home, 'Wildcats');
+  // Hand-scored: Ava 5 of 9 FG (13 pts), Bea 3 of 5 FG: team FGM 8, FGA 14
+  assert.equal(restored.teamFg, Math.round((8 / 14) * 100));
+  assert.equal(restored.teamReb, 10);
+  assert.equal(restored.teamAst, 3);
+  assert.equal(restored.teamTov, 2);
+  assert.deepEqual(restored.mvp, { name: 'Ava', pts: 13 });
 });

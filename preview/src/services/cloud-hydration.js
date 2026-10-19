@@ -5,6 +5,32 @@ function localIdFromClientRef(ref, kind) {
   return /^\d+$/.test(value) ? Number(value) : value;
 }
 
+const STAT_KEYS = ['p2m', 'p2a', 'p3m', 'p3a', 'ftm', 'fta', 'reb', 'ast', 'tov'];
+
+// Rebuilds the summary fields the season history card shows, which are not
+// stored as columns in the cloud, from the restored box scores.
+function summarizeRestoredGame(game, cloudTeam) {
+  const totals = Object.fromEntries(STAT_KEYS.map((key) => [key, 0]));
+  let mvp = null;
+  for (const player of game.players || []) {
+    const sum = Object.fromEntries(STAT_KEYS.map((key) => [key, 0]));
+    for (const stats of Object.values(player.q || {})) for (const key of STAT_KEYS) sum[key] += Number(stats?.[key] || 0);
+    for (const key of STAT_KEYS) totals[key] += sum[key];
+    const pts = sum.p2m * 2 + sum.p3m * 3 + sum.ftm;
+    if (!mvp || pts > mvp.pts) mvp = { name: player.name, pts };
+  }
+  const fgm = totals.p2m + totals.p3m;
+  const fga = totals.p2a + totals.p3a;
+  return {
+    home: cloudTeam?.name || 'HOME',
+    teamFg: fga ? Math.round((fgm / fga) * 100) : 0,
+    teamReb: totals.reb,
+    teamAst: totals.ast,
+    teamTov: totals.tov,
+    mvp: mvp && mvp.pts > 0 ? mvp : null,
+  };
+}
+
 export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') {
   const players = (cloudState?.players || []).map((row) => ({
     id: localIdFromClientRef(row.client_ref, 'player'),
@@ -53,7 +79,7 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
     teamName: cloudTeam?.name || 'My Team',
     away: row.opponent_name || 'Opponent',
     date: row.game_date || '',
-    quarter: Number(row.current_period) || 1,
+    quarter: /^\d+$/.test(String(row.current_period || '')) ? Number(row.current_period) : (row.current_period || 1),
     teamPts: Number(row.team_score || 0),
     awayScore: Number(row.opponent_score || 0),
     players: Array.from(boxByGame.get(row.id)?.values() || []),
@@ -62,6 +88,7 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
     cloudSyncedAt: row.updated_at || new Date().toISOString(),
     cloudId: row.id,
   }));
+  for (const game of games) Object.assign(game, summarizeRestoredGame(game, cloudTeam));
   return {
     team: { id: fallbackTeamId, name: cloudTeam?.name || 'My Team', players },
     games,

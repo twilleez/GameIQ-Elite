@@ -1906,7 +1906,7 @@ async function pullCloudGamesToDevice(){
     const cloudState=await sync.pullTeamCloudState(sb,cloudTeam.id);
     const localTeam=S.teams.find(t=>t.id===S.activeTeamId)||S.teams[0];
     const hydrated=hydrate.cloudStateToLocal(cloudState,cloudTeam,localTeam?.id||'td');
-    if(localTeam&&hydrated.team.players.length&&!localTeam.players.length)localTeam.players=hydrated.team.players.map(p=>({...p,stats:eq()}));
+    if(localTeam&&hydrated.team.players.length&&!localTeam.players.length){localTeam.players=hydrated.team.players.map(p=>({...p,stats:eq()}));const maxId=Math.max(0,...localTeam.players.map(p=>Number(p.id)).filter(Number.isFinite));S.nextId=Math.max(Number(S.nextId||1),maxId+1)}
     S.games=hydrate.mergeCloudGames(S.games||[],hydrated.games||[]);
     await persist();
     setChip('Cloud up to date ✓','saving');

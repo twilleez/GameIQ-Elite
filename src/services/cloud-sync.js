@@ -188,6 +188,13 @@ export async function syncGameBundle(supabase, user, cloudTeamId, bundle) {
     await unwrap(await supabase.from('shots').upsert(rows, { onConflict: 'game_id,client_ref' }), 'Sync shots');
   }
 
+  // Remove cloud rows this save no longer contains (a cleared shot, a removed
+  // player), so a re-saved game restores exactly as it was saved.
+  if (bundle.prune !== false) {
+    await pruneStaleRows(supabase, 'shots', game.id, (bundle.shots || []).map((shot, index) => clientRef('shot', shot.id ?? `${bundle.id}-${index}`)));
+    await pruneStaleRows(supabase, 'game_events', game.id, (bundle.events || []).filter((event) => (event.type || 'stat') === BOX_LINE_EVENT).map((event, index) => clientRef('event', event.id ?? `${bundle.id}-${index}`)), BOX_LINE_EVENT);
+  }
+
   if (bundle.lineupStints?.length) {
     const rows = bundle.lineupStints.map((stint, index) => ({
       game_id: game.id,
@@ -279,6 +286,17 @@ export function buildGameBundle(game, playerMap, options = {}) {
     shots,
     events,
   };
+}
+
+async function pruneStaleRows(supabase, table, gameId, keepRefs, eventType = null) {
+  let query = supabase.from(table).select('client_ref').eq('game_id', gameId);
+  if (eventType) query = query.eq('event_type', eventType);
+  const existing = await unwrap(await query, `Load ${table} for cleanup`);
+  const keep = new Set(keepRefs);
+  const stale = (existing || []).map((row) => row.client_ref).filter((ref) => !keep.has(ref));
+  if (!stale.length) return 0;
+  await unwrap(await supabase.from(table).delete().eq('game_id', gameId).in('client_ref', stale), `Remove stale ${table}`);
+  return stale.length;
 }
 
 export async function pullTeamCloudState(supabase, cloudTeamId, since = null) {
