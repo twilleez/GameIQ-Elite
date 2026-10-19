@@ -5,6 +5,8 @@ on:
     paths:
       - 'preview/**'
       - 'tests/courtside-smoke.mjs'
+      - 'tests/ledger-courtside.mjs'
+      - 'tests/*.test.mjs'
       - 'package.json'
       - '.github/workflows/courtside-smoke.yml'
   push:
@@ -12,6 +14,8 @@ on:
     paths:
       - 'preview/**'
       - 'tests/courtside-smoke.mjs'
+      - 'tests/ledger-courtside.mjs'
+      - 'tests/*.test.mjs'
       - 'package.json'
       - '.github/workflows/courtside-smoke.yml'
   workflow_dispatch:
@@ -43,3 +47,7 @@ jobs:
           exit 1
       - name: Run courtside smoke
         run: npm run test:courtside
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Run ledger courtside test
+        run: npm run test:ledger
