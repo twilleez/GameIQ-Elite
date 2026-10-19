@@ -20,6 +20,8 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
     shotsByGame.get(shot.game_id).push({
       id: localIdFromClientRef(shot.client_ref, 'shot'),
       pid: shot.player_id ? (playerByCloudId.get(shot.player_id) ?? null) : null,
+      type: shot.made ? 'made' : 'miss',
+      det: Number(shot.points) === 3 ? '3pt' : '2pt',
       made: Boolean(shot.made),
       x: shot.x,
       y: shot.y,
@@ -27,6 +29,23 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
       clockSeconds: shot.clock_seconds,
       points: Number(shot.points) === 3 ? 3 : 2,
     });
+  }
+  const rosterByLocalId = new Map(players.map((player) => [String(player.id), player]));
+  const boxByGame = new Map();
+  for (const event of cloudState?.events || []) {
+    if (event.event_type !== 'box_line') continue;
+    const pid = event.player_id ? playerByCloudId.get(event.player_id) : null;
+    if (pid == null) continue;
+    if (!boxByGame.has(event.game_id)) boxByGame.set(event.game_id, new Map());
+    const gamePlayers = boxByGame.get(event.game_id);
+    if (!gamePlayers.has(String(pid))) {
+      const roster = rosterByLocalId.get(String(pid)) || { id: pid, num: '', name: 'Player', pos: '' };
+      gamePlayers.set(String(pid), { ...roster, onCourt: true, q: {} });
+    }
+    const period = /^\d+$/.test(String(event.period)) ? Number(event.period) : String(event.period);
+    const stats = { onCourt: true, minsOn: 0, courtEnteredAt: null };
+    for (const [key, value] of Object.entries(event.payload || {})) stats[key] = Number(value || 0);
+    gamePlayers.get(String(pid)).q[period] = stats;
   }
   const games = (cloudState?.games || []).map((row) => ({
     id: localIdFromClientRef(row.client_ref, 'game'),
@@ -37,6 +56,7 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
     quarter: Number(row.current_period) || 1,
     teamPts: Number(row.team_score || 0),
     awayScore: Number(row.opponent_score || 0),
+    players: Array.from(boxByGame.get(row.id)?.values() || []),
     shots: shotsByGame.get(row.id) || [],
     localUpdatedAt: row.local_updated_at || row.updated_at,
     cloudSyncedAt: row.updated_at || new Date().toISOString(),

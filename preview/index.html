@@ -896,7 +896,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
     </div>
     <div class="settings-section" style="margin-bottom:0">
       <h4>About</h4>
-      <p class="api-key-note">GameIQ Elite v1.1 · Offline-first PWA · AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
+      <p class="api-key-note">GameIQ Elite v1.2.0 · build 2026-10-19 · Offline-first PWA · AI coaching powered by <a href="https://anthropic.com" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
     </div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById('dlgSettings').close()">Close</button></div>
   </div>
@@ -1865,21 +1865,8 @@ async function syncSavedGameToCloud(game,localTeam){
     await sync.withRetry(async()=>{
       const workspace=await sync.ensureWorkspace(sb,authUser);
       const syncedTeam=await sync.syncTeam(sb,authUser,workspace.id,localTeam);
-      const shots=(game.shots||[]).map((shot,index)=>({
-        id:shot.id??(game.id+'-'+index),
-        playerId:shot.pid==null?null:(syncedTeam.playerMap.get(sync.clientRef('player',shot.pid))||null),
-        made:Boolean(shot.made),
-        points:is3pt(shot.x,shot.y)?3:2,
-        x:shot.x??null,y:shot.y??null,
-        period:shot.q??shot.period??game.quarter??1,
-        clockSeconds:shot.clockSeconds??null,
-        localUpdatedAt:game.localUpdatedAt
-      }));
-      await sync.syncGameBundle(sb,authUser,syncedTeam.team.id,{
-        id:game.id,date:game.date,awayName:game.away,quarter:game.quarter,
-        teamScore:game.teamPts,awayScore:game.awayScore,periodSeconds:S.clock?.periodSecs||600,
-        status:'final',localUpdatedAt:game.localUpdatedAt,shots
-      });
+      const bundle=sync.buildGameBundle(game,syncedTeam.playerMap,{isThree:is3pt,periodSeconds:S.clock?.periodSecs||600});
+      await sync.syncGameBundle(sb,authUser,syncedTeam.team.id,bundle);
     },{attempts:3,baseMs:750,maxMs:3000});
     game.cloudSyncedAt=new Date().toISOString();
     game.cloudSyncError=null;
