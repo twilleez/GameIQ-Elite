@@ -132,6 +132,17 @@ export async function syncGameBundle(supabase, user, cloudTeamId, bundle) {
   if (!cloudTeamId) throw new Error('cloudTeamId is required');
   if (!bundle?.id) throw new Error('bundle.id is required');
 
+  // Never let an older copy of a game (e.g. from a second device) overwrite or
+  // prune a newer save that is already in the cloud.
+  const cloudCopy = await unwrap(
+    await supabase.from('games').select('*').eq('team_id', cloudTeamId).eq('client_ref', clientRef('game', bundle.id)).maybeSingle(),
+    'Check cloud game',
+  );
+  if (cloudCopy && bundle.localUpdatedAt && cloudCopy.local_updated_at
+    && new Date(cloudCopy.local_updated_at).getTime() > new Date(bundle.localUpdatedAt).getTime()) {
+    return { ...cloudCopy, skippedAsOlder: true };
+  }
+
   const game = await unwrap(
     await supabase.from('games').upsert({
       team_id: cloudTeamId,

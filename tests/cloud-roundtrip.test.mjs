@@ -197,3 +197,19 @@ test('QA bugs B and C: overtime and history-card summary survive restore', async
   assert.equal(restored.teamTov, 2);
   assert.deepEqual(restored.mvp, { name: 'Ava', pts: 13 });
 });
+
+test('QA P2: an older copy of a game cannot overwrite or prune a newer cloud save', async () => {
+  const sb = fakeSupabase();
+  const user = { id: 'user-1' };
+  const newer = sampleGame();
+  newer.localUpdatedAt = '2026-10-18T23:00:00.000Z';
+  const older = sampleGame();
+  older.localUpdatedAt = '2026-10-18T21:00:00.000Z';
+  older.shots = older.shots.slice(0, 2);
+  const ws = await sync.ensureWorkspace(sb, user);
+  const team = await sync.syncTeam(sb, user, ws.id, { id: 'td', name: 'Wildcats', players: newer.players });
+  await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(newer, team.playerMap));
+  const result = await sync.syncGameBundle(sb, user, team.team.id, sync.buildGameBundle(older, team.playerMap));
+  assert.equal(result.skippedAsOlder, true);
+  assert.equal(sb.tables.shots.length, newer.shots.length);
+});
