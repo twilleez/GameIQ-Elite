@@ -32,7 +32,7 @@ function defaultValue(type, payload, value) {
 export function makeEvent({ gameKey, deviceId = 'local', seq, type, pid = null, period = 1, clock = null, value, payload = {}, at, synthetic = false, ref } = {}) {
   if (!gameKey) throw new Error('gameKey is required');
   if (!type) throw new Error('type is required');
-  if (!Number.isFinite(Number(seq))) throw new Error('seq is required');
+  if (seq === null || seq === undefined || !Number.isFinite(Number(seq))) throw new Error('seq is required');
   if (type === 'shot' && ![2, 3].includes(Number(payload.pts))) throw new Error('shot payload.pts must be 2 or 3');
   return {
     ref: ref || `ev:${gameKey}:${deviceId}:${seq}`,
@@ -62,7 +62,14 @@ export function sortEvents(events = []) {
 
 // An event is active unless an ACTIVE void targets it. Voiding a void brings
 // its targets back (that is how "undo Clear shots" works).
-export function activeRefs(events = []) {
+// Keeps the first copy of each ref, so a ledger loaded twice never double-counts.
+export function dedupeEvents(events = []) {
+  const seen = new Set();
+  return events.filter((event) => (seen.has(event.ref) ? false : (seen.add(event.ref), true)));
+}
+
+export function activeRefs(input = []) {
+  const events = dedupeEvents(input);
   const byRef = new Map(events.map((event) => [event.ref, event]));
   const voidersOf = new Map();
   for (const event of events) {
@@ -73,11 +80,14 @@ export function activeRefs(events = []) {
     }
   }
   const memo = new Map();
-  const isActive = (ref, depth = 0) => {
+  const visiting = new Set();
+  const isActive = (ref) => {
     if (memo.has(ref)) return memo.get(ref);
-    if (depth > events.length) throw new Error('void cycle detected');
+    if (visiting.has(ref)) return false; // a void caught in a cycle has no effect
+    visiting.add(ref);
     const voiders = voidersOf.get(ref) || [];
-    const active = byRef.has(ref) && !voiders.some((voider) => isActive(voider, depth + 1));
+    const active = byRef.has(ref) && !voiders.some((voider) => isActive(voider));
+    visiting.delete(ref);
     memo.set(ref, active);
     return active;
   };
@@ -86,7 +96,7 @@ export function activeRefs(events = []) {
 
 export function activeEvents(events = []) {
   const active = activeRefs(events);
-  return sortEvents(events.filter((event) => active.has(event.ref)));
+  return sortEvents(dedupeEvents(events).filter((event) => active.has(event.ref)));
 }
 
 export function isStatEvent(event) {
@@ -112,10 +122,14 @@ export function applyEvent(cache, event) {
   const p = event.payload || {};
   switch (event.type) {
     case 'shot': {
-      const counters = countersFor(c, event.pid, event.period);
       const three = Number(p.pts) === 3;
-      counters[three ? 'p3a' : 'p2a'] += 1;
-      if (p.made) counters[three ? 'p3m' : 'p2m'] += 1;
+      // A shot with no player is a chart dot only: the box score has always been
+      // the sum of player lines, so it must not add to team totals.
+      if (event.pid != null) {
+        const counters = countersFor(c, event.pid, event.period);
+        counters[three ? 'p3a' : 'p2a'] += 1;
+        if (p.made) counters[three ? 'p3m' : 'p2m'] += 1;
+      }
       if (p.x != null && p.y != null) {
         c.shots.push({ pid: event.pid, x: p.x, y: p.y, type: p.made ? 'made' : 'miss', det: three ? '3pt' : '2pt', q: event.period, t: Date.parse(event.at) || null, ref: event.ref });
       }
@@ -163,10 +177,13 @@ export function rebuildBox(events = []) {
   return cache;
 }
 
-// Undo button: the most recent active stat event. Never targets a void, so
-// pressing Undo repeatedly never re-instates anything.
+// Undo button (spec rule 3): the most recent active event that is a stat event
+// or a non-undo void (so "Clear shots" can be undone). It never targets an
+// undo, so pressing Undo repeatedly never ping-pongs, and it never targets
+// migrated (synthetic) history.
 export function undoTarget(events = []) {
-  const candidates = activeEvents(events).filter(isStatEvent);
+  const candidates = activeEvents(events).filter((event) => !event.synthetic
+    && (isStatEvent(event) || (event.type === 'void' && event.payload?.reason !== 'undo')));
   return candidates.length ? candidates[candidates.length - 1] : null;
 }
 
@@ -178,7 +195,7 @@ export function minusTarget(events = [], { pid, type, period, made, pts, kind } 
     && String(event.period) === String(period)
     && (made === undefined || Boolean(event.payload?.made) === Boolean(made))
     && (pts === undefined || Number(event.payload?.pts) === Number(pts))
-    && (kind === undefined || (event.payload?.kind || 'personal') === kind));
+    && (kind === undefined || (event.payload?.kind || (event.type === 'foul' ? 'personal' : 'unk')) === kind));
   return matches.length ? matches[matches.length - 1] : null;
 }
 
@@ -212,7 +229,7 @@ export function possessions(teamCounters = {}, teamReb = { off: 0, unk: 0 }) {
   const fga = (teamCounters.p2a || 0) + (teamCounters.p3a || 0);
   const base = fga + (teamCounters.tov || 0) + 0.44 * (teamCounters.fta || 0);
   const high = round1(base - (teamReb.off || 0));
-  const low = round1(base - (teamReb.off || 0) - (teamReb.unk || 0));
+  const low = Math.max(0, round1(base - (teamReb.off || 0) - (teamReb.unk || 0)));
   return { exact: !(teamReb.unk > 0), value: high, low, high };
 }
 
@@ -236,13 +253,17 @@ export function migrateGame(game, { gameKey } = {}) {
 
   // 1. Chart shots, in recorded order.
   const chart = new Map(); // `${pid}|${period}` -> { m2, x2, m3, x3 }
-  const shots = [...(game.shots || [])].map((shot, i) => ({ shot, i })).sort((a, b) => (Number(a.shot.t || 0) - Number(b.shot.t || 0)) || (a.i - b.i));
-  for (const { shot, i } of shots) {
+  const validTime = (t) => (Number.isFinite(Number(t)) && Number(t) > 0 && !Number.isNaN(new Date(Number(t)).getTime()) ? Number(t) : null);
+  // Order by recorded time, but name each shot by a stable id (the same one cloud
+  // sync uses: shot.id, else "<gameId>-<index>") so every device derives the same ref.
+  const shots = [...(game.shots || [])].map((shot, i) => ({ shot, i, id: String(shot.id ?? `${gk}-${i}`) }))
+    .sort((a, b) => ((validTime(a.shot.t) ?? 0) - (validTime(b.shot.t) ?? 0)) || a.id.localeCompare(b.id));
+  for (const { shot, id } of shots) {
     const made = shot.type === 'made' || shot.made === true;
     const pts = shot.det === '3pt' || Number(shot.points) === 3 ? 3 : 2;
     const period = periodKey(shot.q ?? shot.period ?? 1);
     const pid = shot.pid ?? null;
-    push({ type: 'shot', pid, period, payload: { made, pts, x: shot.x ?? null, y: shot.y ?? null, src: 'chart' }, at: shot.t ? new Date(shot.t).toISOString() : at }, `chart:${i}`);
+    push({ type: 'shot', pid, period, payload: { made, pts, x: shot.x ?? null, y: shot.y ?? null, src: 'chart' }, at: validTime(shot.t) ? new Date(validTime(shot.t)).toISOString() : at }, `chart:${id}`);
     const key = `${pid}|${period}`;
     if (!chart.has(key)) chart.set(key, { m2: 0, x2: 0, m3: 0, x3: 0 });
     const tally = chart.get(key);
@@ -256,11 +277,18 @@ export function migrateGame(game, { gameKey } = {}) {
     for (const [rawPeriod, raw] of Object.entries(player.q || {})) {
       const period = periodKey(rawPeriod);
       const c = { ...emptyCounters(), ...Object.fromEntries(STAT_KEYS.map((k) => [k, Number(raw?.[k] || 0)])) };
-      // Data fix: a make always counts as an attempt (old Advanced "+made" skipped p2a/p3a).
-      for (const [m, a] of [['p2m', 'p2a'], ['p3m', 'p3a']]) if (c[m] > c[a]) { fixedAttempts += c[m] - c[a]; c[a] = c[m]; }
+      const tally = chart.get(`${player.id}|${period}`) || { m2: 0, x2: 0, m3: 0, x3: 0 };
+      // Data fix: every make is also an attempt (old Advanced "+made" skipped p2a/p3a),
+      // so attempts are at least makes plus the misses already on the chart.
+      for (const pts of [2, 3]) {
+        const minAttempts = c[`p${pts}m`] + tally[`x${pts}`];
+        if (c[`p${pts}a`] < minAttempts && c[`p${pts}m`] > c[`p${pts}a`] - tally[`x${pts}`]) {
+          fixedAttempts += minAttempts - c[`p${pts}a`];
+          c[`p${pts}a`] = minAttempts;
+        }
+      }
       (expected[String(player.id)] ||= {})[period] = c;
 
-      const tally = chart.get(`${player.id}|${period}`) || { m2: 0, x2: 0, m3: 0, x3: 0 };
       const tail = (type, n) => `${player.id}:${period}:${type}:${n}`;
       for (const pts of [2, 3]) {
         const made = Math.max(0, c[`p${pts}m`] - tally[`m${pts}`]);
@@ -292,9 +320,11 @@ export function migrateGame(game, { gameKey } = {}) {
   }
   if (rebuilt.oppPts !== Number(game.awayScore || 0)) mismatches.push({ pid: null, period: null, key: 'oppPts', expected: Number(game.awayScore || 0), actual: rebuilt.oppPts });
 
-  return { events, ok: mismatches.length === 0, mismatches, fixedAttempts, ledgerVersion: LEDGER_VERSION };
+  // Historic plus/minus can't be rebuilt without sub events; keep it alongside.
+  const legacyPm = game.legacyPm ?? game.pmData ?? null;
+  return { events, ok: mismatches.length === 0, mismatches, fixedAttempts, legacyPm, ledgerVersion: LEDGER_VERSION };
 }
 
 if (typeof window !== 'undefined') {
-  window.GameIQLedger = { LEDGER_VERSION, makeEvent, makeVoid, activeEvents, applyEvent, rebuildBox, undoTarget, minusTarget, migrateGame, tsPct, possessions, totals, points };
+  window.GameIQLedger = { LEDGER_VERSION, dedupeEvents, makeEvent, makeVoid, activeEvents, applyEvent, rebuildBox, undoTarget, minusTarget, migrateGame, tsPct, possessions, totals, points };
 }

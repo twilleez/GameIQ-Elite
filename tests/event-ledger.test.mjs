@@ -177,3 +177,56 @@ test('makeEvent validates input', () => {
   assert.throws(() => L.makeEvent({ gameKey: 'g', seq: 1, type: 'shot', payload: { made: true, pts: 4 } }), /pts/);
   assert.equal(L.makeEvent({ gameKey: 'g', deviceId: 'd1', seq: 5, type: 'ast' }).ref, 'ev:g:d1:5');
 });
+
+// ---------- Regression tests from QA review of #14 ----------
+
+test('QA P1: Advanced "+made" mixed with a charted miss migrates losslessly', () => {
+  const game = { id: 21, players: [{ id: 1, q: { 1: q({ p2m: 2, p2a: 1 }) } }], shots: [{ pid: 1, x: 200, y: 90, type: 'miss', det: '2pt', q: 1, t: 5 }] };
+  const result = L.migrateGame(game);
+  assert.equal(result.ok, true, JSON.stringify(result.mismatches));
+  assert.deepEqual(L.rebuildBox(result.events).box['1'][1], { ...L.emptyCounters(), p2m: 2, p2a: 3 });
+});
+
+test('QA P1: a cloud-restored copy (reordered, no t, string periods) yields the same ref for the same shot', () => {
+  const original = savedGame(55);
+  const restored = JSON.parse(JSON.stringify(original));
+  restored.shots = restored.shots.map((s, i) => ({ ...s, id: `55-${i}`, t: undefined, q: String(s.q) })).reverse();
+  const content = (r) => Object.fromEntries(r.events.filter((e) => e.payload.src === 'chart').map((e) => [e.ref, `${e.pid}|${e.payload.x}|${e.payload.y}|${e.payload.made}|${e.payload.pts}`]));
+  assert.deepEqual(content(L.migrateGame(restored)), content(L.migrateGame(original)));
+});
+
+test('QA P2: duplicate refs are only counted once', () => {
+  const { events } = L.migrateGame(savedGame(56));
+  assert.deepEqual(L.rebuildBox([...events, ...events]).box, L.rebuildBox(events).box);
+});
+
+test('QA P2: a team shot (pid null) stays a chart dot and never adds to totals', () => {
+  const game = { id: 57, players: [{ id: 1, q: { 1: q({ p2m: 1, p2a: 1 }) } }], shots: [{ pid: null, x: 1, y: 1, type: 'made', det: '2pt', q: 1, t: 1 }] };
+  const result = L.migrateGame(game);
+  const rebuilt = L.rebuildBox(result.events);
+  assert.equal(result.ok, true);
+  assert.equal(rebuilt.box.team, undefined);
+  assert.equal(rebuilt.shots.length, 1);
+});
+
+test('QA P2: topbar Undo can undo "Clear shots", but never an undo or migrated history', () => {
+  seq = 0;
+  const events = [shot(1, true, 2)];
+  events.push(L.makeVoid({ gameKey: GK, seq: ++seq, targets: [events[0].ref], reason: 'clear' }));
+  assert.equal(L.undoTarget(events).payload.reason, 'clear');
+  const migrated = L.migrateGame(savedGame(58)).events;
+  assert.equal(L.undoTarget(migrated), null);
+});
+
+test('QA P3: void cycles, bad timestamps, rebound kind default, null seq, negative possessions', () => {
+  const a = L.makeEvent({ gameKey: GK, seq: 900, type: 'void', payload: { targets: ['x2'], reason: 'edit' }, ref: 'x1' });
+  const b = L.makeEvent({ gameKey: GK, seq: 901, type: 'void', payload: { targets: ['x1'], reason: 'edit' }, ref: 'x2' });
+  assert.doesNotThrow(() => L.rebuildBox([a, b]));
+  assert.doesNotThrow(() => L.migrateGame({ id: 59, players: [], shots: [{ pid: 1, x: 1, y: 1, type: 'made', det: '2pt', q: 1, t: 'bogus' }] }));
+  seq = 0;
+  const reb = ev('reb', { pid: 4 });
+  assert.equal(L.minusTarget([reb], { pid: 4, type: 'reb', period: 1, kind: 'unk' }).ref, reb.ref);
+  assert.throws(() => L.makeEvent({ gameKey: 'g', seq: null, type: 'ast' }), /seq/);
+  assert.equal(L.possessions({ p2a: 10 }, { off: 0, unk: 20 }).low, 0);
+  assert.deepEqual(L.migrateGame({ id: 60, players: [], shots: [], pmData: { 1: 4 } }).legacyPm, { 1: 4 });
+});
