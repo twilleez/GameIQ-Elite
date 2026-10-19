@@ -92,8 +92,23 @@ export function cloudStateToLocal(cloudState, cloudTeam, fallbackTeamId = 'td') 
   }));
   // Ledger games: rebuild from the uploaded events and ignore box_line rows.
   const ledgerByGame = new Map();
+  // An old-build device re-saving a game refreshes only its box_line rows. Use
+  // the ledger only when its rows are at least as fresh as the box_line rows.
+  const freshest = (type) => {
+    const latest = new Map();
+    for (const row of cloudState?.events || []) {
+      if ((row.event_type === 'box_line') !== (type === 'box_line')) continue;
+      const t = Date.parse(row.local_updated_at || row.updated_at || 0) || 0;
+      if (t > (latest.get(row.game_id) || 0)) latest.set(row.game_id, t);
+    }
+    return latest;
+  };
+  const boxFresh = freshest('box_line');
+  const ledgerFresh = freshest('ledger');
+  const ledgerIsCurrent = (gameId) => (ledgerFresh.get(gameId) || 0) >= (boxFresh.get(gameId) || 0);
   for (const row of cloudState?.events || []) {
     if (!row.event_type || row.event_type === 'box_line') continue;
+    if (!ledgerIsCurrent(row.game_id)) continue;
     if (!ledgerByGame.has(row.game_id)) ledgerByGame.set(row.game_id, []);
     const { seq, synthetic, pid: localPid, ...payload } = row.payload || {};
     const pid = row.player_id ? (playerByCloudId.get(row.player_id) ?? localPid ?? null) : (localPid ?? null);

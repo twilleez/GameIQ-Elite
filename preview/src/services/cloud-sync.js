@@ -204,6 +204,10 @@ export async function syncGameBundle(supabase, user, cloudTeamId, bundle) {
   if (bundle.prune !== false) {
     await pruneStaleRows(supabase, 'shots', game.id, (bundle.shots || []).map((shot, index) => clientRef('shot', shot.id ?? `${bundle.id}-${index}`)));
     await pruneStaleRows(supabase, 'game_events', game.id, (bundle.events || []).filter((event) => (event.type || 'stat') === BOX_LINE_EVENT).map((event, index) => clientRef('event', event.id ?? `${bundle.id}-${index}`)), BOX_LINE_EVENT);
+    // A save without ledger events (ledger off or failed) makes box_line the truth:
+    // remove ledger rows left by an earlier save so they can't override it on restore.
+    const hasLedgerEvents = (bundle.events || []).some((event) => (event.type || 'stat') !== BOX_LINE_EVENT);
+    if (!hasLedgerEvents) await pruneLedgerRows(supabase, game.id);
   }
 
   if (bundle.lineupStints?.length) {
@@ -328,14 +332,32 @@ async function pruneStaleRows(supabase, table, gameId, keepRefs, eventType = nul
   return stale.length;
 }
 
+async function pruneLedgerRows(supabase, gameId) {
+  const existing = await unwrap(await supabase.from('game_events').select('client_ref,event_type').eq('game_id', gameId), 'Load ledger rows for cleanup');
+  const stale = (existing || []).filter((row) => row.event_type !== BOX_LINE_EVENT).map((row) => row.client_ref);
+  if (!stale.length) return 0;
+  await unwrap(await supabase.from('game_events').delete().eq('game_id', gameId).in('client_ref', stale), 'Remove stale ledger rows');
+  return stale.length;
+}
+
 export async function pullTeamCloudState(supabase, cloudTeamId, since = null) {
   requireClient(supabase);
   if (!cloudTeamId) throw new Error('cloudTeamId is required');
 
-  const query = (table) => {
-    let q = supabase.from(table).select('*').eq('team_id', cloudTeamId);
-    if (since) q = q.gt('updated_at', since);
-    return q.order('updated_at', { ascending: true });
+  // Supabase returns at most ~1000 rows per request, so read every table in
+  // pages; a truncated event list would silently restore a wrong box score.
+  const PAGE = 1000;
+  const query = async (table) => {
+    const rows = [];
+    for (let from = 0; ; from += PAGE) {
+      let q = supabase.from(table).select('*').eq('team_id', cloudTeamId);
+      if (since) q = q.gt('updated_at', since);
+      const result = await q.order('updated_at', { ascending: true }).order('id', { ascending: true }).range(from, from + PAGE - 1);
+      if (result?.error) return result;
+      rows.push(...(result?.data || []));
+      if (!result?.data || result.data.length < PAGE) break;
+    }
+    return { data: rows, error: null };
   };
 
   const [players, games, events, shots, lineups] = await Promise.all([
