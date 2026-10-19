@@ -170,6 +170,45 @@ const tap = async (page, vx, vy) => {
   await ctx.close();
 }
 
+// 5. QA regressions: New Game -> Undo -> Save, remove player -> Undo, team switch, toast above nav.
+{
+  const ctx = await newContext();
+  const { page, errors } = await openPage(ctx);
+  await go(page, 'live');
+  await addPlayers(page, ['Ava', 'Bea']);
+  for (let i = 0; i < 3; i++) await stepper(page, 1, 'ftm', 'plus');
+  await page.click('#saveBtn', { force: true }); await page.waitForTimeout(250);
+  await page.click('#newBtn', { force: true }); await page.waitForTimeout(250);
+  check('New Game clears the score', await score(page) === '0', await score(page));
+  await undo(page);
+  check('Undo after New Game brings the previous game back', await score(page) === '3', await score(page));
+  await stepper(page, 1, 'reb', 'plus');
+  await page.click('#saveBtn', { force: true }); await page.waitForTimeout(250);
+  await go(page, 'season');
+  const saved = await page.locator('[data-del-game]').count();
+  const card = await page.locator('.hcard:has([data-del-game])').first().innerText();
+  await go(page, 'live');
+  check('saving after that undo keeps the 3 points (no overwrite with an empty game)', saved === 1 && /\n3\n/.test(card) && /1 reb/.test(card), JSON.stringify({ saved, card }));
+
+  await page.evaluate(() => { const b = document.querySelector('.pcard[data-pid="2"] .del-btn'); b && b.click(); });
+  await page.waitForTimeout(200);
+  check('player removed', await page.locator('.pcard[data-pid="2"]').count() === 0);
+  await undo(page);
+  check('Undo after removing a player restores the player', await page.locator('.pcard[data-pid="2"]').count() === 1);
+
+  await page.selectOption('#shotPlayerSel', { index: 1 });
+  await tap(page, 200, 60);
+  const geo = await page.evaluate(() => {
+    const t = document.querySelector('#toast').getBoundingClientRect();
+    const nav = document.querySelector('.footernav');
+    const n = nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect() : null;
+    return { toastBottom: Math.round(t.bottom), navTop: n ? Math.round(n.top) : null };
+  });
+  check('toast sits above the bottom nav', geo.navTop === null || geo.toastBottom <= geo.navTop, JSON.stringify(geo));
+  check('no script errors', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} passed`);

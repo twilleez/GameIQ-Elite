@@ -303,6 +303,7 @@ dialog::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
   .g2,.g2r,.gcols{grid-template-columns:minmax(0,1fr);width:100%;min-width:0;max-width:100%}
   .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
   .card,.card-body,.gstack,.players-list,.pcard{min-width:0}
+  .toast{bottom:calc(84px + var(--safe-b))}
   .footernav{
     display:flex;position:fixed;left:0;right:0;bottom:0;
     padding:8px 10px calc(8px + var(--safe-b));gap:6px;
@@ -1175,6 +1176,8 @@ function ensureLedger(){
   LG[S.activeTeamId]=lg;saveLedger();
   return lg.error?null:lg;
 }
+// Called whenever the active team changes: its own ledger drives the screen.
+function onTeamSwitched(){if(!LEDGER)return;if(curLedger())applyLedger();else{S.awayScore=0}}
 function startNewLedger(){if(LEDGER){LG[S.activeTeamId]={gameKey:String(Date.now()),seq:0,events:[],legacyPm:null,error:null};saveLedger()}}
 // Rebuilds the derived cache for the active team from its ledger.
 function applyLedger(){
@@ -1198,8 +1201,26 @@ function applyLedger(){
 function appendEvent(type,{pid=null,payload={},value}={}){
   const lg=ensureLedger();if(!lg)return null;
   const e=LEDGER.makeEvent({gameKey:lg.gameKey,deviceId:deviceId(),seq:++lg.seq,type,pid,period:aq(),clock:S.clock?.secs??null,value,payload});
-  lg.events.push(e);applyLedger();saveLedger();
+  lg.events.push(e);
+  if(!applyIncremental(e))applyLedger();
+  saveLedger();
   return e;
+}
+// Fast path for one new stat event: update only what it touches.
+function applyIncremental(e){
+  const p=e.pid==null?null:team().players.find(x=>String(x.id)===String(e.pid));
+  const pl=e.payload||{};
+  const bump=(k,n=1)=>{if(!p)return;p.q=p.q||{};const c=p.q[e.period]||(p.q[e.period]=eq());c[k]=(c[k]||0)+n};
+  switch(e.type){
+    case "shot":if(e.pid==null||!p)return false;bump(pl.pts===3?"p3a":"p2a");if(pl.made)bump(pl.pts===3?"p3m":"p2m");
+      if(pl.x!=null&&pl.y!=null)S.shots.push({pid:e.pid,x:pl.x,y:pl.y,type:pl.made?"made":"miss",det:pl.pts===3?"3pt":"2pt",q:e.period,t:Date.parse(e.at)||Date.now(),ref:e.ref});return true;
+    case "ft":if(!p)return false;bump("fta");if(pl.made)bump("ftm");return true;
+    case "reb":case "ast":case "tov":case "stl":case "blk":if(!p)return false;bump(e.type);return true;
+    case "foul":if(!p)return false;bump(pl.kind==="technical"?"tfouls":"fouls");return true;
+    case "opp_pts":S.awayScore=Math.max(0,(S.awayScore||0)+Number(e.value||0));return true;
+    case "period":return true;
+    default:return false; // subs and anything else: full rebuild
+  }
 }
 function voidEvents(targets,reason){
   const lg=ensureLedger();if(!lg||!targets.length)return null;
@@ -1219,7 +1240,11 @@ function describeEvent(e){
     case "foul":return `${who}${pl.kind==="technical"?"Tech foul":"Foul"}`;
     case "sub":return `${who}${pl.dir==="in"?"On court":"To bench"}`;
     case "opp_pts":return `Opponent ${Number(e.value)>0?"+":""}${e.value}`;
-    case "void":return pl.reason==="clear"?"Clear shots":"Correction";
+    case "void":{
+      if(pl.reason==="clear")return "Clear shots";
+      const t=curLedger()?.events.find(x=>x.ref===pl.targets?.[0]);
+      return t?(pl.reason==="minus"?"removal of ":"correction of ")+describeEvent(t):"Correction";
+    }
     default:return e.type;
   }
 }
@@ -1282,11 +1307,12 @@ async function hydrate(){
 }
 
 const UNDO_KEYS=["teams","activeTeamId","shots","awayScore","pmData","quarter","nextId","timeouts","currentGameId"];
-function snap(){const c={};UNDO_KEYS.forEach(k=>{if(S[k]!==undefined)c[k]=S[k]});return JSON.parse(JSON.stringify(c))}
+function snap(){const c={};UNDO_KEYS.forEach(k=>{if(S[k]!==undefined)c[k]=S[k]});if(typeof LEDGER!=="undefined"&&LEDGER){c.__ledgers=LG;c.__seq=curLedger()?.seq??-1}return JSON.parse(JSON.stringify(c))}
 function pushH(){const s=snap();S.histStack.push(s);if(S.histStack.length>40)S.histStack.shift()}
 function undo(){
   const p=S.histStack.pop();if(!p)return false;
   UNDO_KEYS.forEach(k=>{if(k in p)S[k]=p[k];else if(k==="currentGameId")S[k]=null});
+  if(p.__ledgers){LG=p.__ledgers;saveLedger()}
   if(!S.teams.find(t=>t.id===S.activeTeamId))S.activeTeamId=S.teams[0].id;
   return true;
 }
@@ -1727,7 +1753,7 @@ function renderTeamsView(){
         <div class="player-chips">${t.players.map(p=>`<span class="pchip">#${esc(p.num)} ${esc(p.name)}</span>`).join("")}</div>
       </div>`).join("");
     tl.querySelectorAll(".sel-team").forEach(b=>b.addEventListener("click",()=>{
-      S.activeTeamId=b.dataset.tid;persist();doRender();toast("Team switched");
+      S.activeTeamId=b.dataset.tid;onTeamSwitched();persist();doRender();toast("Team switched");
     }));
     tl.querySelectorAll(".del-team").forEach(b=>b.addEventListener("click",()=>{
       if(!confirm("Delete this team?"))return;
@@ -1915,14 +1941,14 @@ function adjustStat(pid,stat,delta){
   const p=team().players.find(x=>x.id===pid);if(!p)return;
   const spec=STEPPER_EVENTS[stat];
   if(spec&&ensureLedger()){
-    if(delta>0){appendEvent(spec.type,{pid,payload:spec.payload})}
-    else{const t=LEDGER.minusTarget(curLedger().events,{pid,type:spec.type,period:aq(),...spec.match});if(t)voidEvents([t.ref],"minus")}
+    let ev=null,removed=null;
+    if(delta>0){ev=appendEvent(spec.type,{pid,payload:spec.payload})}
+    else{removed=LEDGER.minusTarget(curLedger().events,{pid,type:spec.type,period:aq(),...spec.match});if(removed)ev=voidEvents([removed.ref],"minus")}
     persist();
     const q=p.q?.[aq()]||eq();
-    if(stat==="fouls"&&delta>0){
-      if(q.fouls>=5)toast(`🚨 ${p.name} — 5th foul!`,"err");
-      else if(q.fouls>=3)toast(`⚠️ ${p.name} — ${q.fouls} fouls`,"");
-    }
+    if(stat==="fouls"&&delta>0&&q.fouls>=5)toast(`🚨 ${p.name} — 5th foul!`,"err");
+    else if(stat==="fouls"&&delta>0&&q.fouls>=3)toast(`⚠️ ${p.name} — ${q.fouls} fouls`,"");
+    else if(ev)toastWithUndo(removed?"Removed: "+describeEvent(removed):describeEvent(ev),ev,"");
     scheduleRender();return;
   }
   pushH();
@@ -2304,7 +2330,9 @@ async function init(){
   if(undoBtn)undoBtn.addEventListener("click",()=>{
     const lg=ensureLedger();
     const target=lg?LEDGER.undoTarget(lg.events):null;
-    if(target){voidEvents([target.ref],"undo");persist();doRender();toast("Undid: "+describeEvent(target),"ok");return}
+    const top=S.histStack[S.histStack.length-1];
+    const snapshotIsNewer=top&&(!target||(top.__seq??-1)>=target.seq);
+    if(target&&!snapshotIsNewer){voidEvents([target.ref],"undo");persist();doRender();toast("Undid: "+describeEvent(target),"ok");return}
     if(undo()){applyLedger();persist();doRender();toast("Undone","ok")}
     else toast("Nothing to undo","");
   });
@@ -2481,7 +2509,7 @@ async function init(){
 
   const teamSelect=$("teamSelect");
   if(teamSelect)teamSelect.addEventListener("change",()=>{
-    S.activeTeamId=teamSelect.value;persist();doRender();
+    S.activeTeamId=teamSelect.value;onTeamSwitched();persist();doRender();
   });
   const createTeamBtn=$("createTeamBtn");
   if(createTeamBtn)createTeamBtn.addEventListener("click",()=>{
@@ -2490,7 +2518,7 @@ async function init(){
     if(S.teams.length>=lim&&!isPro()){toast(`Free plan: max ${lim} team. Upgrade for more.`,"err");openPricing();return}
     const id="t"+Date.now();
     S.teams.push({id,name:nm,players:[]});
-    S.activeTeamId=id;
+    S.activeTeamId=id;onTeamSwitched();
     if($("newTeamName"))$("newTeamName").value="";
     persist();doRender();toast(`${nm} created`,"ok");
   });
