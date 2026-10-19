@@ -280,11 +280,15 @@ export function migrateGame(game, { gameKey } = {}) {
       const tally = chart.get(`${player.id}|${period}`) || { m2: 0, x2: 0, m3: 0, x3: 0 };
       // Data fix: every make is also an attempt (old Advanced "+made" skipped p2a/p3a),
       // so attempts are at least makes plus the misses already on the chart.
+      // Only repair what that bug can explain: at most one missing attempt per
+      // make that is not on the chart. Anything larger is a real inconsistency,
+      // left for the invariant check to reject (ok=false) so counters are kept.
       for (const pts of [2, 3]) {
-        const minAttempts = c[`p${pts}m`] + tally[`x${pts}`];
-        if (c[`p${pts}a`] < minAttempts && c[`p${pts}m`] > c[`p${pts}a`] - tally[`x${pts}`]) {
-          fixedAttempts += minAttempts - c[`p${pts}a`];
-          c[`p${pts}a`] = minAttempts;
+        const deficit = (c[`p${pts}m`] + tally[`x${pts}`]) - c[`p${pts}a`];
+        const explainable = Math.max(0, c[`p${pts}m`] - tally[`m${pts}`]);
+        if (deficit > 0 && deficit <= explainable) {
+          fixedAttempts += deficit;
+          c[`p${pts}a`] += deficit;
         }
       }
       (expected[String(player.id)] ||= {})[period] = c;

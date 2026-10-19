@@ -230,3 +230,16 @@ test('QA P3: void cycles, bad timestamps, rebound kind default, null seq, negati
   assert.equal(L.possessions({ p2a: 10 }, { off: 0, unk: 20 }).low, 0);
   assert.deepEqual(L.migrateGame({ id: 60, players: [], shots: [], pmData: { 1: 4 } }).legacyPm, { 1: 4 });
 });
+
+test('QA P1 (round 2): the attempts fix never masks counters the old bug cannot explain', () => {
+  const miss2 = { pid: 1, x: 200, y: 90, type: 'miss', det: '2pt', q: 1, t: 1 };
+  const miss3 = (t) => ({ pid: 1, x: 20, y: 100, type: 'miss', det: '3pt', q: 1, t });
+  // A: no makes, a charted miss, but attempts stepped back to 0 -> real inconsistency
+  assert.equal(L.migrateGame({ id: 70, players: [{ id: 1, q: { 1: q({}) } }], shots: [miss2] }).ok, false);
+  // B: 1/1 from three, plus three charted 3pt misses -> deficit 3 > 1 make -> reject
+  assert.equal(L.migrateGame({ id: 71, players: [{ id: 1, q: { 1: q({ p3m: 1, p3a: 1 }) } }], shots: [miss3(1), miss3(2), miss3(3)] }).ok, false);
+  // The genuine old-bug case still repairs
+  const fixed = L.migrateGame({ id: 72, players: [{ id: 1, q: { 1: q({ p2m: 2, p2a: 1 }) } }], shots: [miss2] });
+  assert.equal(fixed.ok, true);
+  assert.equal(fixed.fixedAttempts, 2);
+});
