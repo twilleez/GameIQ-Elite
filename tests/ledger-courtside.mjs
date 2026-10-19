@@ -209,6 +209,24 @@ const tap = async (page, vx, vy) => {
   await ctx.close();
 }
 
+// 6. QA round 2: one Undo after New Game + taps must only remove the last tap.
+{
+  const ctx = await newContext();
+  const { page, errors } = await openPage(ctx);
+  await go(page, 'live');
+  await addPlayers(page, ['Ava']);
+  for (let i = 0; i < 6; i++) await stepper(page, 1, 'ftm', 'plus');
+  await page.click('#saveBtn', { force: true }); await page.waitForTimeout(250);
+  await page.click('#newBtn', { force: true }); await page.waitForTimeout(250);
+  for (let i = 0; i < 5; i++) await stepper(page, 1, 'reb', 'plus');
+  await stepper(page, 1, 'ast', 'plus');
+  await undo(page);
+  const state = [await tileValue(page, 1, 'reb'), await tileValue(page, 1, 'ast'), await score(page)];
+  check('one Undo in a new game removes only its last tap', JSON.stringify(state) === JSON.stringify([5, 0, '0']), JSON.stringify(state));
+  check('no script errors', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} passed`);

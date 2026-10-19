@@ -1307,7 +1307,7 @@ async function hydrate(){
 }
 
 const UNDO_KEYS=["teams","activeTeamId","shots","awayScore","pmData","quarter","nextId","timeouts","currentGameId"];
-function snap(){const c={};UNDO_KEYS.forEach(k=>{if(S[k]!==undefined)c[k]=S[k]});if(typeof LEDGER!=="undefined"&&LEDGER){c.__ledgers=LG;c.__seq=curLedger()?.seq??-1}return JSON.parse(JSON.stringify(c))}
+function snap(){const c={};UNDO_KEYS.forEach(k=>{if(S[k]!==undefined)c[k]=S[k]});if(typeof LEDGER!=="undefined"&&LEDGER){c.__ledgers=LG;c.__seq=curLedger()?.seq??-1;c.__key=S.activeTeamId+"|"+(curLedger()?.gameKey??"")}return JSON.parse(JSON.stringify(c))}
 function pushH(){const s=snap();S.histStack.push(s);if(S.histStack.length>40)S.histStack.shift()}
 function undo(){
   const p=S.histStack.pop();if(!p)return false;
@@ -2331,7 +2331,10 @@ async function init(){
     const lg=ensureLedger();
     const target=lg?LEDGER.undoTarget(lg.events):null;
     const top=S.histStack[S.histStack.length-1];
-    const snapshotIsNewer=top&&(!target||(top.__seq??-1)>=target.seq);
+    // Tap counters restart per game and per team, so a snapshot only outranks a
+    // tap when both belong to the same ledger.
+    const sameLedger=top&&lg&&top.__key===S.activeTeamId+"|"+lg.gameKey;
+    const snapshotIsNewer=top&&(!target||(sameLedger&&(top.__seq??-1)>=target.seq));
     if(target&&!snapshotIsNewer){voidEvents([target.ref],"undo");persist();doRender();toast("Undid: "+describeEvent(target),"ok");return}
     if(undo()){applyLedger();persist();doRender();toast("Undone","ok")}
     else toast("Nothing to undo","");
